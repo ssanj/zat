@@ -1,45 +1,10 @@
 use std::fs::create_dir;
 
 use walkdir::WalkDir;
-use std::fmt;
 use std::fs;
+use crate::models::*;
 
-#[derive(Debug, Clone)]
-struct SourceFile(String);
-
-#[derive(Debug, Clone)]
-struct TargetFile(String);
-
-impl fmt::Display for SourceFile {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl fmt::Display for TargetFile {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-
-#[derive(Debug, Clone)]
-enum FileTypes {
-  File(SourceFile, TargetFile),
-  Dir(String),
-}
-
-impl fmt::Display for FileTypes {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-      let path = match self {
-        FileTypes::File(SourceFile(src), TargetFile(tgt)) => format!("FileTypes::File({}, {})", src, tgt),
-        FileTypes::Dir(p) => format!("FileTypes::Dir({})", p),
-      };
-
-      write!(f, "{}", path)
-    }
-}
-
+mod models;
 
 fn main() {
   let template_dir =  "/Users/sanj/ziptemp/st-template";
@@ -68,7 +33,6 @@ fn main() {
         } else {
           FileTypes::Dir(target_path)
         }
-
       });
 
   for target_file in target_files_it {
