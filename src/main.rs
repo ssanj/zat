@@ -4,16 +4,35 @@ use walkdir::WalkDir;
 use std::fmt;
 
 #[derive(Debug, Clone)]
+struct SourceFile(String);
+
+#[derive(Debug, Clone)]
+struct TargetFile(String);
+
+impl fmt::Display for SourceFile {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl fmt::Display for TargetFile {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+
+#[derive(Debug, Clone)]
 enum FileTypes {
-  File(String),
+  File(SourceFile, TargetFile),
   Dir(String),
 }
 
 impl fmt::Display for FileTypes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
       let path = match self {
-        FileTypes::File(p) => p,
-        FileTypes::Dir(p) => p
+        FileTypes::File(SourceFile(src), TargetFile(tgt)) => format!("FileTypes::File({}, {})", src, tgt),
+        FileTypes::Dir(p) => format!("FileTypes::Dir({})", p),
       };
 
       write!(f, "{}", path)
@@ -24,8 +43,6 @@ impl fmt::Display for FileTypes {
 fn main() {
   let template_dir =  "/Users/sanj/ziptemp/st-template";
   let target_dir =  "/Users/sanj/ziptemp/template-expansion";
-
-  let _: () = create_dir(target_dir).expect("Could not created target dir");
 
   let target_files_it =
     WalkDir::new(template_dir)
@@ -44,9 +61,9 @@ fn main() {
 
         if dir_entry
             .metadata()
-            .expect(&format!("could not retrieve metadata for file: {}", file_path))
+            .expect(&format!("Could not retrieve metadata for file: {}", file_path))
             .is_file() {
-              FileTypes::File(target_path)
+              FileTypes::File(SourceFile(file_path.to_string()), TargetFile(target_path))
         } else {
           FileTypes::Dir(target_path)
         }
@@ -54,8 +71,18 @@ fn main() {
       });
 
   for target_file in target_files_it {
-      // remove template dir from path
-      println!("{}", target_file);
-      // create_dir(format!("{}/{}", target_dir))
+    println!("{}", target_file);
+    match target_file {
+      FileTypes::File(source_file, target_file) => copy_file(source_file, target_file),
+      FileTypes::Dir(dir_path) => create_directory(&dir_path),
+    }
+  }
+
+  fn copy_file(source_file: SourceFile, target_file: TargetFile) {
+    println!("copying file: {} -> {}", source_file, target_file)
+  }
+
+  fn create_directory(directory_path: &str) {
+    create_dir(directory_path).expect(&format!("Could not created target dir: {}", directory_path));
   }
 }
