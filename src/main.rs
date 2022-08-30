@@ -2,6 +2,7 @@ use std::fs::create_dir;
 
 use walkdir::WalkDir;
 use std::fmt;
+use std::fs;
 
 #[derive(Debug, Clone)]
 struct SourceFile(String);
@@ -79,7 +80,9 @@ fn main() {
   }
 
   fn copy_file(source_file: SourceFile, target_file: TargetFile) {
-    println!("copying file: {} -> {}", source_file, target_file)
+    println!("copying file: {} -> {}", source_file, target_file);
+    let content = fs::read(source_file.clone().0).expect(&format!("Could not read source file: {}", source_file.0));
+    fs::write(target_file.clone().0, content).expect(&format!("Could not write target file: {}", target_file.0));
   }
 
   fn create_directory(directory_path: &str) {
