@@ -7,10 +7,19 @@ use crate::models::*;
 mod models;
 
 fn main() {
-  let template_dir =  "/Users/sanj/ziptemp/st-template";
-  let target_dir =  "/Users/sanj/ziptemp/template-expansion";
+  let template_dir =  TemplateDir::new("/Users/sanj/ziptemp/st-template");
+  let target_dir =  TargetDir::new("/Users/sanj/ziptemp/template-expansion");
 
-  let target_files_it =
+  let target_files_it = get_files_to_process(&template_dir, &target_dir);
+  for target_file in target_files_it {
+    println!("{}", target_file);
+    match target_file {
+      FileTypes::File(source_file, target_file) => copy_file(source_file, target_file),
+      FileTypes::Dir(dir_path) => create_directory(&dir_path),
+    }
+  }
+
+  fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir) -> Vec<FileTypes> {
     WalkDir::new(template_dir)
       .into_iter()
       .filter_map(|re| re.ok())
@@ -22,8 +31,8 @@ fn main() {
       })
       .map(|dir_entry|{
         let file_path = dir_entry.path().to_string_lossy();
-        let relative_target_path = file_path.strip_prefix(template_dir).expect(&format!("Could remove template prefix from directory: {}", file_path));
-        let target_path = format!("{}{}", target_dir, relative_target_path);
+        let relative_target_path = file_path.strip_prefix(&template_dir.path).expect(&format!("Could remove template prefix from directory: {}", file_path));
+        let target_path = format!("{}{}", target_dir.path, relative_target_path);
 
         if dir_entry
             .metadata()
@@ -33,14 +42,8 @@ fn main() {
         } else {
           FileTypes::Dir(target_path)
         }
-      });
-
-  for target_file in target_files_it {
-    println!("{}", target_file);
-    match target_file {
-      FileTypes::File(source_file, target_file) => copy_file(source_file, target_file),
-      FileTypes::Dir(dir_path) => create_directory(&dir_path),
-    }
+      })
+      .collect()
   }
 
   fn copy_file(source_file: SourceFile, target_file: TargetFile) {

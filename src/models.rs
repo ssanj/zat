@@ -1,10 +1,51 @@
-use std::fmt;
+use std::{fmt, path::Path};
+
 
 #[derive(Debug, Clone)]
 pub struct SourceFile(pub String);
 
 #[derive(Debug, Clone)]
 pub struct TargetFile(pub String);
+
+
+#[derive(Debug, Clone)]
+pub struct TargetDir {
+  pub path: String
+}
+
+impl TargetDir {
+  pub fn new(path: &str) -> Self {
+    TargetDir {
+      path: path.to_owned()
+    }
+  }
+}
+
+impl AsRef<Path> for TargetDir {
+  fn as_ref(&self) -> &Path {
+      &Path::new(&self.path)
+  }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct TemplateDir {
+  pub path: String
+}
+
+impl TemplateDir {
+  pub fn new(path: &str) -> Self {
+    TemplateDir {
+      path: path.to_owned(),
+    }
+  }
+}
+
+impl AsRef<Path> for TemplateDir {
+  fn as_ref(&self) -> &Path {
+      &Path::new(&self.path)
+  }
+}
 
 impl fmt::Display for SourceFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
