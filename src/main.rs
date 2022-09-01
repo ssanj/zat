@@ -23,10 +23,15 @@ fn main() {
   let token_values: Vec<&&str> = token_map.values().collect();
   let ac = AhoCorasick::new(token_keys);
 
+  let replace_tokens = |haystack: &str| {
+    let result = &ac.replace_all(haystack, &token_values);
+    result.to_owned()
+  };
+
   for target_file in target_files_it {
     match target_file {
-      FileTypes::File(source_file, target_file) => copy_file(&ac, &token_values, source_file, target_file),
-      FileTypes::Dir(dir_path) => create_directory(&ac, &token_values, &dir_path),
+      FileTypes::File(source_file, target_file) => copy_file(replace_tokens, source_file, target_file),
+      FileTypes::Dir(dir_path) => create_directory(replace_tokens, &dir_path),
     }
   }
 
@@ -57,15 +62,19 @@ fn main() {
       .collect()
   }
 
-  fn copy_file(token_map: &AhoCorasick, token_values: &[&&str], source_file: SourceFile, target_file: TargetFile) {
-    let target_file_with_tokens_replaced = token_map.replace_all(&target_file.0, token_values);
+  fn copy_file<F>(replace_tokens: F, source_file: SourceFile, target_file: TargetFile) where
+    F: Fn(&str) -> String
+  {
+    let target_file_with_tokens_replaced = replace_tokens(&target_file.0);
 
     let content = fs::read(source_file.clone().0).expect(&format!("Could not read source file: {}", source_file.0));
     fs::write(&target_file_with_tokens_replaced, content).expect(&format!("Could not write target file: {}", &target_file_with_tokens_replaced));
   }
 
-  fn create_directory(token_map: &AhoCorasick, token_values: &[&&str], directory_path: &str) {
-    let directory_path_with_tokens_replaced = token_map.replace_all(directory_path, token_values);
+  fn create_directory<F>(replace_tokens: F, directory_path: &str) where
+    F: Fn(&str) -> String
+  {
+    let directory_path_with_tokens_replaced = replace_tokens(directory_path);
     println!("dir: {} -> {}", directory_path, directory_path_with_tokens_replaced);
     create_dir(directory_path_with_tokens_replaced).expect(&format!("Could not created target dir: {}", directory_path));
   }
