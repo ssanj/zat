@@ -1,17 +1,54 @@
+use std::io::{stdin, BufRead};
 use std::{fs::create_dir, collections::HashMap, path::Path};
 
 use walkdir::WalkDir;
 use std::fs;
 use crate::models::*;
+use crate::variables::*;
 use aho_corasick::AhoCorasick;
 
 mod models;
+mod variables;
 
 fn main() {
   let template_dir =  TemplateDir::new("/Users/sanj/ziptemp/st-template");
   let target_dir =  TargetDir::new("/Users/sanj/ziptemp/template-expansion");
 
-  process_template(&template_dir, &target_dir)
+  let dummy_json = r#"
+    [
+      {
+        "variable_name": "project",
+        "description": "Name of project",
+        "prompt": "Please enter your project name"
+      },
+      {
+        "variable_name": "plugin_description",
+        "description": "Explain what your plugin is about",
+        "prompt": "Please enter your plugin description"
+      }
+    ]
+  "#;
+
+  let variables: Vec<TemplateVariable> = serde_json::from_str(&dummy_json).unwrap();
+  let stdin = std::io::stdin();
+
+  let mut token_map = HashMap::new();
+
+  for v in variables {
+    println!("{}:", v.prompt);
+    let mut variable_value = String::new();
+    if let Ok(read_count) = stdin.read_line(&mut variable_value) {
+      if read_count > 0 {
+        let _ = variable_value.pop();
+      }
+
+      token_map.insert(v.variable_name, variable_value);
+    }
+  }
+
+  println!("tokens: {:?}", token_map)
+
+  // process_template(&template_dir, &target_dir)
 }
 
 fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir) {
