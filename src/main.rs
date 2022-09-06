@@ -8,12 +8,13 @@ use aho_corasick::AhoCorasick;
 mod models;
 
 fn main() {
-  process_template()
-}
-
-fn process_template() {
   let template_dir =  TemplateDir::new("/Users/sanj/ziptemp/st-template");
   let target_dir =  TargetDir::new("/Users/sanj/ziptemp/template-expansion");
+
+  process_template(&template_dir, &target_dir)
+}
+
+fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir) {
 
   let target_files_it = get_files_to_process(&template_dir, &target_dir);
 
