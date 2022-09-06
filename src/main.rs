@@ -1,4 +1,4 @@
-use std::{fs::create_dir, collections::HashMap};
+use std::{fs::create_dir, collections::HashMap, path::Path};
 
 use walkdir::WalkDir;
 use std::fs;
@@ -66,9 +66,24 @@ fn main() {
     F: Fn(&str) -> String
   {
     let target_file_with_tokens_replaced = replace_tokens(&target_file.0);
-
     let content = fs::read(source_file.clone().0).expect(&format!("Could not read source file: {}", source_file.0));
-    fs::write(&target_file_with_tokens_replaced, content).expect(&format!("Could not write target file: {}", &target_file_with_tokens_replaced));
+
+    let target_file_path = Path::new(&target_file_with_tokens_replaced);
+    println!("file: {} -> {}", &source_file.0, target_file_path.to_string_lossy());
+
+    if let Some("tmpl") = target_file_path.extension().map(|p| p.to_string_lossy().to_owned()).as_deref() { // It's a template
+      println!("file tmp");
+      let target_dir_path = Path::new(&target_file.0).parent().expect(&format!("Could not get parent path for: {}", &target_file.0));
+      let str_content = std::str::from_utf8(&content).expect("Could not convert content to bytes to String");
+      let content_with_tokens_replaced = replace_tokens(&str_content);
+      let target_file_path_templated = target_file_path.file_stem().expect("Could not retrieve file name stem");
+      let full_target_file_path_templated = target_dir_path.join(target_file_path_templated);
+      let full_target_file_path_templated_str = full_target_file_path_templated.to_string_lossy();
+      println!("writing file: {} -> {}", &source_file.0, &full_target_file_path_templated_str);
+      fs::write(&*full_target_file_path_templated_str, content_with_tokens_replaced).expect(&format!("Could not write target file: {}", &full_target_file_path_templated_str));
+    } else {
+      fs::write(&target_file_with_tokens_replaced, content).expect(&format!("Could not write target file: {}", &target_file_with_tokens_replaced));
+    }
   }
 
   fn create_directory<F>(replace_tokens: F, directory_path: &str) where
