@@ -19,7 +19,16 @@ fn main() {
       {
         "variable_name": "project",
         "description": "Name of project",
-        "prompt": "Please enter your project name"
+        "prompt": "Please enter your project name",
+        "filters": [
+          {
+            "name":"python",
+            "filter": "Snake"
+          },
+          { "name": "Command",
+            "filter": "Pascal"
+          }
+        ]
       },
       {
         "variable_name": "plugin_description",
@@ -34,6 +43,8 @@ fn main() {
 
   let mut token_map = HashMap::new();
 
+  println!("loaded: {:?}", &variables);
+
   for v in variables {
     println!("{}:", v.prompt);
     let mut variable_value = String::new();
@@ -43,6 +54,7 @@ fn main() {
       }
 
       token_map.insert(v.variable_name, variable_value);
+      println!("filters: {:?}", v.filters);
     }
   }
 
