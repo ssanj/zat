@@ -2,7 +2,8 @@ use std::io::{stdin, BufRead};
 use std::{fs::create_dir, collections::HashMap, path::Path};
 
 use walkdir::WalkDir;
-use std::fs;
+use std::fs::{self, File};
+use std::io::Read;
 use crate::models::*;
 use crate::variables::*;
 use aho_corasick::AhoCorasick;
@@ -15,51 +16,57 @@ fn main() {
   let template_dir =  TemplateDir::new("/Users/sanj/ziptemp/st-template");
   let target_dir =  TargetDir::new("/Users/sanj/ziptemp/template-expansion");
 
-  let dummy_json = r#"
-    [
-      {
-        "variable_name": "project",
-        "description": "Name of project",
-        "prompt": "Please enter your project name",
-        "filters": [
-          {
-            "name":"python",
-            "filter": "Snake"
-          },
-          { "name": "Command",
-            "filter": "Pascal"
+  let variables_file = Path::new(&template_dir.path).join(".variables.prompt");
+
+  let user_tokens_supplied =
+    if variables_file.exists() {
+      println!("Loading variables file");
+      let mut f = File::open(variables_file).unwrap();
+      let mut variables_json = String::new();
+
+      f.read_to_string(&mut variables_json).unwrap();
+
+      let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_json).unwrap();
+      let stdin = std::io::stdin();
+
+      let mut token_map = HashMap::new();
+
+      println!("loaded: {:?}", &variables);
+
+      for v in &variables {
+        println!("{}:", v.prompt);
+        let mut variable_value = String::new();
+        if let Ok(read_count) = stdin.read_line(&mut variable_value) {
+          if read_count > 0 {
+            let _ = variable_value.pop();
           }
-        ]
-      },
-      {
-        "variable_name": "plugin_description",
-        "description": "Explain what your plugin is about",
-        "prompt": "Please enter your plugin description"
-      }
-    ]
-  "#;
 
-  let variables: Vec<TemplateVariable> = serde_json::from_str(&dummy_json).unwrap();
-  let stdin = std::io::stdin();
-
-  let mut token_map = HashMap::new();
-
-  println!("loaded: {:?}", &variables);
-
-  for v in variables {
-    println!("{}:", v.prompt);
-    let mut variable_value = String::new();
-    if let Ok(read_count) = stdin.read_line(&mut variable_value) {
-      if read_count > 0 {
-        let _ = variable_value.pop();
+          token_map.insert(v.variable_name.clone(), variable_value);
+          println!("filters: {:?}", v.filters);
+        }
       }
 
-      token_map.insert(v.variable_name, variable_value);
-      println!("filters: {:?}", v.filters);
-    }
-  }
+      println!("tokens: {:?}", token_map);
 
-  println!("tokens: {:?}", token_map)
+      let updated_token_map = tokens::expand_filters(&variables, &token_map);
+
+      println!("updated tokens: {:?}", updated_token_map);
+
+      let updated_token_map_dollar_keys: HashMap<_, _> =
+        updated_token_map
+          .into_iter()
+          .map(|(k, v)| (format!("${}$", k), v))
+          .collect();
+
+      println!("updated tokens dollar keys: {:?}", &updated_token_map_dollar_keys);
+
+      updated_token_map_dollar_keys
+    } else {
+      println!("No variables file");
+      HashMap::new()
+    };
+
+    println!("done")
 
   // process_template(&template_dir, &target_dir)
 }
@@ -74,6 +81,7 @@ fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir) {
         ("$project$", "MyProjectName")
       ]);
 
+  // Fix the ordering of these so they match
   let token_keys: Vec<&&str> = token_map.keys().collect();
   let token_values: Vec<&&str> = token_map.values().collect();
   let ac = AhoCorasick::new(token_keys);

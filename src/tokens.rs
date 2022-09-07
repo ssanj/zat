@@ -3,14 +3,14 @@ use std::collections::HashMap;
 use crate::variables::{TemplateVariable, VariableFilter, FilterType};
 use convert_case::{Case, Casing};
 
-pub fn expand_filters(variables: Vec<TemplateVariable>, user_inputs: &HashMap<String, String>) -> HashMap<String, String> {
+pub fn expand_filters(variables: &Vec<TemplateVariable>, user_inputs: &HashMap<String, String>) -> HashMap<String, String> {
   let mut user_inputs_updated = user_inputs.clone();
 
   for v in variables {
     if let Some(variable_value) = user_inputs.get(&v.variable_name) {
-      for filter in v.filters {
-        let filter_name = filter.name;
-        let filter_type = filter.filter;
+      for filter in &v.filters {
+        let filter_name = &filter.name;
+        let filter_type = &filter.filter;
 
         let updated_value = apply_filter(filter_type, &variable_value);
         let filter_key = format!("{}__{}", &v.variable_name, &filter_name);
@@ -21,7 +21,7 @@ pub fn expand_filters(variables: Vec<TemplateVariable>, user_inputs: &HashMap<St
   user_inputs_updated
 }
 
-pub fn apply_filter(filter_type: FilterType, value: &str) -> String {
+fn apply_filter(filter_type: &FilterType, value: &str) -> String {
   match filter_type {
     FilterType::Camel  => value.to_case(Case::Camel),  /* "My variable NAME" -> "myVariableName"   */
     FilterType::Cobol  => value.to_case(Case::Cobol),  /* "My variable NAME" -> "MY-VARIABLE-NAME" */
@@ -45,7 +45,7 @@ fn returns_empty_hash_if_no_matches() {
   let mut hash =  HashMap::new();
   let _ = hash.insert("something".to_owned(), "some value".to_owned());
 
-  let result = expand_filters(variables, &hash);
+  let result = expand_filters(&variables, &hash);
   assert_eq!(&result, &hash)
 }
 
@@ -88,7 +88,7 @@ fn returns_updated_input_hash_if_has_filters() {
   let mut hash =  HashMap::new();
   let _ = hash.insert("project".to_owned(), "my cool project".to_owned());
 
-  let result = expand_filters(variables, &hash);
+  let result = expand_filters(&variables, &hash);
 
   let expected_hash = HashMap::from(
     [
