@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::variables::{TemplateVariable, VariableFilter, FilterType};
+use convert_case::{Case, Casing};
 
 pub fn expand_filters(variables: Vec<TemplateVariable>, user_inputs: &HashMap<String, String>) -> HashMap<String, String> {
   let mut user_inputs_updated = user_inputs.clone();
@@ -22,8 +23,16 @@ pub fn expand_filters(variables: Vec<TemplateVariable>, user_inputs: &HashMap<St
 
 pub fn apply_filter(filter_type: FilterType, value: &str) -> String {
   match filter_type {
-    Noop => value.to_owned(),
-    _ => todo!()
+    FilterType::Camel  => value.to_case(Case::Camel),  /* "My variable NAME" -> "myVariableName"   */
+    FilterType::Cobol  => value.to_case(Case::Cobol),  /* "My variable NAME" -> "MY-VARIABLE-NAME" */
+    FilterType::Flat   => value.to_case(Case::Flat),   /* "My variable NAME" -> "myvariablename"   */
+    FilterType::Kebab  => value.to_case(Case::Kebab),  /* "My variable NAME" -> "my-variable-name" */
+    FilterType::Lower  => value.to_case(Case::Lower),  /* "My variable NAME" -> "my variable name" */
+    FilterType::Noop   => value.to_owned(),            /* "My variable NAME" -> "My variable NAME" */
+    FilterType::Pascal => value.to_case(Case::Pascal), /* "My variable NAME" -> "MyVariableName"   */
+    FilterType::Snake  => value.to_case(Case::Snake),  /* "My variable NAME" -> "my_variable_name" */
+    FilterType::Title  => value.to_case(Case::Title),  /* "My variable NAME" -> "My Variable Name" */
+    FilterType::Upper  => value.to_case(Case::Upper),  /* "My variable NAME" -> "MY VARIABLE NAME" */
   }
 }
 

@@ -17,10 +17,16 @@ pub struct VariableFilter {
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub enum FilterType {
-  Snake,
+  Camel,
+  Cobol,
+  Flat,
+  Kebab,
   Lower,
+  Noop,
   Pascal,
-  Noop
+  Snake,
+  Title,
+  Upper
 }
 
 #[cfg(test)]
@@ -73,6 +79,8 @@ fn load_json_config() {
       ]
    };
 
+   assert_eq!(first, &expected_first);
+
    let second = &variables[1];
 
    let expected_second = TemplateVariable {
@@ -81,7 +89,6 @@ fn load_json_config() {
       prompt: "Please enter your plugin description".to_owned(),
       filters: vec![]
    };
-
 
    assert_eq!(second, &expected_second)
 }
