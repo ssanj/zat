@@ -1,27 +1,6 @@
-// [
-//   {
-//     "variable_name": "project",
-//     "description": "Name of project",
-//     "prompt": "Please enter your project name"
-        // "filters": [
-        //   {
-        //     "name":"python",
-        //     "filter": "snake"
-        //   },
-        //   { "name": "Command",
-        //     "filter": "pascal"
-        //   }
-        // ]
-//   },
-//   {
-//     "variable_name": "plugin_description",
-//     "description": "Explain what your plugin is about",
-//     "prompt": "Please enter your plugin description"
-//   }
-// ]
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct TemplateVariable {
   pub variable_name: String,
   pub description: String,
@@ -30,15 +9,78 @@ pub struct TemplateVariable {
   pub filters: Vec<VariableFilter>
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct VariableFilter {
   pub name: String,
   pub filter: FilterType // make this an ADT
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 pub enum FilterType {
   Snake,
   Lower,
   Pascal
+}
+
+#[cfg(test)]
+use pretty_assertions::assert_eq;
+
+#[test]
+
+fn load_json_config() {
+  let variables_config = r#"
+    [
+      {
+        "variable_name": "project",
+        "description": "Name of project",
+        "prompt": "Please enter your project name",
+            "filters": [
+              {
+                "name":"python",
+                "filter": "Snake"
+              },
+              { "name": "Command",
+                "filter": "Pascal"
+              }
+            ]
+      },
+      {
+        "variable_name": "plugin_description",
+        "description": "Explain what your plugin is about",
+        "prompt": "Please enter your plugin description"
+      }
+    ]
+  "#;
+
+   let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_config).unwrap();
+   assert_eq!(variables.len(), 2);
+
+   let first = &variables[0];
+   let expected_first = TemplateVariable {
+      variable_name: "project".to_owned(),
+      description: "Name of project".to_owned(),
+      prompt: "Please enter your project name".to_owned(),
+      filters: vec![
+        VariableFilter {
+          name: "python".to_owned(),
+          filter: FilterType::Snake
+        },
+        VariableFilter {
+          name: "Command".to_owned(),
+          filter: FilterType::Pascal
+        },
+      ]
+   };
+
+   let second = &variables[1];
+
+   let expected_second = TemplateVariable {
+      variable_name: "plugin_description".to_owned(),
+      description: "Explain what your plugin is about".to_owned(),
+      prompt: "Please enter your plugin description".to_owned(),
+      filters: vec![]
+   };
+
+
+   assert_eq!(second, &expected_second)
 }
