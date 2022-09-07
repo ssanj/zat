@@ -9,6 +9,7 @@ use aho_corasick::AhoCorasick;
 
 mod models;
 mod variables;
+mod tokens;
 
 fn main() {
   let template_dir =  TemplateDir::new("/Users/sanj/ziptemp/st-template");

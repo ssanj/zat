@@ -19,7 +19,8 @@ pub struct VariableFilter {
 pub enum FilterType {
   Snake,
   Lower,
-  Pascal
+  Pascal,
+  Noop
 }
 
 #[cfg(test)]
