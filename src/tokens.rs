@@ -123,11 +123,11 @@ fn returns_updated_input_hash_if_has_filters_with_default() {
             filter: FilterType::Snake
           },
           VariableFilter {
-            name: "command".to_owned(),
+            name: DEFAULT_FILTER.to_owned(),
             filter: FilterType::Pascal
           },
           VariableFilter {
-            name: DEFAULT_FILTER.to_owned(),
+            name: "command".to_owned(),
             filter: FilterType::Pascal
           },
           VariableFilter {
