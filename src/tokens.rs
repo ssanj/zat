@@ -71,8 +71,16 @@ fn returns_updated_input_hash_if_has_filters() {
         filters: vec![
           VariableFilter {
             name: "python".to_owned(),
-            filter: FilterType::Noop
-          }
+            filter: FilterType::Snake
+          },
+          VariableFilter {
+            name: "command".to_owned(),
+            filter: FilterType::Pascal
+          },
+          VariableFilter {
+            name: "heading".to_owned(),
+            filter: FilterType::Title
+          },
         ]
      }
   ];
@@ -85,7 +93,9 @@ fn returns_updated_input_hash_if_has_filters() {
   let expected_hash = HashMap::from(
     [
       ("project".to_owned(),  "my cool project".to_owned()),
-      ("project__python".to_owned(),  "my cool project".to_owned())
+      ("project__python".to_owned(),  "my_cool_project".to_owned()),
+      ("project__command".to_owned(),  "MyCoolProject".to_owned()),
+      ("project__heading".to_owned(),  "My Cool Project".to_owned()),
     ]
   );
   assert_eq!(&result, &expected_hash)
