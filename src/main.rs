@@ -18,72 +18,22 @@ fn main() {
 
   let variables_file = Path::new(&template_dir.path).join(".variables.prompt");
 
-  let user_tokens_supplied =
-    if variables_file.exists() {
-      println!("Loading variables file");
-      let mut f = File::open(variables_file).unwrap();
-      let mut variables_json = String::new();
-
-      f.read_to_string(&mut variables_json).unwrap();
-
-      let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_json).unwrap();
-      let stdin = std::io::stdin();
-
-      let mut token_map = HashMap::new();
-
-      println!("loaded: {:?}", &variables);
-
-      for v in &variables {
-        println!("{}:", v.prompt);
-        let mut variable_value = String::new();
-        if let Ok(read_count) = stdin.read_line(&mut variable_value) {
-          if read_count > 0 {
-            let _ = variable_value.pop();
-          }
-
-          token_map.insert(v.variable_name.clone(), variable_value);
-          println!("filters: {:?}", v.filters);
-        }
-      }
-
-      println!("tokens: {:?}", token_map);
-
-      let updated_token_map = tokens::expand_filters(&variables, &token_map);
-
-      println!("updated tokens: {:?}", updated_token_map);
-
-      let updated_token_map_dollar_keys: HashMap<_, _> =
-        updated_token_map
-          .into_iter()
-          .map(|(k, v)| (format!("${}$", k), v))
-          .collect();
-
-      println!("updated tokens dollar keys: {:?}", &updated_token_map_dollar_keys);
-
-      updated_token_map_dollar_keys
-    } else {
-      println!("No variables file");
-      HashMap::new()
-    };
-
-    println!("done")
-
-  // process_template(&template_dir, &target_dir)
+  let user_tokens_supplied = tokens::load_variables(&variables_file);
+  process_template(&template_dir, &target_dir, user_tokens_supplied)
 }
 
-fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir) {
+fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_map: HashMap<String, String>) {
 
   let target_files_it = get_files_to_process(&template_dir, &target_dir);
 
-  // TODO: Create this from user settings
-  let token_map =
-    HashMap::from([
-        ("$project$", "MyProjectName")
-      ]);
+  // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
+  let mut token_keys: Vec<String> = vec![];
+  let mut token_values: Vec<String> = vec![];
+  for (key, value) in token_map {
+    token_keys.push(key); // key
+    token_values.push(value); // value
+  };
 
-  // Fix the ordering of these so they match
-  let token_keys: Vec<&&str> = token_map.keys().collect();
-  let token_values: Vec<&&str> = token_map.values().collect();
   let ac = AhoCorasick::new(token_keys);
 
   let replace_tokens = |haystack: &str| {

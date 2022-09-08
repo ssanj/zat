@@ -2,8 +2,62 @@ use std::collections::HashMap;
 
 use crate::variables::{TemplateVariable, VariableFilter, FilterType};
 use convert_case::{Case, Casing};
+use std::io::{stdin, BufRead};
+use std::path::Path;
+
+use std::fs::{self, File};
+use std::io::Read;
 
 const DEFAULT_FILTER: &str = "__default__";
+
+pub fn load_variables(variables_file: &Path) -> HashMap<String, String> {
+   if variables_file.exists() {
+      println!("Loading variables file");
+      let mut f = File::open(variables_file).unwrap();
+      let mut variables_json = String::new();
+
+      f.read_to_string(&mut variables_json).unwrap();
+
+      let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_json).unwrap();
+      let stdin = std::io::stdin();
+
+      let mut token_map = HashMap::new();
+
+      println!("loaded: {:?}", &variables);
+
+      for v in &variables {
+        println!("{}:", v.prompt);
+        let mut variable_value = String::new();
+        if let Ok(read_count) = stdin.read_line(&mut variable_value) {
+          if read_count > 0 {
+            let _ = variable_value.pop();
+          }
+
+          token_map.insert(v.variable_name.clone(), variable_value);
+          println!("filters: {:?}", v.filters);
+        }
+      }
+
+      println!("tokens: {:?}", token_map);
+
+      let updated_token_map = expand_filters(&variables, &token_map);
+
+      println!("updated tokens: {:?}", updated_token_map);
+
+      let updated_token_map_dollar_keys: HashMap<_, _> =
+        updated_token_map
+          .into_iter()
+          .map(|(k, v)| (format!("${}$", k), v))
+          .collect();
+
+      println!("updated tokens dollar keys: {:?}", &updated_token_map_dollar_keys);
+
+      updated_token_map_dollar_keys
+    } else {
+      println!("No variables file");
+      HashMap::new()
+    }
+}
 
 pub fn expand_filters(variables: &Vec<TemplateVariable>, user_inputs: &HashMap<String, String>) -> HashMap<String, String> {
   let mut user_inputs_updated = user_inputs.clone();
