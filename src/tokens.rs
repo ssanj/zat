@@ -84,6 +84,7 @@ pub fn expand_filters(variables: &Vec<TemplateVariable>, user_inputs: &HashMap<S
   user_inputs_updated
 }
 
+// See: https://docs.rs/convert_case/latest/convert_case/enum.Case.html
 fn apply_filter(filter_type: &FilterType, value: &str) -> String {
   match filter_type {
     FilterType::Camel  => value.to_case(Case::Camel),  /* "My variable NAME" -> "myVariableName"   */
