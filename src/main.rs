@@ -23,8 +23,9 @@ fn main() {
 }
 
 fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_map: HashMap<String, String>) {
-
-  let target_files_it = get_files_to_process(&template_dir, &target_dir);
+  let ignored_files = [".variables.prompt"];
+  let ignored_directories = [".git"];
+  let target_files_it = get_files_to_process(&template_dir, &target_dir, &ignored_directories, &ignored_files);
 
   // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
   let mut token_keys: Vec<String> = vec![];
@@ -49,15 +50,28 @@ fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_ma
   }
 }
 
-fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir) -> Vec<FileTypes> {
+fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, ignored_directories: &[&str], ignored_files: &[&str]) -> Vec<FileTypes> {
   WalkDir::new(template_dir)
     .into_iter()
     .filter_map(|re| re.ok())
     .filter(|dir_entry| {
       let file_path = dir_entry.path().to_string_lossy();
-      let is_git = file_path.contains(".git");
-      let is_git_ignore = file_path.contains(".gitignore");
-      !(is_git && !is_git_ignore)
+      let file_type = dir_entry.file_type();
+      let is_ignored =
+        if file_type.is_file() {
+          let result = ignored_files.iter().any(|f| file_path.ends_with(f)) || ignored_directories.iter().any(|d| file_path.contains(d));
+          println!("file: {}, ignored:{}", file_path, result);
+          result
+        } else if file_type.is_dir() {
+          let result = ignored_directories.iter().any(|d| file_path.contains(d));
+          println!("dir: {}, ignored:{}", file_path, result);
+          result
+        } else {
+          println!("*******: {}, ignored: false", file_path);
+          false
+        };
+
+      !is_ignored
     })
     .map(|dir_entry|{
       let file_path = dir_entry.path().to_string_lossy();
