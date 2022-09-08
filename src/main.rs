@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::io::{stdin, BufRead};
 use std::{fs::create_dir, collections::HashMap, path::Path};
 
@@ -6,21 +7,46 @@ use std::fs::{self, File};
 use std::io::Read;
 use crate::models::*;
 use crate::variables::*;
+use crate::cli::Args;
 use aho_corasick::AhoCorasick;
+
 
 mod models;
 mod variables;
 mod tokens;
+mod cli;
 
 fn main() {
-  let template_dir =  TemplateDir::new("/Users/sanj/ziptemp/st-template");
-  let target_dir =  TargetDir::new("/Users/sanj/ziptemp/template-expansion");
 
-  let variables_file = Path::new(&template_dir.path).join(".variables.prompt");
+  let cli_args = cli::get_cli_args();
 
-  let user_tokens_supplied = tokens::load_variables(&variables_file);
-  process_template(&template_dir, &target_dir, user_tokens_supplied)
+  let template_dir = TemplateDir::new(&cli_args.template);
+  let target_dir = TargetDir::new(&cli_args.destination);
+
+  let template_path_exists = does_path_exist(&template_dir);
+  let target_path_exists = does_path_exist(&target_dir);
+
+  if template_path_exists && !target_path_exists {
+    let variables_file = Path::new(&template_dir.path).join(".variables.prompt");
+
+    // TODO: We need a way to confirm variable values here
+    // If they are wrong allow re-entry or exit
+    let user_tokens_supplied = tokens::load_variables(&variables_file);
+    // fs::create_dir_all(&target_dir.path).expect("Could not create target directory");
+    process_template(&template_dir, &target_dir, user_tokens_supplied)
+  } else if !template_path_exists {
+    println!("Template path does not exist: {}", &template_dir.path)
+  } else {
+    println!("Target path already exists: {}. Please supply an empty directory for the target", &target_dir.path)
+  }
 }
+
+fn does_path_exist<A>(path: A) -> bool where
+  A: AsRef<OsStr>
+{
+  Path::new(&path).exists()
+}
+
 
 fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_map: HashMap<String, String>) {
   let ignored_files = [".variables.prompt"];

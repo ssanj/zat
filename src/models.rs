@@ -1,4 +1,4 @@
-use std::{fmt, path::Path};
+use std::{fmt, path::Path, ffi::OsStr};
 
 
 #[derive(Debug, Clone)]
@@ -27,6 +27,12 @@ impl AsRef<Path> for TargetDir {
   }
 }
 
+impl AsRef<OsStr> for TargetDir {
+  fn as_ref(&self) -> &OsStr {
+    self.path.as_ref()
+  }
+}
+
 
 #[derive(Debug, Clone)]
 pub struct TemplateDir {
@@ -44,6 +50,12 @@ impl TemplateDir {
 impl AsRef<Path> for TemplateDir {
   fn as_ref(&self) -> &Path {
       &Path::new(&self.path)
+  }
+}
+
+impl AsRef<OsStr> for TemplateDir {
+  fn as_ref(&self) -> &OsStr {
+    self.path.as_ref()
   }
 }
 
