@@ -32,7 +32,6 @@ fn main() {
     // TODO: We need a way to confirm variable values here
     // If they are wrong allow re-entry or exit
     let user_tokens_supplied = tokens::load_variables(&variables_file);
-    // fs::create_dir_all(&target_dir.path).expect("Could not create target directory");
     process_template(&template_dir, &target_dir, user_tokens_supplied)
   } else if !template_path_exists {
     println!("Template path does not exist: {}", &template_dir.path)
@@ -102,6 +101,7 @@ fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, igno
     .map(|dir_entry|{
       let file_path = dir_entry.path().to_string_lossy();
       let relative_target_path = file_path.strip_prefix(&template_dir.path).expect(&format!("Could remove template prefix from directory: {}", file_path));
+
       let target_path = format!("{}{}", target_dir.path, relative_target_path);
 
       if dir_entry
