@@ -1,8 +1,8 @@
 use clap::Parser;
 
-/// Simple program to greet a person
+/// A simple templating system to prevent copy-pasta overload
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[clap(author, version, about)]
 pub struct Args {
 
    /// The location of the template
