@@ -1,4 +1,4 @@
-- [ ] Choose a name
+- [x] Choose a name
 - [ ] Review variables before proceeding
 - [ ] Support various templates
  - [x] absolute
