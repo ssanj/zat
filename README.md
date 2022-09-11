@@ -1,6 +1,6 @@
 # Zat
 
-A simple templating system to prevent copy-pasta overload.
+A simple templating system to prevent copy-pasta overload. Zat is inspired by [Giter8](http://www.foundweekends.org/giter8/).
 
 ## Installation
 
@@ -38,7 +38,9 @@ OPTIONS:
 
 ### variables.prompt
 
-Define a file named `variables.prompt` in the root of your template folder. This file will determine the variables that can be used within the project, either as variable substitutions for file and directory names or file content with a files with the `.tmp` suffix.
+Define a file named `variables.prompt` in the root of your template folder. This file will determine the variables that can be used within the project, either as variable substitutions for file and directory names or file content with a files with the `.tmpl` suffix.
+
+When you run use template you will be prompted to enter the values of the defined variables.
 
 Here's the structure of entries in the `variables.prompt` file:
 
