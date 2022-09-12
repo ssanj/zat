@@ -33,7 +33,7 @@ fn main() {
     // TODO: We need a way to confirm variable values here
     // If they are wrong allow re-entry or exit
     match tokens::load_variables(&variables_file) {
-     Ok(UserSelection::Exit) => todo!(),
+     Ok(UserSelection::Exit) => println!("~ Goodbye"),
      Ok(UserSelection::Continue(user_tokens_supplied)) => {
         process_template(&template_dir, &target_dir, user_tokens_supplied)
       }
