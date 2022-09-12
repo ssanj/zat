@@ -30,21 +30,19 @@ fn main() {
   if template_path_exists && !target_path_exists {
     let variables_file = Path::new(&template_dir.path).join(".variables.prompt");
 
-    // TODO: We need a way to confirm variable values here
-    // If they are wrong allow re-entry or exit
     match tokens::load_variables(&variables_file) {
      Ok(UserSelection::Exit) => println!("~ Goodbye"),
      Ok(UserSelection::Continue(user_tokens_supplied)) => {
         process_template(&template_dir, &target_dir, user_tokens_supplied)
-      }
+      },
       Err(ZatError::SerdeError(e)) => eprintln!("Could not decode variables.prompt file: {}", e),
       Err(ZatError::IOError(e)) => eprintln!("Error read variables.prompt file: {}", e),
       Err(ZatError::OtherError(e)) => eprintln!("An error occurred processing the variables.prompt file: {}", e)
     }
   } else if !template_path_exists {
-    println!("Template path does not exist: {}", &template_dir.path)
+    eprintln!("Template path does not exist: {}", &template_dir.path)
   } else {
-    println!("Target path already exists: {}. Please supply an empty directory for the target", &target_dir.path)
+    eprintln!("Target path already exists: {}. Please supply an empty directory for the target", &target_dir.path)
   }
 }
 

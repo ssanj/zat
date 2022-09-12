@@ -102,6 +102,7 @@ fn print_user_input(token_map: &HashMap<String, String>) {
 fn get_user_input(variables: &[TemplateVariable]) -> HashMap<String, String> {
   let stdin = std::io::stdin();
   let mut token_map = HashMap::new();
+  println!("");
 
   for v in variables {
     println!("{}. {}", v.description, v.prompt);
