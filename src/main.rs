@@ -2,6 +2,7 @@ use std::ffi::OsStr;
 use std::io::{stdin, BufRead};
 use std::{fs::create_dir, collections::HashMap, path::Path};
 
+use tokens::UserSelection;
 use walkdir::WalkDir;
 use std::fs::{self, File};
 use std::io::Read;
@@ -31,8 +32,15 @@ fn main() {
 
     // TODO: We need a way to confirm variable values here
     // If they are wrong allow re-entry or exit
-    let user_tokens_supplied = tokens::load_variables(&variables_file);
-    process_template(&template_dir, &target_dir, user_tokens_supplied)
+    match tokens::load_variables(&variables_file) {
+     Ok(UserSelection::Exit) => todo!(),
+     Ok(UserSelection::Continue(user_tokens_supplied)) => {
+        process_template(&template_dir, &target_dir, user_tokens_supplied)
+      }
+      Err(ZatError::SerdeError(e)) => eprintln!("Could not decode variables.prompt file: {}", e),
+      Err(ZatError::IOError(e)) => eprintln!("Error read variables.prompt file: {}", e),
+      Err(ZatError::OtherError(e)) => eprintln!("An error occurred processing the variables.prompt file: {}", e)
+    }
   } else if !template_path_exists {
     println!("Template path does not exist: {}", &template_dir.path)
   } else {

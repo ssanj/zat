@@ -88,3 +88,9 @@ impl fmt::Display for FileTypes {
       write!(f, "{}", path)
     }
 }
+
+pub enum ZatError {
+  SerdeError(String),
+  IOError(String),
+  OtherError(String)
+}

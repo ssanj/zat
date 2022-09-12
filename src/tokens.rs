@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::variables::{TemplateVariable, VariableFilter, FilterType};
+use crate::models::ZatError;
 use convert_case::{Case, Casing};
 use std::io::{stdin, BufRead};
 use std::path::Path;
@@ -10,15 +11,21 @@ use std::io::Read;
 
 const DEFAULT_FILTER: &str = "__default__";
 
-pub fn load_variables(variables_file: &Path) -> HashMap<String, String> {
+
+pub enum UserSelection {
+  Exit,
+  Continue(HashMap<String, String>)
+}
+
+pub fn load_variables(variables_file: &Path) -> Result<UserSelection, ZatError> {
    if variables_file.exists() {
       println!("Loading variables file");
-      let mut f = File::open(variables_file).unwrap();
+      let mut f = File::open(variables_file).map_err(|e| ZatError::IOError(e.to_string()))?;
       let mut variables_json = String::new();
 
-      f.read_to_string(&mut variables_json).unwrap();
+      f.read_to_string(&mut variables_json).map_err(|e| ZatError::IOError(e.to_string()))?;
 
-      let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_json).unwrap();
+      let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_json).map_err(|e| ZatError::SerdeError(e.to_string()))?;
       let stdin = std::io::stdin();
 
       let mut token_map = HashMap::new();
@@ -58,11 +65,10 @@ pub fn load_variables(variables_file: &Path) -> HashMap<String, String> {
           .collect();
 
       println!("updated tokens dollar keys: {:?}", &updated_token_map_dollar_keys);
-
-      updated_token_map_dollar_keys
+      Ok(UserSelection::Continue(updated_token_map_dollar_keys))
     } else {
       println!("No variables file");
-      HashMap::new()
+      Ok(UserSelection::Continue(HashMap::new()))
     }
 }
 
