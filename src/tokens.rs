@@ -26,7 +26,7 @@ pub fn load_variables(variables_file: &Path) -> HashMap<String, String> {
       println!("loaded: {:?}", &variables);
 
       for v in &variables {
-        println!("{}:", v.prompt);
+        println!("{}. {}", v.description, v.prompt);
         let mut variable_value = String::new();
         if let Ok(read_count) = stdin.read_line(&mut variable_value) {
           if read_count > 0 {
@@ -38,7 +38,14 @@ pub fn load_variables(variables_file: &Path) -> HashMap<String, String> {
         }
       }
 
-      println!("tokens: {:?}", token_map);
+      // Check if variables are ok
+
+      println!("Please confirm that the variable mappings are correct");
+      println!("");
+
+      for t in token_map.iter() {
+        println!("{} -> {}", &t.0, &t.1)
+      }
 
       let updated_token_map = expand_filters(&variables, &token_map);
 
