@@ -19,7 +19,10 @@ mod cli;
 mod template_processor;
 
 fn main() {
+  run_zat()
+}
 
+fn run_zat() {
   let cli_args = cli::get_cli_args();
 
   let template_dir = TemplateDir::new(&cli_args.template);
