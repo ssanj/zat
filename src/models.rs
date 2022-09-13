@@ -96,3 +96,13 @@ pub enum ZatError {
   IOError(String),
   OtherError(String)
 }
+
+impl ZatError {
+  pub fn inner_error(&self) -> &str {
+    match self {
+      ZatError::SerdeError(e) => &e,
+      ZatError::IOError(e)    => &e,
+      ZatError::OtherError(e) => &e,
+    }
+  }
+}

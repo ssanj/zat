@@ -33,7 +33,10 @@ fn main() {
     match tokens::load_variables(&variables_file) {
      Ok(UserSelection::Exit) => println!("~ Goodbye"),
      Ok(UserSelection::Continue(user_tokens_supplied)) => {
-        process_template(&template_dir, &target_dir, user_tokens_supplied)
+        match process_template(&template_dir, &target_dir, user_tokens_supplied) {
+          Ok(_) => {},
+          Err(e) => eprintln!("Could not generate template: {}", e.inner_error())
+        }
       },
       Err(ZatError::SerdeError(e)) => eprintln!("Could not decode variables.prompt file: {}", e),
       Err(ZatError::IOError(e)) => eprintln!("Error read variables.prompt file: {}", e),
@@ -53,10 +56,10 @@ fn does_path_exist<A>(path: A) -> bool where
 }
 
 
-fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_map: HashMap<String, String>) {
+fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_map: HashMap<String, String>) -> ZatResult<()> {
   let ignored_files = [".variables.prompt"];
   let ignored_directories = [".git"];
-  let target_files_it = get_files_to_process(&template_dir, &target_dir, &ignored_directories, &ignored_files).unwrap(); // TODO: Fix
+  let target_files = get_files_to_process(&template_dir, &target_dir, &ignored_directories, &ignored_files)?;
 
   // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
   let mut token_keys: Vec<String> = vec![];
@@ -73,12 +76,16 @@ fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_ma
     result.to_owned()
   };
 
-  for target_file in target_files_it {
-    match target_file {
-      FileTypes::File(source_file, target_file) => copy_file(replace_tokens, &source_file, &target_file).unwrap(), // TODO: Fix
-      FileTypes::Dir(dir_path) => create_directory(replace_tokens, &dir_path).unwrap(), // TODO: Fix
-    }
-  }
+  target_files
+    .into_iter()
+    .map(|file_type|{
+      match file_type {
+        FileTypes::File(source_file, target_file) => copy_file(replace_tokens, &source_file, &target_file),
+        FileTypes::Dir(dir_path) => create_directory(replace_tokens, &dir_path),
+      }
+    })
+    .collect::<ZatResult<Vec<()>>>()
+    .map(|_| ())
 }
 
 fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, ignored_directories: &[&str], ignored_files: &[&str]) -> ZatResult<Vec<FileTypes>> {
