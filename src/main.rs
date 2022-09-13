@@ -3,7 +3,7 @@ use std::io::{stdin, BufRead};
 use std::{fs::create_dir, collections::HashMap, path::Path};
 
 use tokens::UserSelection;
-use walkdir::WalkDir;
+use walkdir::{WalkDir, DirEntry};
 use std::fs::{self, File};
 use std::io::Read;
 use crate::models::*;
@@ -56,7 +56,7 @@ fn does_path_exist<A>(path: A) -> bool where
 fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_map: HashMap<String, String>) {
   let ignored_files = [".variables.prompt"];
   let ignored_directories = [".git"];
-  let target_files_it = get_files_to_process(&template_dir, &target_dir, &ignored_directories, &ignored_files);
+  let target_files_it = get_files_to_process(&template_dir, &target_dir, &ignored_directories, &ignored_files).unwrap(); // TODO: Fix
 
   // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
   let mut token_keys: Vec<String> = vec![];
@@ -75,13 +75,13 @@ fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_ma
 
   for target_file in target_files_it {
     match target_file {
-      FileTypes::File(source_file, target_file) => copy_file(replace_tokens, source_file, target_file),
-      FileTypes::Dir(dir_path) => create_directory(replace_tokens, &dir_path),
+      FileTypes::File(source_file, target_file) => copy_file(replace_tokens, source_file, target_file).unwrap(), // TODO: Fix
+      FileTypes::Dir(dir_path) => create_directory(replace_tokens, &dir_path).unwrap(), // TODO: Fix
     }
   }
 }
 
-fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, ignored_directories: &[&str], ignored_files: &[&str]) -> Vec<FileTypes> {
+fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, ignored_directories: &[&str], ignored_files: &[&str]) -> ZatResult<Vec<FileTypes>> {
   WalkDir::new(template_dir)
     .into_iter()
     .filter_map(|re| re.ok())
@@ -104,31 +104,44 @@ fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, igno
 
       !is_ignored
     })
-    .map(|dir_entry|{
-      let file_path = dir_entry.path().to_string_lossy();
-      let relative_target_path = file_path.strip_prefix(&template_dir.path).expect(&format!("Could remove template prefix from directory: {}", file_path));
-
-      let target_path = format!("{}{}", target_dir.path, relative_target_path);
-
-      if dir_entry
-          .metadata()
-          .expect(&format!("Could not retrieve metadata for file: {}", file_path))
-          .is_file() {
-            FileTypes::File(SourceFile(file_path.to_string()), TargetFile(target_path))
-      } else {
-        FileTypes::Dir(target_path)
-      }
-    })
-    .collect()
+    .map(|dir_entry| get_file_type(&dir_entry, &template_dir, &target_dir))
+    .collect::<ZatResult<Vec<FileTypes>>>()
 }
 
-fn copy_file<F>(replace_tokens: F, source_file: SourceFile, target_file: TargetFile) where
+fn get_file_type(dir_entry: &DirEntry, template_dir: &TemplateDir, target_dir: &TargetDir) -> ZatResult<FileTypes> {
+  let file_path = dir_entry.path().to_string_lossy();
+
+  file_path
+    .strip_prefix(&template_dir.path)
+    .ok_or_else(||{
+      ZatError::IOError(format!("Could remove template prefix from directory: {}", file_path))
+    })
+    .and_then(|relative_target_path|{
+      let target_path = format!("{}{}", target_dir.path, relative_target_path);
+      dir_entry
+        .metadata()
+        .map_err(|e|{
+          ZatError::IOError(format!("Could not retrieve metadata for file: {}\nCause: {}", file_path, e.to_string()))
+        })
+        .map(|md| (md.is_file(), file_path.clone(), target_path))
+    }).map(|(is_file_result, file_path, target_path)|{
+      if is_file_result {
+        FileTypes::File(SourceFile(file_path.to_string()), TargetFile(target_path.to_owned()))
+      } else {
+        FileTypes::Dir(target_path.to_owned())
+      }
+    })
+}
+
+fn copy_file<F>(replace_tokens: F, source_file: SourceFile, target_file: TargetFile) -> ZatResult<()> where
   F: Fn(&str) -> String
 {
   let target_file_with_tokens_replaced = replace_tokens(&target_file.0);
   let content =
     fs::read(source_file.clone().0)
-      .expect(&format!("Could not read source file: {}", source_file.0));
+      .map_err(|e|{
+        ZatError::IOError(format!("Could not read source file: {}\nCause: {}", source_file.0, e.to_string()))
+      })?;
 
   let target_file_path = Path::new(&target_file_with_tokens_replaced);
   println!("file: {} -> {}", &source_file.0, target_file_path.to_string_lossy());
@@ -142,6 +155,8 @@ fn copy_file<F>(replace_tokens: F, source_file: SourceFile, target_file: TargetF
   } else {
     write_file(&target_file_with_tokens_replaced, &content)
   }
+
+  Ok(())
 }
 
 fn write_file(target_file_with_tokens_replaced: &str, content: &[u8]) {
@@ -164,10 +179,17 @@ F: Fn(&str) -> String {
     .expect(&format!("Could not write target file: {}", &full_target_file_path_templated_str))
 }
 
-fn create_directory<F>(replace_tokens: F, directory_path: &str) where
+fn create_directory<F>(replace_tokens: F, directory_path: &str) -> ZatResult<()> where
   F: Fn(&str) -> String
 {
   let directory_path_with_tokens_replaced = replace_tokens(directory_path);
   println!("dir: {} -> {}", directory_path, directory_path_with_tokens_replaced);
-  create_dir(directory_path_with_tokens_replaced).expect(&format!("Could not created target dir: {}", directory_path));
+  create_dir(directory_path_with_tokens_replaced)
+    .map_err(|e| {
+      ZatError::IOError(
+        format!("Could not created target directory: {}\nCause:{}",
+          directory_path,
+          e.to_string()
+        ))
+    })
 }
