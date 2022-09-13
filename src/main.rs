@@ -75,7 +75,7 @@ fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_ma
 
   for target_file in target_files_it {
     match target_file {
-      FileTypes::File(source_file, target_file) => copy_file(replace_tokens, source_file, target_file).unwrap(), // TODO: Fix
+      FileTypes::File(source_file, target_file) => copy_file(replace_tokens, &source_file, &target_file).unwrap(), // TODO: Fix
       FileTypes::Dir(dir_path) => create_directory(replace_tokens, &dir_path).unwrap(), // TODO: Fix
     }
   }
@@ -85,31 +85,34 @@ fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, igno
   WalkDir::new(template_dir)
     .into_iter()
     .filter_map(|re| re.ok())
-    .filter(|dir_entry| {
-      let file_path = dir_entry.path().to_string_lossy();
-      let file_type = dir_entry.file_type();
-      let is_ignored =
-        if file_type.is_file() {
-          let result = ignored_files.iter().any(|f| file_path.ends_with(f)) || ignored_directories.iter().any(|d| file_path.contains(d));
-          println!("file: {}, ignored:{}", file_path, result);
-          result
-        } else if file_type.is_dir() {
-          let result = ignored_directories.iter().any(|d| file_path.contains(d));
-          println!("dir: {}, ignored:{}", file_path, result);
-          result
-        } else {
-          println!("*******: {}, ignored: false", file_path);
-          false
-        };
-
-      !is_ignored
-    })
+    .filter(|dir_entry| required_entries(dir_entry, ignored_directories, ignored_files))
     .map(|dir_entry| get_file_type(&dir_entry, &template_dir, &target_dir))
     .collect::<ZatResult<Vec<FileTypes>>>()
 }
 
+fn required_entries(dir_entry: &DirEntry, ignored_directories: &[&str], ignored_files: &[&str]) -> bool {
+  let file_path = dir_entry.path().to_string_lossy();
+  let file_type = dir_entry.file_type();
+  let is_ignored =
+    if file_type.is_file() {
+      let result = ignored_files.iter().any(|f| file_path.ends_with(f)) || ignored_directories.iter().any(|d| file_path.contains(d));
+      println!("file: {}, ignored:{}", file_path, result);
+      result
+    } else if file_type.is_dir() {
+      let result = ignored_directories.iter().any(|d| file_path.contains(d));
+      println!("dir: {}, ignored:{}", file_path, result);
+      result
+    } else {
+      println!("*******: {}, ignored: false", file_path);
+      false
+    };
+
+  !is_ignored
+}
+
 fn get_file_type(dir_entry: &DirEntry, template_dir: &TemplateDir, target_dir: &TargetDir) -> ZatResult<FileTypes> {
   let file_path = dir_entry.path().to_string_lossy();
+  let source_file = SourceFile(file_path.to_string());
 
   file_path
     .strip_prefix(&template_dir.path)
@@ -117,30 +120,34 @@ fn get_file_type(dir_entry: &DirEntry, template_dir: &TemplateDir, target_dir: &
       ZatError::IOError(format!("Could remove template prefix from directory: {}", file_path))
     })
     .and_then(|relative_target_path|{
-      let target_path = format!("{}{}", target_dir.path, relative_target_path);
-      dir_entry
-        .metadata()
-        .map_err(|e|{
-          ZatError::IOError(format!("Could not retrieve metadata for file: {}\nCause: {}", file_path, e.to_string()))
-        })
-        .map(|md| (md.is_file(), file_path.clone(), target_path))
-    }).map(|(is_file_result, file_path, target_path)|{
+      classify_file_types(dir_entry, relative_target_path, &source_file, target_dir)
+    }).map(|(is_file_result, source_path, target_path)|{
       if is_file_result {
-        FileTypes::File(SourceFile(file_path.to_string()), TargetFile(target_path.to_owned()))
+        FileTypes::File(source_path.clone(), target_path.clone())
       } else {
-        FileTypes::Dir(target_path.to_owned())
+        FileTypes::Dir(target_path.0.clone())
       }
     })
 }
 
-fn copy_file<F>(replace_tokens: F, source_file: SourceFile, target_file: TargetFile) -> ZatResult<()> where
+fn classify_file_types<'a>(dir_entry: &'a DirEntry, relative_target_path: &str, file_path: &'a SourceFile, target_dir: &'a TargetDir) -> ZatResult<(bool, &'a SourceFile, TargetFile)> {
+  let target_path = TargetFile(format!("{}{}", target_dir.path, relative_target_path));
+  dir_entry
+    .metadata()
+    .map_err(|e|{
+      ZatError::IOError(format!("Could not retrieve metadata for file: {}\nCause: {}", &file_path.0, e.to_string()))
+    })
+    .map(move |md| (md.is_file(), file_path, target_path))
+}
+
+fn copy_file<F>(replace_tokens: F, source_file: &SourceFile, target_file: &TargetFile) -> ZatResult<()> where
   F: Fn(&str) -> String
 {
   let target_file_with_tokens_replaced = replace_tokens(&target_file.0);
   let content =
     fs::read(source_file.clone().0)
       .map_err(|e|{
-        ZatError::IOError(format!("Could not read source file: {}\nCause: {}", source_file.0, e.to_string()))
+        ZatError::IOError(format!("Could not read source file: {}\nCause: {}", &source_file.0, e.to_string()))
       })?;
 
   let target_file_path = Path::new(&target_file_with_tokens_replaced);
