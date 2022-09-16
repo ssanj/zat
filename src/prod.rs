@@ -2,9 +2,10 @@ use std::{collections::HashMap, path::Path};
 use std::fs::{self, File};
 use std::io::Read;
 use std::io::{stdin, BufRead};
+use convert_case::{Case, Casing};
 
 use crate::behaviours::*;
-use crate::variables::TemplateVariable;
+use crate::variables::{TemplateVariable, VariableFilter, FilterType};
 
 struct Prod;
 
@@ -68,9 +69,52 @@ impl VariableValidator for Prod {
   }
 }
 
+impl ExpandVariableFilters for Prod {
+  fn expand_filters(variables: &[TemplateVariable], user_inputs: &ValidatedUserVariableInputs) -> ValidatedUserVariableInputsFiltersExpanded {
+    let mut user_inputs_updated = user_inputs.0.clone();
+    let token_map = &user_inputs.0;
+
+    for v in variables {
+      if let Some(variable_value) = token_map.get(&v.variable_name) {
+        for filter in &v.filters {
+          let filter_name = &filter.name;
+          let filter_type = &filter.filter;
+
+          let updated_value = Prod::apply_filter(filter_type, &variable_value);
+
+          let filter_key =
+            if filter_name == Prod::DEFAULT_FILTER { /* Default filter to apply to variable value */
+              v.variable_name.clone()
+            } else {
+              format!("{}__{}", &v.variable_name, &filter_name)
+            };
+
+          let _ = user_inputs_updated.insert(filter_key, updated_value);
+        }
+      }
+    }
+    ValidatedUserVariableInputsFiltersExpanded(user_inputs_updated)
+  }
+}
+
+impl AddTokensToVariables for Prod {
+  fn add_tokens_delimiters(user_input: &ValidatedUserVariableInputsFiltersExpanded) -> ValidatedUserVariableInputsFiltersExpandedWithTokens {
+    ValidatedUserVariableInputsFiltersExpandedWithTokens(
+      user_input
+        .0
+        .clone()
+        .into_iter()
+        .map(|(k, v)| (format!("${}$", k), v))
+        .collect()
+    )
+  }
+}
 // TODO: We want to write the main logic once for both Prod and Test
 // and then swap inner implementations to exercise the solution
 impl Prod {
+
+  const DEFAULT_FILTER: &'static str = "__default__";
+
   fn print_user_input(user_input: &UserVariableInputs) {
       let token_map = &user_input.0;
       println!("\nSupplied Values\n---------------\n");
@@ -78,5 +122,21 @@ impl Prod {
       for t in token_map.iter() {
         println!("{} -> {}", &t.0, &t.1)
       }
+  }
+
+  // See: https://docs.rs/convert_case/latest/convert_case/enum.Case.html
+  fn apply_filter(filter_type: &FilterType, value: &str) -> String {
+    match filter_type {
+      FilterType::Camel  => value.to_case(Case::Camel),  /* "My variable NAME" -> "myVariableName"   */
+      FilterType::Cobol  => value.to_case(Case::Cobol),  /* "My variable NAME" -> "MY-VARIABLE-NAME" */
+      FilterType::Flat   => value.to_case(Case::Flat),   /* "My variable NAME" -> "myvariablename"   */
+      FilterType::Kebab  => value.to_case(Case::Kebab),  /* "My variable NAME" -> "my-variable-name" */
+      FilterType::Lower  => value.to_case(Case::Lower),  /* "My variable NAME" -> "my variable name" */
+      FilterType::Noop   => value.to_owned(),            /* "My variable NAME" -> "My variable NAME" */
+      FilterType::Pascal => value.to_case(Case::Pascal), /* "My variable NAME" -> "MyVariableName"   */
+      FilterType::Snake  => value.to_case(Case::Snake),  /* "My variable NAME" -> "my_variable_name" */
+      FilterType::Title  => value.to_case(Case::Title),  /* "My variable NAME" -> "My Variable Name" */
+      FilterType::Upper  => value.to_case(Case::Upper),  /* "My variable NAME" -> "MY VARIABLE NAME" */
+    }
   }
 }

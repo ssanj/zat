@@ -19,6 +19,7 @@ mod cli;
 mod template_processor;
 mod behaviours;
 mod prod;
+mod variable_extractor;
 
 fn main() {
   run_zat()

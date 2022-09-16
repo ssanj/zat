@@ -1,6 +1,7 @@
 use std::{fmt, path::Path, ffi::OsStr};
 
 pub type ZatResult<A> = Result<A, ZatError>;
+pub type ZatResult2<A> = Result<A, ZatError2>;
 
 #[derive(Debug, Clone)]
 pub struct SourceFile(pub String);
@@ -95,6 +96,12 @@ pub enum ZatError {
   SerdeError(String),
   IOError(String),
   OtherError(String)
+}
+
+#[derive(Debug)]
+pub enum ZatError2 {
+  VariableExtractionError(String),
+  UserQuit,
 }
 
 impl ZatError {
