@@ -17,16 +17,16 @@ pub struct VariableExtractor<T> {
 impl <T> VariableExtractor<T> where
   T: VariableSupplier + VariableInputs + VariableValidator + ExpandVariableFilters + AddTokensToVariables
 {
-  fn extract_variables(variables_file: &Path) -> ZatResult2<ValidatedUserVariableInputsFiltersExpandedWithTokens> {
+  pub fn extract_variables(&self, variables_file: &Path) -> ZatResult2<VariableValidationResponse> {
     match T::load_variables_from_file(variables_file) {
       Ok(template_vars) => {
         match VariableExtractor::<T>::get_user_input(&template_vars) {
           UserVariableDecision::Continue(user_inputs) => {
             let expanded_variables = T::expand_filters(&template_vars, &user_inputs);
             let expanded_with_tokens = T::add_tokens_delimiters(&expanded_variables);
-            Ok(expanded_with_tokens)
+            Ok(VariableValidationResponse::Continue(expanded_with_tokens))
           },
-          UserVariableDecision::Exit => Err(ZatError2::UserQuit) // Not technically an error
+          UserVariableDecision::Exit => Ok(VariableValidationResponse::UserQuit)
         }
       },
       Err(e) => Err(ZatError2::VariableExtractionError(e.to_string()))

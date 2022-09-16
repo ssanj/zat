@@ -7,7 +7,7 @@ use convert_case::{Case, Casing};
 use crate::behaviours::*;
 use crate::variables::{TemplateVariable, VariableFilter, FilterType};
 
-struct Prod;
+pub struct Prod;
 
 impl VariableSupplier for Prod {
   fn load_variables_from_file(variables_file: &Path) -> VariableSupplierResult<Vec<TemplateVariable>> {

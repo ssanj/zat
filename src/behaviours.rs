@@ -37,12 +37,20 @@ pub enum VariableValidity {
   VariablesInvalidRetry
 }
 
+
 // TODO: Wrap the inner types
 // HashMap<VariableName, Tokenised(FiltersApplied(ValidateInput(String)))>
 pub struct UserVariableInputs(pub HashMap<String, String>);
 pub struct ValidatedUserVariableInputs(pub HashMap<String, String>);
 pub struct ValidatedUserVariableInputsFiltersExpanded(pub HashMap<String, String>);
 pub struct ValidatedUserVariableInputsFiltersExpandedWithTokens(pub HashMap<String, String>);
+
+
+pub enum VariableValidationResponse {
+  Continue(ValidatedUserVariableInputsFiltersExpandedWithTokens),
+  UserQuit
+}
+
 
 pub trait VariableInputs {
   fn get_variable_inputs(variables: &[TemplateVariable]) -> UserVariableInputs;

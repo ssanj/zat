@@ -101,7 +101,7 @@ pub enum ZatError {
 #[derive(Debug)]
 pub enum ZatError2 {
   VariableExtractionError(String),
-  UserQuit,
+  OtherZatError(ZatError)
 }
 
 impl ZatError {

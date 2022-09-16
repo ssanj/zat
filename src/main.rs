@@ -10,7 +10,8 @@ use crate::models::*;
 use crate::variables::*;
 use crate::cli::Args;
 use aho_corasick::AhoCorasick;
-
+use crate::variable_extractor::VariableExtractor;
+use crate::behaviours::VariableValidationResponse;
 
 mod models;
 mod variables;
@@ -26,6 +27,12 @@ fn main() {
 }
 
 fn run_zat() {
+  let instance = prod::Prod;
+
+  let extractor = VariableExtractor {
+    value: instance
+  };
+
   let cli_args = cli::get_cli_args();
 
   let template_dir = TemplateDir::new(&cli_args.template);
@@ -37,17 +44,18 @@ fn run_zat() {
   if template_path_exists && !target_path_exists {
     let variables_file = Path::new(&template_dir.path).join(".variables.prompt");
 
-    match tokens::load_variables(&variables_file) {
-     Ok(UserSelection::Exit) => println!("~ Goodbye"),
-     Ok(UserSelection::Continue(user_tokens_supplied)) => {
-        match template_processor::process_template(&template_dir, &target_dir, user_tokens_supplied) {
+    match extractor.extract_variables(&variables_file) {
+     Ok(VariableValidationResponse::UserQuit) => println!("~ Goodbye"),
+     Ok(VariableValidationResponse::Continue(user_tokens_supplied)) => {
+        match template_processor::process_template(&template_dir, &target_dir, user_tokens_supplied.0) {
           Ok(_) => {},
           Err(e) => eprintln!("Could not generate template: {}", e.inner_error())
         }
       },
-      Err(ZatError::SerdeError(e)) => eprintln!("Could not decode variables.prompt file: {}", e),
-      Err(ZatError::IOError(e)) => eprintln!("Error read variables.prompt file: {}", e),
-      Err(ZatError::OtherError(e)) => eprintln!("An error occurred processing the variables.prompt file: {}", e)
+      Err(_) => eprintln!("got an error!") // TODO: Fix
+      // Err(ZatError::SerdeError(e)) => eprintln!("Could not decode variables.prompt file: {}", e),
+      // Err(ZatError::IOError(e)) => eprintln!("Error read variables.prompt file: {}", e),
+      // Err(ZatError::OtherError(e)) => eprintln!("An error occurred processing the variables.prompt file: {}", e)
     }
   } else if !template_path_exists {
     eprintln!("Template path does not exist: {}", &template_dir.path)
