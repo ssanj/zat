@@ -38,11 +38,11 @@ fn run_zat() {
   let template_dir = TemplateDir::new(&cli_args.template);
   let target_dir = TargetDir::new(&cli_args.destination);
 
-  let template_path_exists = does_path_exist(&template_dir);
-  let target_path_exists = does_path_exist(&target_dir);
+  let template_path_exists = does_path_exist(&template_dir); // Move this to a behaviour
+  let target_path_exists = does_path_exist(&target_dir); // Move this to a behaviour
 
   if template_path_exists && !target_path_exists {
-    let variables_file = Path::new(&template_dir.path).join(".variables.prompt");
+    let variables_file = Path::new(&template_dir.path).join(".variables.prompt"); // Move this to a behaviour
 
     match extractor.extract_variables(&variables_file) {
      Ok(VariableValidationResponse::UserQuit) => println!("~ Goodbye"),
