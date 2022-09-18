@@ -36,6 +36,24 @@ pub fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, toke
     .map(|_| ())
 }
 
+// TODO: Use this in the above function
+fn build_token_replacer(token_map: HashMap<String, String>) -> impl Fn(&str) -> String {
+    // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
+    let mut token_keys: Vec<String> = vec![];
+    let mut token_values: Vec<String> = vec![];
+    for (key, value) in token_map {
+      token_keys.push(key); // key
+      token_values.push(value); // value
+    };
+
+    let ac = AhoCorasick::new(token_keys);
+
+    move |haystack: &str| {
+      let result = &ac.replace_all(haystack, &token_values);
+      result.to_owned()
+    }
+  }
+
 fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, ignored_directories: &[&str], ignored_files: &[&str]) -> ZatResult<Vec<FileTypes>> {
   WalkDir::new(template_dir)
     .into_iter()

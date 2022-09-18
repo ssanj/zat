@@ -8,6 +8,48 @@ pub struct SourceFile(pub String);
 #[derive(Debug, Clone)]
 pub struct TargetFile(pub String);
 
+impl TargetFile {
+  pub fn remove_extension(&self) -> TargetFile {
+    let without_extension =
+      Path::new(&self.0)
+        .file_stem()
+        .expect(&format!("Could not retrieve file name stem for: {}", &self.0))
+        .to_string_lossy();
+
+    TargetFile(without_extension.to_string())
+  }
+
+  pub fn parent_directory(&self) -> TargetFile {
+    let parent_dir =
+      Path::new(&self.0)
+        .parent()
+        .expect(&format!("Could not get parent path for: {}", &self.0))
+        .to_string_lossy();
+
+    TargetFile(parent_dir.to_string())
+  }
+
+  pub fn join<P>(&self, other: P) -> TargetFile where
+    P: AsRef<Path>
+  {
+    TargetFile(Path::new(&self.0).join(other).to_string_lossy().to_string())
+  }
+
+  pub fn replace_tokens_in_file_name<F>(&self, replace_tokens: F) -> TargetFile where
+    F: Fn(&str) -> String
+  {
+    TargetFile(replace_tokens(&self.0))
+  }
+
+}
+
+
+impl AsRef<Path> for TargetFile {
+  fn as_ref(&self) -> &Path {
+      &Path::new(&self.0)
+  }
+}
+
 
 #[derive(Debug, Clone)]
 pub struct TargetDir {
