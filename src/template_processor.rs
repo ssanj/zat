@@ -9,34 +9,21 @@ pub fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, toke
   let ignored_directories = [".git"];
   let target_files = get_files_to_process(&template_dir, &target_dir, &ignored_directories, &ignored_files)?;
 
-  // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
-  let mut token_keys: Vec<String> = vec![];
-  let mut token_values: Vec<String> = vec![];
-  for (key, value) in token_map {
-    token_keys.push(key); // key
-    token_values.push(value); // value
-  };
-
-  let ac = AhoCorasick::new(token_keys);
-
-  let replace_tokens = |haystack: &str| {
-    let result = &ac.replace_all(haystack, &token_values);
-    result.to_owned()
-  };
+  let replace_tokens = build_token_replacer(token_map);
 
   target_files
     .into_iter()
     .map(|file_type|{
       match file_type {
-        FileTypes::File(source_file, target_file) => copy_file(replace_tokens, &source_file, &target_file),
-        FileTypes::Dir(dir_path) => create_directory(replace_tokens, &dir_path),
+        FileTypes::File(source_file, target_file) => copy_file(&replace_tokens, &source_file, &target_file),
+        FileTypes::Dir(dir_path) => create_directory(&replace_tokens, &dir_path),
       }
     })
     .collect::<ZatResult<Vec<()>>>()
     .map(|_| ())
 }
 
-// TODO: Use this in the above function
+// TODO: Test
 fn build_token_replacer(token_map: HashMap<String, String>) -> impl Fn(&str) -> String {
     // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
     let mut token_keys: Vec<String> = vec![];
