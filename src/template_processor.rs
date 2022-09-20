@@ -1,6 +1,7 @@
 use crate::models::*;
 use aho_corasick::AhoCorasick;
 use walkdir::{WalkDir, DirEntry};
+use std::fmt::Display;
 use std::fs::{self, File};
 use std::{fs::create_dir, collections::HashMap, path::Path};
 
@@ -103,46 +104,57 @@ fn classify_file_types<'a>(dir_entry: &'a DirEntry, relative_target_path: &str, 
 fn copy_file<F>(replace_tokens: F, source_file: &SourceFile, target_file: &TargetFile) -> ZatResult<()> where
   F: Fn(&str) -> String
 {
-  let target_file_with_tokens_replaced = replace_tokens(&target_file.0);
+
+  // TODO: can we move this into SourceFile? Maybe with a map function to convert the tokens?
   let content =
     fs::read(source_file.clone().0)
       .map_err(|e|{
         ZatError::IOError(format!("Could not read source file: {}\nCause: {}", &source_file.0, e.to_string()))
+      })
+      .and_then(|content| {
+        std::str::from_utf8(&content)
+          .map_err(|e| {
+            ZatError::IOError(
+              format!("Could not convert content of {} from bytes to String:\n{}",
+                &source_file.0,
+                e.to_string())
+              )
+          })
+          .map(|c| c.to_owned())
       })?;
 
-  let target_file_path = Path::new(&target_file_with_tokens_replaced);
-  println!("file: {} -> {}", &source_file.0, target_file_path.to_string_lossy());
+  let target_file_name_tokens_applied = target_file.map(&replace_tokens);
 
-  if let Some("tmpl") =
-    target_file_path
-      .extension()
-      .map(|p| p.to_string_lossy().to_owned())
-      .as_deref() { // It's a template
-    write_template_file(replace_tokens, source_file.clone(), target_file.clone(), &target_file_path, &content)
+  if let Some("tmpl") = &target_file.get_extension().as_deref() { // It's a template
+
+    let parent_dir = &target_file_name_tokens_applied.parent_directory();
+    let full_target_file_path_templated = parent_dir.join(&target_file_name_tokens_applied.file_stem());
+    let content_with_tokens_applied = &replace_tokens(&content);
+    write_file(&full_target_file_path_templated, &content_with_tokens_applied)
   } else {
-    write_file(&target_file_with_tokens_replaced, &content)
+    write_file(&target_file_name_tokens_applied, &content)
   }
 
   Ok(())
 }
 
-fn write_file(target_file_with_tokens_replaced: &str, content: &[u8]) {
-  fs::write(target_file_with_tokens_replaced, content)
+fn write_file<C, T>(target_file_with_tokens_replaced: T, content: C) where
+  T: AsRef<Path> + Display,
+  C: AsRef<[u8]>
+{
+  fs::write(&target_file_with_tokens_replaced, content)
     .expect(&format!("Could not write target file: {}", &target_file_with_tokens_replaced))
 }
 
-fn write_template_file<F>(replace_tokens: F, source_file: SourceFile, target_file: TargetFile, target_file_path: &Path, content:  &[u8]) where
-F: Fn(&str) -> String {
+fn write_template_file(target_file: TargetFile, target_file_path: &Path, content:  &str) {
   let target_dir_path = Path::new(&target_file.0).parent().expect(&format!("Could not get parent path for: {}", &target_file.0));
-  let str_content = std::str::from_utf8(&content).expect("Could not convert content to bytes to String");
-  let content_with_tokens_replaced = replace_tokens(&str_content);
   let target_file_path_templated = target_file_path.file_stem().expect("Could not retrieve file name stem");
   let full_target_file_path_templated = target_dir_path.join(target_file_path_templated);
   let full_target_file_path_templated_str = full_target_file_path_templated.to_string_lossy();
 
-  println!("writing file: {} -> {}", &source_file.0, &full_target_file_path_templated_str);
+  // println!("writing file: {} -> {}", &source_file.0, &full_target_file_path_templated_str);
 
-  fs::write(&*full_target_file_path_templated_str, content_with_tokens_replaced)
+  fs::write(&*full_target_file_path_templated_str, content)
     .expect(&format!("Could not write target file: {}", &full_target_file_path_templated_str))
 }
 

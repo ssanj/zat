@@ -1,4 +1,4 @@
-use std::{fmt, path::Path, ffi::OsStr};
+use std::{fmt, path::Path, ffi::OsStr, borrow::Cow};
 
 pub type ZatResult<A> = Result<A, ZatError>;
 
@@ -9,6 +9,13 @@ pub struct SourceFile(pub String);
 pub struct TargetFile(pub String);
 
 impl TargetFile {
+
+  pub fn get_extension(&self) -> Option<Cow<'_, str>> {
+     Path::new(&self.0)
+      .extension()
+      .map(|p| p.to_string_lossy().to_owned())
+  }
+
   pub fn remove_extension(&self) -> TargetFile {
     let without_extension =
       Path::new(&self.0)
@@ -29,16 +36,26 @@ impl TargetFile {
     TargetFile(parent_dir.to_string())
   }
 
+  pub fn file_stem(&self) -> TargetFile {
+    let file_stem =
+      Path::new(&self.0)
+        .file_name()
+        .expect(&format!("Could not get file stem for: {}", &self.0))
+        .to_string_lossy();
+
+    TargetFile(file_stem.to_string())
+  }
+
   pub fn join<P>(&self, other: P) -> TargetFile where
     P: AsRef<Path>
   {
     TargetFile(Path::new(&self.0).join(other).to_string_lossy().to_string())
   }
 
-  pub fn replace_tokens_in_file_name<F>(&self, replace_tokens: F) -> TargetFile where
+  pub fn map<F>(&self, f: F) -> TargetFile where
     F: Fn(&str) -> String
   {
-    TargetFile(replace_tokens(&self.0))
+    TargetFile(f(&self.0))
   }
 
 }
