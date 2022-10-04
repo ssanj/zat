@@ -1,9 +1,38 @@
 use std::{fmt, path::Path, ffi::OsStr, borrow::Cow};
+use std::fs;
 
 pub type ZatResult<A> = Result<A, ZatError>;
 
 #[derive(Debug, Clone)]
 pub struct SourceFile(pub String);
+
+impl SourceFile {
+
+  pub fn read(&self) -> Result<String, ZatError> {
+    fs::read(&self.0)
+      .map_err(|e|{
+        ZatError::IOError(format!("Could not read source file: {}\nCause: {}", self.0.as_str(), e.to_string()))
+      })
+      .and_then(|content| {
+        std::str::from_utf8(&content)
+          .map_err(|e| {
+            ZatError::IOError(
+              format!("Could not convert content of {} from bytes to String:\n{}",
+                &self.0,
+                e.to_string())
+              )
+          })
+          .map(|c| c.to_owned())
+      })
+  }
+}
+
+impl fmt::Display for SourceFile {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 
 #[derive(Debug, Clone)]
 pub struct TargetFile(pub String);
@@ -119,11 +148,6 @@ impl AsRef<OsStr> for TemplateDir {
   }
 }
 
-impl fmt::Display for SourceFile {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
 
 impl fmt::Display for TargetFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

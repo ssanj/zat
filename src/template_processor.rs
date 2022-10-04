@@ -105,23 +105,7 @@ fn copy_file<F>(replace_tokens: F, source_file: &SourceFile, target_file: &Targe
   F: Fn(&str) -> String
 {
 
-  // TODO: can we move this into SourceFile? Maybe with a map function to convert the tokens?
-  let content =
-    fs::read(source_file.clone().0)
-      .map_err(|e|{
-        ZatError::IOError(format!("Could not read source file: {}\nCause: {}", &source_file.0, e.to_string()))
-      })
-      .and_then(|content| {
-        std::str::from_utf8(&content)
-          .map_err(|e| {
-            ZatError::IOError(
-              format!("Could not convert content of {} from bytes to String:\n{}",
-                &source_file.0,
-                e.to_string())
-              )
-          })
-          .map(|c| c.to_owned())
-      })?;
+  let content = source_file.read()?;
 
   let target_file_name_tokens_applied = target_file.map(&replace_tokens);
 
@@ -134,16 +118,14 @@ fn copy_file<F>(replace_tokens: F, source_file: &SourceFile, target_file: &Targe
   } else {
     write_file(&target_file_name_tokens_applied, &content)
   }
-
-  Ok(())
 }
 
-fn write_file<C, T>(target_file_with_tokens_replaced: T, content: C) where
+fn write_file<C, T>(target_file_with_tokens_replaced: T, content: C) -> ZatResult<()> where
   T: AsRef<Path> + Display,
   C: AsRef<[u8]>
 {
   fs::write(&target_file_with_tokens_replaced, content)
-    .expect(&format!("Could not write target file: {}", &target_file_with_tokens_replaced))
+    .map_err(|e| ZatError::IOError(format!("Could not write target file: {}\nCause:{}", &target_file_with_tokens_replaced, e)))
 }
 
 fn write_template_file(target_file: TargetFile, target_file_path: &Path, content:  &str) {
