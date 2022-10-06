@@ -8,7 +8,28 @@ use std::{fs::create_dir, collections::HashMap, path::Path};
 pub fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_map: HashMap<String, String>) -> ZatResult<()> {
   let ignored_files = [".variables.prompt"];
   let ignored_directories = [".git"];
-  let target_files = get_files_to_process(&template_dir, &target_dir, &ignored_directories, &ignored_files)?;
+
+  let get_dir_entry_file_type = |dir_entry: &DirEntry| {
+    let entry_file_type = dir_entry.file_type();
+      if entry_file_type.is_file() {
+        TraversalFileType::File
+      } else if entry_file_type.is_dir() {
+        TraversalFileType::Dir
+      } else {
+        TraversalFileType::Symlink
+      }
+  };
+
+  let valid_template_files =
+    WalkDir::new(template_dir)
+    .into_iter()
+    .filter_map(|re| re.ok())
+    .map(|dir_entry|{
+      let p = dir_entry.path().to_owned();
+      DirTraversalEntry::new(p, get_dir_entry_file_type(&dir_entry))
+    });
+
+  let target_files = get_files_to_process(valid_template_files, &template_dir, &target_dir, &ignored_directories, &ignored_files)?;
 
   let replace_tokens = build_token_replacer(token_map);
 
@@ -42,63 +63,62 @@ fn build_token_replacer(token_map: HashMap<String, String>) -> impl Fn(&str) -> 
     }
   }
 
-fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, ignored_directories: &[&str], ignored_files: &[&str]) -> ZatResult<Vec<FileTypes>> {
-  WalkDir::new(template_dir)
+
+// TODO: Unit Test
+fn get_files_to_process<'a, T>(entries: T, template_dir: &TemplateDir, target_dir: &TargetDir, ignored_directories: &[&str], ignored_files: &[&str]) -> ZatResult<Vec<FileTypes>>  where
+  T: IntoIterator<Item = DirTraversalEntry>
+{
+  entries
     .into_iter()
-    .filter_map(|re| re.ok())
     .filter(|dir_entry| required_entries(dir_entry, ignored_directories, ignored_files))
     .map(|dir_entry| get_file_type(&dir_entry, &template_dir, &target_dir))
     .collect::<ZatResult<Vec<FileTypes>>>()
 }
 
-// TODO: We just need a file path and file type instead of DirEntry
-fn required_entries(dir_entry: &DirEntry, ignored_directories: &[&str], ignored_files: &[&str]) -> bool {
-  let file_path = dir_entry.path().to_string_lossy();
+// TODO: Unit Test
+fn required_entries(dir_entry: &DirTraversalEntry, ignored_directories: &[&str], ignored_files: &[&str]) -> bool {
+  let file_path = dir_entry.path_as_string();
   let file_type = dir_entry.file_type();
   let is_ignored =
-    if file_type.is_file() {
-      let result = ignored_files.iter().any(|f| file_path.ends_with(f)) || ignored_directories.iter().any(|d| file_path.contains(d));
-      println!("file: {}, ignored:{}", file_path, result);
-      result
-    } else if file_type.is_dir() {
-      let result = ignored_directories.iter().any(|d| file_path.contains(d));
-      println!("dir: {}, ignored:{}", file_path, result);
-      result
-    } else {
-      println!("*******: {}, ignored: false", file_path);
-      false
+    match file_type {
+      TraversalFileType::File => {
+        let result = ignored_files.iter().any(|f| file_path.ends_with(f)) || ignored_directories.iter().any(|d| file_path.contains(d));
+        println!("file: {}, ignored:{}", file_path, result);
+        result
+      },
+      TraversalFileType::Dir => {
+        let result = ignored_directories.iter().any(|d| file_path.contains(d));
+        println!("dir: {}, ignored:{}", file_path, result);
+        result
+      },
+      TraversalFileType::Symlink => {
+        println!("*******: {}, ignored: false", file_path);
+        false
+      },
     };
 
   !is_ignored
 }
 
-
-fn get_file_type(dir_entry: &DirEntry, template_dir: &TemplateDir, target_dir: &TargetDir) -> ZatResult<FileTypes> {
-  let file_path = dir_entry.path().to_string_lossy();
-  let source_file = SourceFile(file_path.to_string());
+// TODO: Unit Test
+fn get_file_type(dir_entry: &DirTraversalEntry, template_dir: &TemplateDir, target_dir: &TargetDir) -> ZatResult<FileTypes> {
+  let source_file = SourceFile(dir_entry.path_as_string());
 
   source_file
     .strip_prefix(&template_dir.path)
-    .and_then(|relative_target_path|{
-      dir_entry
-        .metadata()
-        .map_err(|e|{
-          ZatError::IOError(format!("Could not retrieve metadata for file: {}\nCause: {}", &source_file.0, e.to_string()))
-        })
-        .map(|md| {
-          classify_file_types(&md, &source_file, &relative_target_path, target_dir)
-        })
+    .map(|relative_target_path|{
+      classify_file_types(dir_entry, &source_file, &relative_target_path, target_dir)
     })
 }
 
-fn classify_file_types<'a>(metadata: &'a Metadata, source_file: &'a SourceFile, relative_target_path: &str, target_dir: &'a TargetDir) -> FileTypes {
+// TODO: Unit Test
+fn classify_file_types<'a>(dir_entry: &'a DirTraversalEntry, source_file: &'a SourceFile, relative_target_path: &str, target_dir: &'a TargetDir) -> FileTypes {
   let target_path = TargetFile::from(target_dir.join(relative_target_path));
-  if metadata.is_file() {
-    FileTypes::File(source_file.clone(), target_path.clone())
-  } else if metadata.is_dir() {
-    FileTypes::Dir(target_path.0.clone())
-  } else {
-    FileTypes::Symlink(source_file.0.to_owned())
+
+  match dir_entry.file_type() {
+    TraversalFileType::File => FileTypes::File(source_file.clone(), target_path.clone()),
+    TraversalFileType::Dir => FileTypes::Dir(target_path.0.clone()),
+    TraversalFileType::Symlink => FileTypes::Symlink(source_file.0.to_owned()),
   }
 }
 

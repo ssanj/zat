@@ -212,3 +212,37 @@ impl ZatError {
     }
   }
 }
+
+#[derive(Debug, Clone)]
+pub enum TraversalFileType {
+  File,
+  Dir,
+  Symlink,
+}
+
+#[derive(Debug, Clone)]
+pub struct DirTraversalEntry {
+  path: PathBuf,
+  file_type: TraversalFileType,
+}
+
+impl DirTraversalEntry {
+
+  pub fn new<T>(path: T, file_type: TraversalFileType) -> Self where
+    T: AsRef<Path>
+  {
+    DirTraversalEntry {
+      path: path.as_ref().to_path_buf(),
+      file_type
+    }
+  }
+
+  pub fn path_as_string(&self) -> String {
+    self.path.to_string_lossy().to_string()
+  }
+
+  pub fn file_type(&self) -> TraversalFileType {
+    self.file_type.clone()
+  }
+}
+
