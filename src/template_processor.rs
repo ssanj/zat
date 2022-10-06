@@ -71,22 +71,33 @@ fn required_entries(dir_entry: &DirEntry, ignored_directories: &[&str], ignored_
   !is_ignored
 }
 
+struct SourceEntry<'a> {
+  dir_entry: &'a DirEntry,
+  source_file: &'a SourceFile
+}
+
 fn get_file_type(dir_entry: &DirEntry, template_dir: &TemplateDir, target_dir: &TargetDir) -> ZatResult<FileTypes> {
   let file_path = dir_entry.path().to_string_lossy();
   let source_file = SourceFile(file_path.to_string());
 
-  file_path
+  source_file
     .strip_prefix(&template_dir.path)
-    .ok_or_else(||{
-      ZatError::IOError(format!("Could remove template prefix from directory: {}", file_path))
-    })
     .and_then(|relative_target_path|{
-      classify_file_types(dir_entry, relative_target_path, &source_file, target_dir)
+      let source_entry = SourceEntry {
+        dir_entry,
+        source_file: &source_file
+      };
+      classify_file_types(&source_entry, &relative_target_path, target_dir)
     })
 }
 
-fn classify_file_types<'a>(dir_entry: &'a DirEntry, relative_target_path: &str, source_file: &'a SourceFile, target_dir: &'a TargetDir) -> ZatResult<FileTypes> {
+// TODO: This is essentially a DirEntry -> FileTypes function
+fn classify_file_types<'a>(source_entry: &'a SourceEntry, relative_target_path: &str, target_dir: &'a TargetDir) -> ZatResult<FileTypes> {
+  // TODO: Ensure the relative path starts with a path separator. Should be done in main.
+  // Maybe just to a Path.join
   let target_path = TargetFile(format!("{}{}", target_dir.path, relative_target_path));
+  let dir_entry = source_entry.dir_entry;
+  let source_file = source_entry.source_file;
   dir_entry
     .metadata()
     .map_err(|e|{

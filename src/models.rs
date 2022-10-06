@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::{fmt, path::Path, ffi::OsStr, borrow::Cow};
 use std::fs;
 
@@ -24,6 +25,14 @@ impl SourceFile {
           })
           .map(|c| c.to_owned())
       })
+  }
+
+  pub fn strip_prefix(&self, prefix: &str)  -> ZatResult<String> {
+    (&self.0).strip_prefix(prefix)
+    .ok_or_else(||{
+      ZatError::IOError(format!("Could remove path prefix: {} from directory: {}", prefix, &self.0))
+    })
+    .map(|p| p.to_owned())
   }
 }
 
