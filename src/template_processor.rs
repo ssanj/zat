@@ -91,11 +91,9 @@ fn get_file_type(dir_entry: &DirEntry, template_dir: &TemplateDir, target_dir: &
     })
 }
 
-// TODO: This is essentially a DirEntry -> FileTypes function
+// TODO: This is essentially a MetaData -> FileTypes function
 fn classify_file_types<'a>(source_entry: &'a SourceEntry, relative_target_path: &str, target_dir: &'a TargetDir) -> ZatResult<FileTypes> {
-  // TODO: Ensure the relative path starts with a path separator. Should be done in main.
-  // Maybe just to a Path.join
-  let target_path = TargetFile(format!("{}{}", target_dir.path, relative_target_path));
+  let target_path = TargetFile::from(target_dir.join(relative_target_path));
   let dir_entry = source_entry.dir_entry;
   let source_file = source_entry.source_file;
   dir_entry

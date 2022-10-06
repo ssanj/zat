@@ -95,7 +95,12 @@ impl TargetFile {
   {
     TargetFile(f(&self.0))
   }
+}
 
+impl From<PathBuf> for TargetFile {
+  fn from(p: PathBuf) -> Self {
+      TargetFile(p.to_string_lossy().to_string())
+  }
 }
 
 
@@ -117,7 +122,14 @@ impl TargetDir {
       path: path.to_owned()
     }
   }
+
+  pub fn join<P>(&self, other: P) -> PathBuf where
+    P: AsRef<Path>
+  {
+    Path::new(&self.path).join(other)
+  }
 }
+
 
 impl AsRef<Path> for TargetDir {
   fn as_ref(&self) -> &Path {
