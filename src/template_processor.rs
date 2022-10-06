@@ -2,7 +2,7 @@ use crate::models::*;
 use aho_corasick::AhoCorasick;
 use walkdir::{WalkDir, DirEntry};
 use std::fmt::Display;
-use std::fs::{self, File};
+use std::fs::{self, File, Metadata};
 use std::{fs::create_dir, collections::HashMap, path::Path};
 
 pub fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, token_map: HashMap<String, String>) -> ZatResult<()> {
@@ -51,6 +51,7 @@ fn get_files_to_process(template_dir: &TemplateDir, target_dir: &TargetDir, igno
     .collect::<ZatResult<Vec<FileTypes>>>()
 }
 
+// TODO: We just need a file path and file type instead of DirEntry
 fn required_entries(dir_entry: &DirEntry, ignored_directories: &[&str], ignored_files: &[&str]) -> bool {
   let file_path = dir_entry.path().to_string_lossy();
   let file_type = dir_entry.file_type();
@@ -71,10 +72,6 @@ fn required_entries(dir_entry: &DirEntry, ignored_directories: &[&str], ignored_
   !is_ignored
 }
 
-struct SourceEntry<'a> {
-  dir_entry: &'a DirEntry,
-  source_file: &'a SourceFile
-}
 
 fn get_file_type(dir_entry: &DirEntry, template_dir: &TemplateDir, target_dir: &TargetDir) -> ZatResult<FileTypes> {
   let file_path = dir_entry.path().to_string_lossy();
@@ -83,34 +80,28 @@ fn get_file_type(dir_entry: &DirEntry, template_dir: &TemplateDir, target_dir: &
   source_file
     .strip_prefix(&template_dir.path)
     .and_then(|relative_target_path|{
-      let source_entry = SourceEntry {
-        dir_entry,
-        source_file: &source_file
-      };
-      classify_file_types(&source_entry, &relative_target_path, target_dir)
+      dir_entry
+        .metadata()
+        .map_err(|e|{
+          ZatError::IOError(format!("Could not retrieve metadata for file: {}\nCause: {}", &source_file.0, e.to_string()))
+        })
+        .map(|md| {
+          classify_file_types(&md, &source_file, &relative_target_path, target_dir)
+        })
     })
 }
 
-// TODO: This is essentially a MetaData -> FileTypes function
-fn classify_file_types<'a>(source_entry: &'a SourceEntry, relative_target_path: &str, target_dir: &'a TargetDir) -> ZatResult<FileTypes> {
+fn classify_file_types<'a>(metadata: &'a Metadata, source_file: &'a SourceFile, relative_target_path: &str, target_dir: &'a TargetDir) -> FileTypes {
   let target_path = TargetFile::from(target_dir.join(relative_target_path));
-  let dir_entry = source_entry.dir_entry;
-  let source_file = source_entry.source_file;
-  dir_entry
-    .metadata()
-    .map_err(|e|{
-      ZatError::IOError(format!("Could not retrieve metadata for file: {}\nCause: {}", &source_file.0, e.to_string()))
-    })
-    .map(move |md| {
-      if md.is_file() {
-        FileTypes::File(source_file.clone(), target_path.clone())
-      } else if md.is_dir() {
-        FileTypes::Dir(target_path.0.clone())
-      } else {
-        FileTypes::Symlink(source_file.0.to_owned())
-      }
-    })
+  if metadata.is_file() {
+    FileTypes::File(source_file.clone(), target_path.clone())
+  } else if metadata.is_dir() {
+    FileTypes::Dir(target_path.0.clone())
+  } else {
+    FileTypes::Symlink(source_file.0.to_owned())
+  }
 }
+
 
 fn copy_file<F>(replace_tokens: F, source_file: &SourceFile, target_file: &TargetFile) -> ZatResult<()> where
   F: Fn(&str) -> String
@@ -139,17 +130,6 @@ fn write_file<C, T>(target_file_with_tokens_replaced: T, content: C) -> ZatResul
     .map_err(|e| ZatError::IOError(format!("Could not write target file: {}\nCause:{}", &target_file_with_tokens_replaced, e)))
 }
 
-fn write_template_file(target_file: TargetFile, target_file_path: &Path, content:  &str) {
-  let target_dir_path = Path::new(&target_file.0).parent().expect(&format!("Could not get parent path for: {}", &target_file.0));
-  let target_file_path_templated = target_file_path.file_stem().expect("Could not retrieve file name stem");
-  let full_target_file_path_templated = target_dir_path.join(target_file_path_templated);
-  let full_target_file_path_templated_str = full_target_file_path_templated.to_string_lossy();
-
-  // println!("writing file: {} -> {}", &source_file.0, &full_target_file_path_templated_str);
-
-  fs::write(&*full_target_file_path_templated_str, content)
-    .expect(&format!("Could not write target file: {}", &full_target_file_path_templated_str))
-}
 
 fn create_directory<F>(replace_tokens: F, directory_path: &str) -> ZatResult<()> where
   F: Fn(&str) -> String
