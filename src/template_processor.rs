@@ -18,10 +18,10 @@ pub fn process_template(template_dir: &TemplateDir, target_dir: &TargetDir, toke
       match file_type {
         FileTypes::File(source_file, target_file) => copy_file(&replace_tokens, &source_file, &target_file),
         FileTypes::Dir(dir_path) => create_directory(&replace_tokens, &dir_path),
+        FileTypes::Symlink(symlink_path) => Err(ZatError::OtherError(format!("Symlinks are not supported: {}.", symlink_path))),
       }
     })
-    .collect::<ZatResult<Vec<()>>>()
-    .map(|_| ())
+    .collect::<ZatResult<()>>() // Looks like we don't need to go Vec<()> -> ()
 }
 
 // TODO: Test
@@ -82,23 +82,25 @@ fn get_file_type(dir_entry: &DirEntry, template_dir: &TemplateDir, target_dir: &
     })
     .and_then(|relative_target_path|{
       classify_file_types(dir_entry, relative_target_path, &source_file, target_dir)
-    }).map(|(is_file_result, source_path, target_path)|{
-      if is_file_result {
-        FileTypes::File(source_path.clone(), target_path.clone())
-      } else {
-        FileTypes::Dir(target_path.0.clone())
-      }
     })
 }
 
-fn classify_file_types<'a>(dir_entry: &'a DirEntry, relative_target_path: &str, file_path: &'a SourceFile, target_dir: &'a TargetDir) -> ZatResult<(bool, &'a SourceFile, TargetFile)> {
+fn classify_file_types<'a>(dir_entry: &'a DirEntry, relative_target_path: &str, source_file: &'a SourceFile, target_dir: &'a TargetDir) -> ZatResult<FileTypes> {
   let target_path = TargetFile(format!("{}{}", target_dir.path, relative_target_path));
   dir_entry
     .metadata()
     .map_err(|e|{
-      ZatError::IOError(format!("Could not retrieve metadata for file: {}\nCause: {}", &file_path.0, e.to_string()))
+      ZatError::IOError(format!("Could not retrieve metadata for file: {}\nCause: {}", &source_file.0, e.to_string()))
     })
-    .map(move |md| (md.is_file(), file_path, target_path))
+    .map(move |md| {
+      if md.is_file() {
+        FileTypes::File(source_file.clone(), target_path.clone())
+      } else if md.is_dir() {
+        FileTypes::Dir(target_path.0.clone())
+      } else {
+        FileTypes::Symlink(source_file.0.to_owned())
+      }
+    })
 }
 
 fn copy_file<F>(replace_tokens: F, source_file: &SourceFile, target_file: &TargetFile) -> ZatResult<()> where

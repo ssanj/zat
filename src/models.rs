@@ -160,6 +160,7 @@ impl fmt::Display for TargetFile {
 pub enum FileTypes {
   File(SourceFile, TargetFile),
   Dir(String),
+  Symlink(String),
 }
 
 impl fmt::Display for FileTypes {
@@ -167,6 +168,7 @@ impl fmt::Display for FileTypes {
       let path = match self {
         FileTypes::File(SourceFile(src), TargetFile(tgt)) => format!("FileTypes::File({}, {})", src, tgt),
         FileTypes::Dir(p) => format!("FileTypes::Dir({})", p),
+        FileTypes::Symlink(p) => format!("FileTypes::Symlink({})", p),
       };
 
       write!(f, "{}", path)
