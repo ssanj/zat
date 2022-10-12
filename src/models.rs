@@ -246,3 +246,39 @@ impl DirTraversalEntry {
   }
 }
 
+pub trait FileWriter {
+  fn create_directory_x<P>(path: P) -> ZatResult<()> where
+    P: AsRef<Path>;
+
+  fn copy_file_x<P, C>(path: P, content: C) -> ZatResult<()> where
+    P: AsRef<Path>,
+    C: AsRef<[u8]>;
+}
+
+struct RealFileSystem;
+
+impl FileWriter for RealFileSystem {
+  fn create_directory_x<P>(path: P) -> ZatResult<()> where
+    P: AsRef<Path> {
+      fs::create_dir(path.as_ref())
+        .map_err(|e| {
+          ZatError::IOError(
+            format!("Could not created target directory: {}\nCause:{}",
+              path.as_ref().display(),
+              e.to_string()
+          ))
+        })
+      }
+
+  fn copy_file_x<P, C>(path: P, content: C) -> ZatResult<()> where
+    P: AsRef<Path>,
+    C: AsRef<[u8]> {
+      fs::write(&path, content)
+        .map_err(|e| {
+          ZatError::IOError(format!("Could not write target file: {}\nCause:{}", &path.as_ref().display(), e))
+        })
+  }
+}
+
+// TODO: Thoughts
+// Using a single models.rs lacks modularity. We should have a models.rs for cli, templates and tokens
