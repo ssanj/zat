@@ -3,6 +3,7 @@ use std::{fmt, path::Path, ffi::OsStr, borrow::Cow};
 use std::fs;
 
 pub type ZatResult<A> = Result<A, ZatError>;
+pub type ZatAction = Result<(), ZatError>;
 
 #[derive(Debug, Clone)]
 pub struct SourceFile(pub String);

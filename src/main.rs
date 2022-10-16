@@ -17,6 +17,7 @@ mod variables;
 mod tokens;
 mod cli;
 mod template_processor;
+mod user_config;
 
 fn main() {
   run_zat()
