@@ -19,6 +19,10 @@ mod cli;
 mod template_processor;
 mod user_config;
 mod template_config_validator;
+mod template_selector;
+mod template_proc;
+mod template_renderer;
+mod token_replacer;
 
 fn main() {
   run_zat()
