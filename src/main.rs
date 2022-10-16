@@ -18,6 +18,7 @@ mod tokens;
 mod cli;
 mod template_processor;
 mod user_config;
+mod template_config_validator;
 
 fn main() {
   run_zat()
