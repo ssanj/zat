@@ -6,4 +6,3 @@ pub type ZatActionX = Result<(), ZatErrorX>;
 pub enum ZatErrorX {
   UserConfigError(String),
 }
-

@@ -129,6 +129,11 @@ impl TargetDir {
   {
     Path::new(&self.path).join(other)
   }
+
+  pub fn does_exist(&self) -> bool {
+    Path::new(&self.path).exists()
+  }
+
 }
 
 
@@ -155,6 +160,10 @@ impl TemplateDir {
     TemplateDir {
       path: path.to_owned(),
     }
+  }
+
+  pub fn does_exist(&self) -> bool {
+    Path::new(&self.path).exists()
   }
 }
 

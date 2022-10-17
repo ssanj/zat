@@ -24,6 +24,7 @@ mod template_proc;
 mod template_renderer;
 mod token_replacer;
 mod shared_models;
+mod prod_context;
 
 fn main() {
   run_zat()
