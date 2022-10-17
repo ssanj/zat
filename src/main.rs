@@ -23,9 +23,14 @@ mod template_selector;
 mod template_proc;
 mod template_renderer;
 mod token_replacer;
+mod shared_models;
 
 fn main() {
   run_zat()
+}
+
+fn alternate_run_zat() {
+  todo!()
 }
 
 fn run_zat() {

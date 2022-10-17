@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use crate::models::{ZatResult, ZatError, ZatAction, SourceFile, TargetDir, TargetFile, TemplateDir};
+use crate::models::{SourceFile, TargetDir, TargetFile, TemplateDir};
+use crate::shared_models::*;
 
 #[derive(Debug, Clone)]
 pub struct Ignores {
@@ -18,5 +19,5 @@ pub struct Config {
 // Get user configuration
 // Load token file (if any)
 pub trait UserConfig {
-  fn get_config() -> ZatResult<Config>;
+  fn get_config() -> ZatResultX<Config>;
 }

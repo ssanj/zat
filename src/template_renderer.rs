@@ -1,7 +1,7 @@
 use crate::template_proc::Template;
-use crate::models::ZatAction;
+use crate::shared_models::ZatActionX;
 
 pub trait TemplateRender {
-  fn render(template: Template) -> ZatAction;
+  fn render(template: Template) -> ZatActionX;
 }
 

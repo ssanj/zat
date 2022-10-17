@@ -1,4 +1,4 @@
-use crate::models::ZatResult;
+use crate::shared_models::ZatResultX;
 use crate::template_config_validator::ValidConfig;
 use crate::template_selector::TemplateFileType;
 use crate::models::{SourceFile, TargetFile};
@@ -13,5 +13,5 @@ pub enum Template {
 
 pub trait TemplateProcessor {
   // fn process(&self, config: ValidConfig) -> ZatAction;
-  fn process(&self, config: ValidConfig, templates: Vec<TemplateFileType>) -> ZatResult<Vec<Template>>;
+  fn process(&self, config: ValidConfig, templates: Vec<TemplateFileType>) -> ZatResultX<Vec<Template>>;
 }
