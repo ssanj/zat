@@ -1,7 +1,7 @@
 use clap::Parser;
 
 /// A simple templating system to prevent copy-pasta overload
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[clap(author, version, about)]
 pub struct Args {
 

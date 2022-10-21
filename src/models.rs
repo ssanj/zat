@@ -150,7 +150,7 @@ impl AsRef<OsStr> for TargetDir {
 }
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TemplateDir {
   pub path: String
 }

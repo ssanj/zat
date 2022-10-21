@@ -10,6 +10,15 @@ pub struct Ignores {
   pub directories: Vec<String>,
 }
 
+impl Default for Ignores {
+  fn default() -> Self {
+    Ignores {
+      files: vec![],
+      directories: vec![]
+    }
+  }
+}
+
 #[derive(Debug, Clone)]
 pub struct VariableFile {
   path: String
@@ -31,7 +40,7 @@ impl From<TargetDir> for VariableFile {
 }
 
 pub struct Config {
-  pub user_tokens: HashMap<String, String>,
+  // pub user_tokens: HashMap<String, String>,
   pub template_dir: TemplateDir,
   pub target_dir: TargetDir,
   pub ignores: Ignores
@@ -40,5 +49,5 @@ pub struct Config {
 // Get user configuration
 // Load token file (if any)
 pub trait UserConfig {
-  fn get_config() -> ZatResultX<Config>;
+  fn get_config(&self) -> ZatResultX<Config>;
 }
