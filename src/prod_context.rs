@@ -60,15 +60,12 @@ impl UserConfig for Prod {
     let template_dir = TemplateDir::new(&args.template_dir);
     let target_dir = TargetDir::new(&args.target_dir);
 
-    let template_path_exists = &template_dir.does_exist();
-    let target_path_exists = &target_dir.does_exist();
+    let template_dir_exists = &template_dir.does_exist();
+    let target_dir_exists = &target_dir.does_exist();
 
-    if *template_path_exists && !(*target_path_exists) {
-    //   let user_tokens = Prod::get_tokens(); //TODO: Get this from the user
-      let ignores = Ignores { // TODO: Get this from the user
-        files: vec![],
-        directories: vec![],
-      };
+    if *template_dir_exists && !(*target_dir_exists) {
+
+      let ignores = Ignores::default(); // TODO: Get this from the user
 
       Ok(
         Config {
@@ -78,7 +75,7 @@ impl UserConfig for Prod {
           ignores
         }
       )
-    } else if !template_path_exists {
+    } else if !template_dir_exists {
       let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path);
       Err(ZatErrorX::UserConfigError(error))
     } else {
