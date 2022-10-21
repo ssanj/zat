@@ -23,13 +23,13 @@ use std::collections::HashMap;
 // }
 
 trait ArgSupplier {
-  fn get_cli_args(&self) -> Args;
+  fn get_args(&self) -> Args;
 }
 
 struct Cli;
 
 impl ArgSupplier for Cli {
-  fn get_cli_args(&self) -> Args {
+  fn get_args(&self) -> Args {
     cli::get_cli_args()
   }
 }
@@ -55,7 +55,7 @@ impl Prod {
 
 impl UserConfig for Prod {
   fn get_config(&self) -> ZatResultX<Config> {
-    let args = self.arg_supplier.get_cli_args();
+    let args = self.arg_supplier.get_args();
 
     let template_dir = TemplateDir::new(&args.template_dir);
     let target_dir = TargetDir::new(&args.target_dir);
@@ -79,10 +79,10 @@ impl UserConfig for Prod {
         }
       )
     } else if !template_path_exists {
-      let error = format!("Template path does not exist: {}", &template_dir.path);
+      let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path);
       Err(ZatErrorX::UserConfigError(error))
     } else {
-      let error = format!("Target path already exists: {}. Please supply an empty directory for the target", &target_dir.path);
+      let error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", &target_dir.path);
       Err(ZatErrorX::UserConfigError(error))
     }
   }
@@ -100,7 +100,7 @@ mod tests {
   }
 
   impl ArgSupplier for TestArgs {
-    fn get_cli_args(&self) -> Args {
+    fn get_args(&self) -> Args {
       self.args.clone()
     }
   }
@@ -139,27 +139,60 @@ mod tests {
     assert_eq!(config.ignores, expected_ignores)
   }
 
-  // #[test]
-  // fn config_fails_if_templat_dir_does_not_exist() {
-  //   let args = TestArgs {
-  //     args: Args {
-  //       template: "some template".to_owned() ,
-  //       destination: "some destination".to_owned()
-  //     }
-  //   };
+  #[test]
+  fn config_fails_to_load_if_template_dir_does_not_exist() {
 
-  //   let target_dir = TempDir::new()?;
-  //   let template_dir = TempDir::new()?;
+    let target_dir = TempDir::new().unwrap();
+    let template_dir = TempDir::new().unwrap();
 
-  //   let arg_supplier = Box::new(args);
-  //   let prod = Prod::with_args_supplier(arg_supplier);
-  //   let config = prod.get_config().unwrap();
-  //   let expected_template_dir = TemplateDir::new(template_dir.path().display());
-  //   let expected_ignores = Ignores::default();
+    let template_dir_path = template_dir.path().display().to_string();
+    let target_dir_path = target_dir.path().display().to_string();
+
+    drop(target_dir);
+    drop(template_dir);
+
+    let args = TestArgs {
+      args: Args {
+        template_dir: template_dir_path.clone(),
+        target_dir: target_dir_path.clone()
+      }
+    };
+
+    let prod = Prod::with_args_supplier(Box::new(args));
+    match prod.get_config() {
+      Ok(_) => assert!(false, "get_config should fail if the template directory does not exist"),
+      Err(error) => {
+        let expected_error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", template_dir_path);
+        assert_eq!(error, ZatErrorX::UserConfigError(expected_error))
+      }
+    }
+  }
+
+  #[test]
+  fn config_fails_to_load_if_target_dir_exists() {
+
+    let target_dir = TempDir::new().unwrap();
+    let template_dir = TempDir::new().unwrap();
+
+    let template_dir_path = template_dir.path().display().to_string();
+    let target_dir_path = target_dir.path().display().to_string();
+
+    let args = TestArgs {
+      args: Args {
+        template_dir: template_dir_path.clone(),
+        target_dir: target_dir_path.clone()
+      }
+    };
+
+    let prod = Prod::with_args_supplier(Box::new(args));
+    match prod.get_config() {
+      Ok(_) => assert!(false, "get_config should fail if the target directory does exist"),
+      Err(error) => {
+        let expected_error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", target_dir_path);
+        assert_eq!(error, ZatErrorX::UserConfigError(expected_error))
+      }
+    }
+  }
 
 
-  //   assert_eq!(config.template_dir, expected_template_dir);
-  //   assert!(!config.target_dir.exists(), "target path should not exist");
-  //   assert_eq!(config.ignores, expected_ignores)
-  // }
 }
