@@ -17,7 +17,7 @@ mod variables;
 mod tokens;
 mod cli;
 mod template_processor;
-mod user_config;
+mod user_config_provider;
 mod template_config_validator;
 mod template_selector;
 mod template_proc;

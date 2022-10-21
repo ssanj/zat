@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::models::{TargetDir, TemplateDir};
-use crate::user_config::{Ignores, Config}; // Should this be moved into a shared models?
+use crate::user_config_provider::{Ignores, Config}; // Should this be moved into a shared models?
 
 #[derive(Debug, Clone)]
 pub struct ValidConfig {

@@ -1,10 +1,8 @@
 use crate::cli::Args;
 use crate::shared_models::*;
-use crate::user_config::*;
+use crate::user_config_provider::*;
 use crate::cli;
 use crate::models::{TargetDir, TemplateDir};
-use std::collections::HashMap;
-
 
 // impl Prod {
 //   fn get_tokens() -> HashMap<String, String> {
@@ -53,7 +51,7 @@ impl Prod {
   }
 }
 
-impl UserConfig for Prod {
+impl UserConfigProvider for Prod {
   fn get_config(&self) -> ZatResultX<Config> {
     let args = self.arg_supplier.get_args();
 

@@ -49,6 +49,6 @@ pub struct Config {
 
 // Get user configuration
 // Load token file (if any)
-pub trait UserConfig {
+pub trait UserConfigProvider {
   fn get_config(&self) -> ZatResultX<Config>;
 }
