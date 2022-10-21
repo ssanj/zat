@@ -38,6 +38,14 @@ impl ArgSupplier for Cli {
   }
 }
 
+struct UnimplementedType;
+
+impl ArgSupplier for UnimplementedType {
+  fn get_args(&self) -> Args {
+    todo!()
+  }
+}
+
 
 pub struct Prod {
   arg_supplier: Box<dyn ArgSupplier>
@@ -288,7 +296,7 @@ mod tests {
 
     writeln!(&mut variable_file, "{}", variables_config).unwrap();
 
-    let prod = Prod::new();
+    let prod = Prod::with_args_supplier(Box::new(UnimplementedType));
 
     let user_config = UserConfig {
       template_dir: TemplateDir::new(&template_dir_path),
