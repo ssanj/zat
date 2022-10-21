@@ -7,11 +7,11 @@ pub struct Args {
 
    /// The location of the template
    #[clap(short, long, value_parser)]
-   pub template: String,
+   pub template_dir: String,
 
    /// Where to extract the template to
    #[clap(short, long, value_parser)]
-   pub destination: String,
+   pub target_dir: String,
 }
 
 pub fn get_cli_args() -> Args {

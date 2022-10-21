@@ -37,8 +37,8 @@ fn alternate_run_zat() {
 fn run_zat() {
   let cli_args = cli::get_cli_args();
 
-  let template_dir = TemplateDir::new(&cli_args.template);
-  let target_dir = TargetDir::new(&cli_args.destination);
+  let template_dir = TemplateDir::new(&cli_args.template_dir);
+  let target_dir = TargetDir::new(&cli_args.target_dir);
 
   let template_path_exists = does_path_exist(&template_dir);
   let target_path_exists = does_path_exist(&target_dir);

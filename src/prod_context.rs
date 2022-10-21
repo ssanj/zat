@@ -57,8 +57,8 @@ impl UserConfig for Prod {
   fn get_config(&self) -> ZatResultX<Config> {
     let args = self.arg_supplier.get_cli_args();
 
-    let template_dir = TemplateDir::new(&args.template);
-    let target_dir = TargetDir::new(&args.destination);
+    let template_dir = TemplateDir::new(&args.template_dir);
+    let target_dir = TargetDir::new(&args.target_dir);
 
     let template_path_exists = &template_dir.does_exist();
     let target_path_exists = &target_dir.does_exist();
@@ -89,8 +89,12 @@ impl UserConfig for Prod {
 }
 
 
-#[cfg(Test)]
+#[cfg(test)]
 mod tests {
+
+  use super::*;
+  use tempfile::TempDir;
+
   struct TestArgs{
     args: Args
   }
@@ -101,29 +105,61 @@ mod tests {
     }
   }
 
-  use tempfile::TempDir;
+
 
   #[test]
   fn config_is_loaded() {
+
+    let target_dir = TempDir::new().unwrap();
+    let template_dir = TempDir::new().unwrap();
+
+    let template_dir_path = template_dir.path().display().to_string();
+    let target_dir_path = target_dir.path().display().to_string();
+
+    // Delete target_dir because it should not exist
+    // We only create it to get a random directory name
+    drop(target_dir);
+
     let args = TestArgs {
       args: Args {
-        template: "some template".to_owned() ,
-        destination: "some destination".to_owned()
+        template_dir: template_dir_path.clone(),
+        target_dir: target_dir_path.clone()
       }
     };
 
-    let target_dir = TempDir::new()?;
-    let template_dir = TempDir::new()?;
+    let prod = Prod::with_args_supplier(Box::new(args));
+    let config = prod.get_config().expect("Could not get config");
 
-    let arg_supplier = Box::new(args);
-    let prod = Prod::with_args_supplier(arg_supplier);
-    let config = prod.get_config().unwrap();
-    let expected_template_dir = TemplateDir::new(template_dir.path().display());
+    let expected_template_dir = TemplateDir::new(&template_dir_path);
     let expected_ignores = Ignores::default();
 
 
     assert_eq!(config.template_dir, expected_template_dir);
-    assert!(!config.target_dir.exists(), "target path should not exist");
+    assert_eq!(&config.target_dir.path, &target_dir_path);
     assert_eq!(config.ignores, expected_ignores)
   }
+
+  // #[test]
+  // fn config_fails_if_templat_dir_does_not_exist() {
+  //   let args = TestArgs {
+  //     args: Args {
+  //       template: "some template".to_owned() ,
+  //       destination: "some destination".to_owned()
+  //     }
+  //   };
+
+  //   let target_dir = TempDir::new()?;
+  //   let template_dir = TempDir::new()?;
+
+  //   let arg_supplier = Box::new(args);
+  //   let prod = Prod::with_args_supplier(arg_supplier);
+  //   let config = prod.get_config().unwrap();
+  //   let expected_template_dir = TemplateDir::new(template_dir.path().display());
+  //   let expected_ignores = Ignores::default();
+
+
+  //   assert_eq!(config.template_dir, expected_template_dir);
+  //   assert!(!config.target_dir.exists(), "target path should not exist");
+  //   assert_eq!(config.ignores, expected_ignores)
+  // }
 }

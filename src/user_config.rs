@@ -4,7 +4,7 @@ use std::path::Path;
 use crate::models::{SourceFile, TargetDir, TargetFile, TemplateDir};
 use crate::shared_models::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Ignores {
   pub files: Vec<String>,
   pub directories: Vec<String>,
@@ -39,6 +39,7 @@ impl From<TargetDir> for VariableFile {
   }
 }
 
+#[derive(Debug, Clone)]
 pub struct Config {
   // pub user_tokens: HashMap<String, String>,
   pub template_dir: TemplateDir,
