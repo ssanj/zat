@@ -30,9 +30,9 @@ impl VariableFile {
   }
 }
 
-impl From<TargetDir> for VariableFile {
-  fn from(target_dir: TargetDir) -> Self {
-      let variables_file = target_dir.join(".variables.prompt");
+impl From<TemplateDir> for VariableFile {
+  fn from(template_dir: TemplateDir) -> Self {
+      let variables_file = template_dir.join(".variables.prompt");
       VariableFile {
         path: variables_file.display().to_string()
       }
@@ -40,15 +40,15 @@ impl From<TargetDir> for VariableFile {
 }
 
 #[derive(Debug, Clone)]
-pub struct Config {
+pub struct UserConfig {
   // pub user_tokens: HashMap<String, String>,
   pub template_dir: TemplateDir,
   pub target_dir: TargetDir,
   pub ignores: Ignores
 }
 
-// Get user configuration
-// Load token file (if any)
+/// Behaviour to return configuration provided by the "user"
 pub trait UserConfigProvider {
-  fn get_config(&self) -> ZatResultX<Config>;
+  /// Returns the UserConfig
+  fn get_config(&self) -> ZatResultX<UserConfig>;
 }

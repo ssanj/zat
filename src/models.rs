@@ -162,6 +162,13 @@ impl TemplateDir {
     }
   }
 
+  pub fn join<P>(&self, other: P) -> PathBuf where
+    P: AsRef<Path>
+  {
+    Path::new(&self.path).join(other)
+  }
+
+
   pub fn does_exist(&self) -> bool {
     Path::new(&self.path).exists()
   }

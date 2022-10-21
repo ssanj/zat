@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use crate::cli::Args;
 use crate::shared_models::*;
+use crate::template_token_provider::{TemplateTokenProvider, TemplateTokens};
 use crate::user_config_provider::*;
 use crate::cli;
 use crate::models::{TargetDir, TemplateDir};
@@ -52,7 +55,7 @@ impl Prod {
 }
 
 impl UserConfigProvider for Prod {
-  fn get_config(&self) -> ZatResultX<Config> {
+  fn get_config(&self) -> ZatResultX<UserConfig> {
     let args = self.arg_supplier.get_args();
 
     let template_dir = TemplateDir::new(&args.template_dir);
@@ -66,7 +69,7 @@ impl UserConfigProvider for Prod {
       let ignores = Ignores::default(); // TODO: Get this from the user
 
       Ok(
-        Config {
+        UserConfig {
           // user_tokens,
           template_dir,
           target_dir,
@@ -79,6 +82,24 @@ impl UserConfigProvider for Prod {
     } else {
       let error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", &target_dir.path);
       Err(ZatErrorX::UserConfigError(error))
+    }
+  }
+}
+
+// TODO: Should we move the file checks to a fake file system?
+// That would make it easier to test and lead to more reuse of code
+impl TemplateTokenProvider for Prod {
+  fn get_tokens(&self, user_config: UserConfig) -> ZatResultX<TemplateTokens> {
+      let variable_file: VariableFile = VariableFile::from(user_config.template_dir);
+
+      if variable_file.does_exist() {
+        todo!()
+      } else {
+        Ok(
+          TemplateTokens {
+            tokens: vec![]
+          }
+        )
     }
   }
 }
@@ -99,7 +120,6 @@ mod tests {
       self.args.clone()
     }
   }
-
 
 
   #[test]
@@ -187,6 +207,28 @@ mod tests {
         assert_eq!(error, ZatErrorX::UserConfigError(expected_error))
       }
     }
+  }
+
+  #[test]
+  fn tokens_are_empty_if_variable_file_does_not_exist() {
+    let target_dir = TempDir::new().unwrap();
+    let template_dir = TempDir::new().unwrap();
+
+    let template_dir_path = template_dir.path().display().to_string();
+    let target_dir_path = target_dir.path().display().to_string();
+
+    drop(target_dir);
+
+    let prod = Prod::new();
+
+    let user_config = UserConfig {
+      template_dir: TemplateDir::new(&template_dir_path),
+      target_dir: TargetDir::new(&target_dir_path),
+      ignores: Ignores::default()
+    };
+
+    let tokens = prod.get_tokens(user_config).expect("Expected to get tokens");
+    assert!(tokens.tokens.is_empty())
   }
 
 
