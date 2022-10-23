@@ -25,7 +25,8 @@ mod template_proc;
 mod template_renderer;
 mod token_replacer;
 mod shared_models;
-mod prod_context;
+mod default_user_config_provider;
+mod default_template_token_provider;
 
 fn main() {
   run_zat()
