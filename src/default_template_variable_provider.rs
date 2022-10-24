@@ -1,14 +1,14 @@
 use crate::shared_models::*;
-use crate::template_token_provider::{TemplateTokenProvider, TemplateTokens};
+use crate::template_variable_provider::{TemplateVariableProvider, TemplateVariables};
 use crate::user_config_provider::*;
 use crate::models::{TargetDir, TemplateDir};
 use crate::variables::TemplateVariable;
 use std::fs::File;
 use std::io::{Read, Write};
 
-struct DefaultTemplateTokenProvider;
+struct DefaultTemplateVariableProvider;
 
-impl DefaultTemplateTokenProvider {
+impl DefaultTemplateVariableProvider {
   pub fn new() -> Self {
     Self
   }
@@ -16,38 +16,34 @@ impl DefaultTemplateTokenProvider {
 
 // TODO: Should we move the file checks to a fake file system?
 // That would make it easier to test and lead to more reuse of code
-impl TemplateTokenProvider for DefaultTemplateTokenProvider {
-  fn get_tokens(&self, user_config: UserConfig) -> ZatResultX<TemplateTokens> {
-      let variables_file: VariableFile = VariableFile::from(user_config.template_dir);
+impl TemplateVariableProvider for DefaultTemplateVariableProvider {
+  fn get_tokens(&self, user_config: UserConfig) -> ZatResultX<TemplateVariables> {
+    let variables_file: VariableFile = VariableFile::from(user_config.template_dir);
 
+    let tokens: Vec<TemplateVariable> =
       if variables_file.does_exist() {
         let mut f = File::open(variables_file).map_err(|e| ZatErrorX::VariableReadError(e.to_string()))?;
         let mut variables_json = String::new();
 
         f.read_to_string(&mut variables_json).map_err(|e| ZatErrorX::VariableReadError(e.to_string()))?;
 
-        let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_json).map_err(|e| ZatErrorX::VariableDecodeError(e.to_string()))?;
-
-        Ok(
-          TemplateTokens{
-            tokens: variables
-          }
-        )
-
+        serde_json::from_str(&variables_json).map_err(|e| ZatErrorX::VariableDecodeError(e.to_string()))?
       } else {
-        Ok(
-          TemplateTokens {
-            tokens: vec![]
-          }
-        )
-    }
+        vec![]
+      };
+
+    Ok(
+      TemplateVariables {
+        tokens
+      }
+    )
   }
 }
 
 #[cfg(test)]
 mod tests {
 
-  use crate::template_token_provider;
+  use crate::template_variable_provider;
 
   use super::*;
   use tempfile::TempDir;
@@ -62,7 +58,7 @@ mod tests {
 
     drop(target_dir);
 
-    let template_token_provider = DefaultTemplateTokenProvider::new();
+    let template_token_provider = DefaultTemplateVariableProvider::new();
 
     let user_config = UserConfig {
       template_dir: TemplateDir::new(&template_dir_path),
@@ -113,7 +109,7 @@ mod tests {
 
     writeln!(&mut variable_file, "{}", variables_config).unwrap();
 
-    let template_config_provider = DefaultTemplateTokenProvider::new();
+    let template_config_provider = DefaultTemplateVariableProvider::new();
 
     let user_config = UserConfig {
       template_dir: TemplateDir::new(&template_dir_path),

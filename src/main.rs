@@ -18,7 +18,7 @@ mod tokens;
 mod cli;
 mod template_processor;
 mod user_config_provider;
-mod template_token_provider;
+mod template_variable_provider;
 mod template_config_validator;
 mod template_selector;
 mod template_proc;
@@ -26,7 +26,7 @@ mod template_renderer;
 mod token_replacer;
 mod shared_models;
 mod default_user_config_provider;
-mod default_template_token_provider;
+mod default_template_variable_provider;
 
 fn main() {
   run_zat()

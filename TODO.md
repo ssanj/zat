@@ -14,3 +14,4 @@
 
 - [ ] Move modules to their own mod (intf, compoent etc)
 - [ ] Move implementation contexts to their own mod (impl)
+- [ ] Use Rustfmt
