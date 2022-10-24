@@ -1,12 +1,27 @@
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
+pub struct TemplateVariables {
+  pub tokens: Vec<TemplateVariable>
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct TemplateVariable {
   pub variable_name: String,
   pub description: String,
   pub prompt: String,
   #[serde(default)] // use default value if not found in the input
   pub filters: Vec<VariableFilter>
+}
+
+#[derive(Hash, Debug, Clone)]
+pub struct UserVariableKey {
+  pub value: String
+}
+
+#[derive(Debug, Clone)]
+pub struct UserVariableValue {
+  pub value: String
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]

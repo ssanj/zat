@@ -1,8 +1,8 @@
 use crate::shared_models::*;
-use crate::template_variable_provider::{TemplateVariableProvider, TemplateVariables};
+use crate::template_variable_provider::TemplateVariableProvider;
 use crate::user_config_provider::*;
 use crate::models::{TargetDir, TemplateDir};
-use crate::variables::TemplateVariable;
+use crate::variables::{TemplateVariable, TemplateVariables};
 use std::fs::File;
 use std::io::{Read, Write};
 

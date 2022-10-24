@@ -1,11 +1,7 @@
 use serde::Deserialize;
 
-use crate::{shared_models::*, user_config_provider::UserConfig, variables::TemplateVariable};
+use crate::{shared_models::*, user_config_provider::UserConfig, variables::TemplateVariables};
 
-#[derive(Debug, Clone, Deserialize, PartialEq)]
-pub struct TemplateVariables {
-  pub tokens: Vec<TemplateVariable>
-}
 
 /// Behaviour to return tokens defined in a template
 pub trait TemplateVariableProvider {
