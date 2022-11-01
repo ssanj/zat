@@ -22,7 +22,7 @@ impl TemplateVariableProvider for DefaultTemplateVariableProvider {
 
     let tokens: Vec<TemplateVariable> =
       if variables_file.does_exist() {
-        let mut f = File::open(variables_file).map_err(|e| ZatErrorX::VariableReadError(e.to_string()))?;
+        let mut f = File::open(variables_file).map_err(|e| ZatErrorX::VariableOpenError(e.to_string()))?;
         let mut variables_json = String::new();
 
         f.read_to_string(&mut variables_json).map_err(|e| ZatErrorX::VariableReadError(e.to_string()))?;
@@ -42,8 +42,6 @@ impl TemplateVariableProvider for DefaultTemplateVariableProvider {
 
 #[cfg(test)]
 mod tests {
-
-  use crate::template_variable_provider;
 
   use super::*;
   use tempfile::TempDir;
@@ -119,6 +117,47 @@ mod tests {
 
     let tokens = template_config_provider.get_tokens(user_config).expect("Expected to get tokens");
     assert_eq!(tokens.tokens.len(), 2);
+
+    drop(variable_file);
+  }
+
+  #[test]
+  fn fails_if_the_variable_file_cannot_be_decoded() {
+    let target_dir = TempDir::new().unwrap();
+    let template_dir = TempDir::new().unwrap();
+
+    let template_dir_path = template_dir.path().display().to_string();
+    let target_dir_path = target_dir.path().display().to_string();
+    let variable_file_path = template_dir.path().join(VariableFile::PATH);
+
+    let mut variable_file = File::create(variable_file_path).unwrap();
+
+    drop(target_dir);
+
+    // invalid JSON
+    let variables_config = r#"
+      [
+        {
+          "variable_name": "project",
+          "
+      ]
+    "#;
+
+    writeln!(&mut variable_file, "{}", variables_config).unwrap();
+
+    let template_config_provider = DefaultTemplateVariableProvider::new();
+
+    let user_config = UserConfig {
+      template_dir: TemplateDir::new(&template_dir_path),
+      target_dir: TargetDir::new(&target_dir_path),
+      ignores: Ignores::default()
+    };
+
+    match template_config_provider.get_tokens(user_config) {
+      Err(ZatErrorX::VariableDecodeError(_)) => assert!(true),
+      Err(other_error) => assert!(false, "Expected ZatErrorX::VariableDecodeError but got different error : {}", other_error.to_string()),
+      Ok(value) => assert!(false, "Expected ZatErrorX::VariableDecodeError but got success with: {:?}", value)
+    }
 
     drop(variable_file);
   }
