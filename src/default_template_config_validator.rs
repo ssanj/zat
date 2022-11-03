@@ -4,26 +4,9 @@ use crate::template_config_validator::{TemplateConfigValidator, TemplateVariable
 use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
 use crate::user_config_provider::UserConfig;
 
+// This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
 trait UserInputProvider {
   fn get_user_input(&self, variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue>;
-}
-
-impl UserInputProvider for HashMap<String, String> {
-  fn get_user_input(&self, variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
-
-    let pairs =
-      variables
-      .tokens
-      .into_iter()
-      .filter_map(|tv| {
-        self.get(&tv.variable_name)
-          .map(|variable|{
-            (UserVariableKey::new(tv.variable_name.to_owned()), UserVariableValue::new(variable.to_owned()))
-          })
-      });
-
-      HashMap::from_iter(pairs)
-  }
 }
 
 
@@ -60,8 +43,44 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 mod tests {
 
   use crate::{models::{TemplateDir, TargetDir}, user_config_provider::Ignores};
+  use super::*;
 
-use super::*;
+
+  impl UserInputProvider for HashMap<String, String> {
+    fn get_user_input(&self, variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
+
+      let pairs =
+        variables
+        .tokens
+        .into_iter()
+        .filter_map(|tv| {
+          self.get(&tv.variable_name)
+            .map(|variable|{
+              (UserVariableKey::new(tv.variable_name.to_owned()), UserVariableValue::new(variable.to_owned()))
+            })
+        });
+
+        HashMap::from_iter(pairs)
+    }
+  }
+
+
+  struct RejectedUserInput;
+
+
+  impl TemplateConfigValidator for RejectedUserInput {
+    fn validate(&self, _user_config: UserConfig, _template_variabless: TemplateVariables) -> TemplateVariableReview {
+        TemplateVariableReview::Rejected
+    }
+  }
+
+
+  impl Default for RejectedUserInput {
+    fn default() -> Self {
+        RejectedUserInput
+    }
+  }
+
 
   #[test]
   fn returns_valid_user_input() {
@@ -90,6 +109,27 @@ use super::*;
       };
 
     assert_eq!(validation_result, TemplateVariableReview::Accepted(expected_config))
+  }
+
+
+  #[test]
+  fn returns_rejected_input() {
+    let template_variables =
+      TemplateVariables {
+        tokens: vec![]
+      };
+
+    let user_config =
+      UserConfig {
+        template_dir: TemplateDir::new("template_dir"),
+        target_dir: TargetDir::new("target_idr"),
+        ignores: Ignores::default()
+    };
+
+
+    let validation_result = RejectedUserInput.validate(user_config, template_variables);
+
+    assert_eq!(validation_result, TemplateVariableReview::Rejected)
   }
 }
 
