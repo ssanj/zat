@@ -42,8 +42,9 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 #[cfg(test)]
 mod tests {
 
-  use crate::{models::{TemplateDir, TargetDir}, user_config_provider::Ignores};
+  use crate::{models::{TemplateDir, TargetDir}, user_config_provider::Ignores, variables::TemplateVariable};
   use super::*;
+  use pretty_assertions::assert_eq;
 
 
   impl UserInputProvider for HashMap<String, String> {
@@ -81,14 +82,33 @@ mod tests {
     }
   }
 
+  fn template_variable_from_name(name: &str) -> TemplateVariable {
+    TemplateVariable {
+      variable_name: name.to_owned(),
+      description: String::default(),
+      prompt: String::default(),
+      filters: Vec::default(),
+    }
+  }
+
 
   #[test]
   fn returns_valid_user_input() {
-    let hash_map_input: HashMap<String, String> = HashMap::new();
+    let hash_map_input: HashMap<String, String> =
+      HashMap::from([
+        ("token1".to_owned(), "value1".to_owned()),
+        ("token2".to_owned(), "value2".to_owned())
+      ]);
 
     let template_variables =
       TemplateVariables {
-        tokens: vec![]
+        tokens: vec![
+          template_variable_from_name("tokenA"),
+          template_variable_from_name("tokenB"),
+          template_variable_from_name("token1"),
+          template_variable_from_name("token2"),
+          template_variable_from_name("tokenC")
+        ]
       };
 
     let user_config =
@@ -104,7 +124,11 @@ mod tests {
     let validation_result = config_validator.validate(user_config.clone(), template_variables);
     let expected_config =
       ValidConfig {
-        user_variables: HashMap::new(),
+        user_variables:
+          HashMap::from([
+            (UserVariableKey::new("token1".to_owned()), UserVariableValue::new("value1".to_owned())),
+            (UserVariableKey::new("token2".to_owned()), UserVariableValue::new("value2".to_owned()))
+          ]),
         user_config
       };
 
