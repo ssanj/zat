@@ -112,7 +112,7 @@ impl AsRef<Path> for TargetFile {
 }
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TargetDir {
   pub path: String
 }

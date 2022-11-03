@@ -27,6 +27,7 @@ mod token_replacer;
 mod shared_models;
 mod default_user_config_provider;
 mod default_template_variable_provider;
+mod default_template_config_validator;
 
 fn main() {
   run_zat()

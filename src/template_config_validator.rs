@@ -4,21 +4,19 @@ use crate::models::{TargetDir, TemplateDir};
 use crate::user_config_provider::{Ignores, UserConfig};
 use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables}; // Should this be moved into a shared models?
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ValidConfig {
-  user_variables: HashMap<UserVariableKey, UserVariableValue>,
-  template_dir: TemplateDir,
-  target_dir: TargetDir,
-  ignores: Ignores
+  pub user_variables: HashMap<UserVariableKey, UserVariableValue>,
+  pub user_config: UserConfig
 }
 
-#[derive(Debug, Clone)]
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum TemplateVariableReview {
   Rejected,
   Accepted(ValidConfig)
 }
 
 pub trait TemplateConfigValidator {
-  fn validate(template_variables: TemplateVariables) -> TemplateVariableReview;
+  fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> TemplateVariableReview;
 }
-

@@ -49,7 +49,7 @@ impl AsRef<Path> for VariableFile {
 }
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UserConfig {
   // pub user_tokens: HashMap<String, String>,
   pub template_dir: TemplateDir,

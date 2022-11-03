@@ -14,14 +14,30 @@ pub struct TemplateVariable {
   pub filters: Vec<VariableFilter>
 }
 
-#[derive(Hash, Debug, Clone)]
+#[derive(Hash, Debug, Clone, PartialEq, Eq)]
 pub struct UserVariableKey {
   pub value: String
 }
 
-#[derive(Debug, Clone)]
+impl UserVariableKey {
+  pub fn new(value: String) -> Self {
+    UserVariableKey {
+      value
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct UserVariableValue {
   pub value: String
+}
+
+impl UserVariableValue {
+  pub fn new(value: String) -> Self {
+    UserVariableValue {
+      value
+    }
+  }
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
