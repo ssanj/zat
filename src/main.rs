@@ -55,7 +55,7 @@ fn run_zat() {
   let template_variables = template_variable_provider.get_tokens(user_config.clone()).unwrap();
 
   let template_config_validator = DefaultTemplateConfigValidator::new();
-  let template_variable_review = template_config_validator.validate(template_variables.clone());
+  let template_variable_review = template_config_validator.validate(user_config.clone(), template_variables.clone());
 
   println!("config: {:?}", user_config);
   println!("variables: {:?}", template_variables);
