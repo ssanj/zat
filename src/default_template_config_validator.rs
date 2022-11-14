@@ -16,8 +16,6 @@ trait UserTemplateVariableValidator {
 //TODO: Should we move this into a common models package?
 struct Cli;
 
-struct Unused;
-
 
 impl UserInputProvider for Cli {
     fn get_user_input(&self, template_variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
@@ -48,11 +46,6 @@ impl UserTemplateVariableValidator for Cli {
     }
 }
 
-impl UserTemplateVariableValidator for Unused {
-    fn review_user_template_variables(&self, _variables_: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
-        panic!("UserTemplateVariableValidator should not be used")
-    }
-}
 
 pub struct DefaultTemplateConfigValidator {
   user_input_provider: Box<dyn UserInputProvider>,
@@ -69,13 +62,6 @@ impl DefaultTemplateConfigValidator {
     }
   }
 
-  fn with_user_input_provider(user_input_provider: Box<dyn UserInputProvider>) -> Self {
-    DefaultTemplateConfigValidator {
-      user_input_provider,
-      user_template_variable_validator: Box::new(Unused)
-    }
-  }
-
   fn with_all_dependencies(user_input_provider: Box<dyn UserInputProvider>, user_template_variable_validator: Box<dyn UserTemplateVariableValidator>) -> Self {
     DefaultTemplateConfigValidator {
       user_input_provider,
@@ -86,19 +72,11 @@ impl DefaultTemplateConfigValidator {
 
 impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 
-  fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> TemplateVariableReview {
+  fn validate(&self, template_variables: TemplateVariables) -> TemplateVariableReview {
       let user_variables = self.user_input_provider.get_user_input(template_variables);
-      let reviewResult = self.user_template_variable_validator.review_user_template_variables(user_variables);
+      let review_result = self.user_template_variable_validator.review_user_template_variables(user_variables);
 
-      // let valid_config =
-      //   ValidConfig {
-      //       user_variables,
-      //       user_config
-      //   };
-
-      // TemplateVariableReview::Accepted(valid_config)
-
-      reviewResult
+      review_result
   }
 }
 
@@ -108,7 +86,6 @@ mod tests {
   use crate::{models::{TemplateDir, TargetDir}, user_config_provider::Ignores, variables::TemplateVariable};
   use super::*;
   use pretty_assertions::assert_eq;
-use serde::__private::de::IdentifierDeserializer;
 
 
   impl UserInputProvider for HashMap<String, String> {
@@ -130,7 +107,7 @@ use serde::__private::de::IdentifierDeserializer;
   }
 
 
-  struct RejectedUserInput;
+  struct RejectedUserTemplateVariables;
 
   struct AcceptedUserTemplateVariables {
     user_config: UserConfig,
@@ -147,8 +124,10 @@ use serde::__private::de::IdentifierDeserializer;
   }
 
 
-  impl TemplateConfigValidator for RejectedUserInput {
-    fn validate(&self, _user_config: UserConfig, _template_variabless: TemplateVariables) -> TemplateVariableReview {
+
+
+  impl UserTemplateVariableValidator for RejectedUserTemplateVariables {
+    fn review_user_template_variables(&self, _variables_: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
         TemplateVariableReview::Rejected
     }
   }
@@ -158,12 +137,12 @@ use serde::__private::de::IdentifierDeserializer;
       let valid_config: ValidConfig = ValidConfig::from(self);
       TemplateVariableReview::Accepted(valid_config)
     }
-}
+  }
 
 
-  impl Default for RejectedUserInput {
+  impl Default for RejectedUserTemplateVariables {
     fn default() -> Self {
-        RejectedUserInput
+        RejectedUserTemplateVariables
     }
   }
 
@@ -227,7 +206,7 @@ use serde::__private::de::IdentifierDeserializer;
 
     let config_validator = DefaultTemplateConfigValidator::with_all_dependencies(Box::new(hash_map_input), Box::new(user_template_variables));
 
-    let validation_result = config_validator.validate(user_config.clone(), template_variables);
+    let validation_result = config_validator.validate(template_variables);
     let expected_config =
       ValidConfig {
         user_variables:
@@ -244,27 +223,14 @@ use serde::__private::de::IdentifierDeserializer;
 
   #[test]
   fn returns_rejected_input() {
-    let template_variables =
-      TemplateVariables {
-        tokens: vec![]
-      };
-
-    let user_config =
-      UserConfig {
-        template_dir: TemplateDir::new("template_dir"),
-        target_dir: TargetDir::new("target_idr"),
-        ignores: Ignores::default()
-    };
-
-
-    let validation_result = RejectedUserInput.validate(user_config, template_variables);
+    let hash_map_input = HashMap::new();
+    let user_variable_validator = RejectedUserTemplateVariables::default();
+    let config_validator = DefaultTemplateConfigValidator::with_all_dependencies(Box::new(hash_map_input), Box::new(user_variable_validator));
+    let template_variables = TemplateVariables::default();
+    let validation_result = config_validator.validate(template_variables);
 
     assert_eq!(validation_result, TemplateVariableReview::Rejected)
   }
 
-  // #[test]
-  // fn returns_result_from_template_variable_validation() {
-  //   unimplemented!();
-  // }
 }
 

@@ -18,5 +18,5 @@ pub enum TemplateVariableReview {
 }
 
 pub trait TemplateConfigValidator {
-  fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> TemplateVariableReview;
+  fn validate(&self, template_variables: TemplateVariables) -> TemplateVariableReview;
 }

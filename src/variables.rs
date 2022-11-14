@@ -5,6 +5,14 @@ pub struct TemplateVariables {
   pub tokens: Vec<TemplateVariable>
 }
 
+impl Default for TemplateVariables {
+  fn default() -> Self {
+    TemplateVariables {
+      tokens: vec![]
+    }
+  }
+}
+
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct TemplateVariable {
   pub variable_name: String,
