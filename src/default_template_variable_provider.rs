@@ -6,7 +6,7 @@ use crate::variables::{TemplateVariable, TemplateVariables};
 use std::fs::File;
 use std::io::{Read, Write};
 
-struct DefaultTemplateVariableProvider;
+pub struct DefaultTemplateVariableProvider;
 
 impl DefaultTemplateVariableProvider {
   pub fn new() -> Self {

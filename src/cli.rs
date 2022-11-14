@@ -12,6 +12,8 @@ pub struct Args {
    /// Where to extract the template to
    #[clap(long, value_parser)]
    pub target_dir: String,
+
+   //TODO: Add ignores
 }
 
 pub fn get_cli_args() -> Args {

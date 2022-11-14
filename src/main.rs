@@ -42,8 +42,17 @@ fn run_zat() {
   use default_user_config_provider::{DefaultUserConfigProvider, Cli};
   use user_config_provider::UserConfigProvider;
 
+  use template_variable_provider::TemplateVariableProvider;
+  use default_template_variable_provider::DefaultTemplateVariableProvider;
+
   let config_provider = DefaultUserConfigProvider::new();
-  println!("{:?}", config_provider.get_config().unwrap())
+  let user_config = config_provider.get_config().unwrap();
+
+  let template_variable_provider = DefaultTemplateVariableProvider::new();
+  let template_variables = template_variable_provider.get_tokens(user_config.clone());
+
+  println!("config: {:?}", user_config);
+  println!("variables: {:?}", template_variables);
 
 
   // let cli_args = cli::get_cli_args();
