@@ -9,13 +9,45 @@ trait UserInputProvider {
   fn get_user_input(&self, variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue>;
 }
 
+//TODO: Should we move this into a common models package?
+struct Cli;
 
-struct DefaultTemplateConfigValidator {
+
+impl UserInputProvider for Cli {
+    fn get_user_input(&self, template_variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
+      let stdin = std::io::stdin();
+      let mut token_map = HashMap::new();
+      println!("");
+
+      for v in template_variables.tokens {
+        println!("{}. {}", v.description, v.prompt);
+        let mut variable_value = String::new();
+        if let Ok(read_count) = stdin.read_line(&mut variable_value) {
+          if read_count > 0 { //read at least one character
+            let _ = variable_value.pop(); // remove newline
+            if !variable_value.is_empty() {
+              token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(variable_value));
+            }
+          }
+        }
+      }
+
+      token_map
+    }
+}
+
+pub struct DefaultTemplateConfigValidator {
   user_input_provider: Box<dyn UserInputProvider>
 }
 
 
 impl DefaultTemplateConfigValidator {
+
+  pub fn new() -> Self {
+    DefaultTemplateConfigValidator {
+      user_input_provider: Box::new(Cli)
+    }
+  }
 
   fn with_user_input_provider(user_input_provider: Box<dyn UserInputProvider>) -> Self {
     DefaultTemplateConfigValidator {

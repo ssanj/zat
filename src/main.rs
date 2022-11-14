@@ -39,20 +39,27 @@ fn alternate_run_zat() {
 }
 
 fn run_zat() {
-  use default_user_config_provider::{DefaultUserConfigProvider, Cli};
+  use default_user_config_provider::DefaultUserConfigProvider;
   use user_config_provider::UserConfigProvider;
 
   use template_variable_provider::TemplateVariableProvider;
   use default_template_variable_provider::DefaultTemplateVariableProvider;
 
+  use template_config_validator::TemplateConfigValidator;
+  use default_template_config_validator::DefaultTemplateConfigValidator;
+
   let config_provider = DefaultUserConfigProvider::new();
   let user_config = config_provider.get_config().unwrap();
 
   let template_variable_provider = DefaultTemplateVariableProvider::new();
-  let template_variables = template_variable_provider.get_tokens(user_config.clone());
+  let template_variables = template_variable_provider.get_tokens(user_config.clone()).unwrap();
+
+  let template_config_validator = DefaultTemplateConfigValidator::new();
+  let template_variable_review = template_config_validator.validate(user_config.clone(), template_variables.clone());
 
   println!("config: {:?}", user_config);
   println!("variables: {:?}", template_variables);
+  println!("variable review: {:?}", template_variable_review);
 
 
   // let cli_args = cli::get_cli_args();

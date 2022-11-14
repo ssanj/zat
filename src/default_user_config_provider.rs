@@ -24,7 +24,7 @@ pub trait ArgSupplier {
   fn get_args(&self) -> Args;
 }
 
-pub struct Cli;
+struct Cli;
 
 impl ArgSupplier for Cli {
   fn get_args(&self) -> Args {
