@@ -20,11 +20,11 @@ use crate::models::{TargetDir, TemplateDir};
 //       }
 // }
 
-trait ArgSupplier {
+pub trait ArgSupplier {
   fn get_args(&self) -> Args;
 }
 
-struct Cli;
+pub struct Cli;
 
 impl ArgSupplier for Cli {
   fn get_args(&self) -> Args {
@@ -38,13 +38,13 @@ pub struct DefaultUserConfigProvider {
 }
 
 impl DefaultUserConfigProvider {
-  fn new() -> Self {
+  pub fn new() -> Self {
     let cli = Cli;
     let arg_supplier = Box::new(cli);
     DefaultUserConfigProvider::with_args_supplier(arg_supplier)
   }
 
-  fn with_args_supplier(arg_supplier: Box<dyn ArgSupplier>) -> Self {
+  pub fn with_args_supplier(arg_supplier: Box<dyn ArgSupplier>) -> Self {
     Self {
       arg_supplier
     }

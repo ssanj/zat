@@ -6,11 +6,11 @@ use clap::Parser;
 pub struct Args {
 
    /// The location of the template
-   #[clap(short, long, value_parser)]
+   #[clap(long, value_parser)]
    pub template_dir: String,
 
    /// Where to extract the template to
-   #[clap(short, long, value_parser)]
+   #[clap(long, value_parser)]
    pub target_dir: String,
 }
 
