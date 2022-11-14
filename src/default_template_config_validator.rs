@@ -9,8 +9,14 @@ trait UserInputProvider {
   fn get_user_input(&self, variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue>;
 }
 
+trait UserTemplateVariableValidator {
+  fn review_user_template_variables(&self, variables: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview;
+}
+
 //TODO: Should we move this into a common models package?
 struct Cli;
+
+struct Unused;
 
 
 impl UserInputProvider for Cli {
@@ -36,8 +42,21 @@ impl UserInputProvider for Cli {
     }
 }
 
+impl UserTemplateVariableValidator for Cli {
+    fn review_user_template_variables(&self, variables: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
+        todo!()
+    }
+}
+
+impl UserTemplateVariableValidator for Unused {
+    fn review_user_template_variables(&self, _variables_: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
+        panic!("UserTemplateVariableValidator should not be used")
+    }
+}
+
 pub struct DefaultTemplateConfigValidator {
-  user_input_provider: Box<dyn UserInputProvider>
+  user_input_provider: Box<dyn UserInputProvider>,
+  user_template_variable_validator: Box<dyn UserTemplateVariableValidator>,
 }
 
 
@@ -45,13 +64,22 @@ impl DefaultTemplateConfigValidator {
 
   pub fn new() -> Self {
     DefaultTemplateConfigValidator {
-      user_input_provider: Box::new(Cli)
+      user_input_provider: Box::new(Cli),
+      user_template_variable_validator: Box::new(Cli)
     }
   }
 
   fn with_user_input_provider(user_input_provider: Box<dyn UserInputProvider>) -> Self {
     DefaultTemplateConfigValidator {
-      user_input_provider
+      user_input_provider,
+      user_template_variable_validator: Box::new(Unused)
+    }
+  }
+
+  fn with_all_dependencies(user_input_provider: Box<dyn UserInputProvider>, user_template_variable_validator: Box<dyn UserTemplateVariableValidator>) -> Self {
+    DefaultTemplateConfigValidator {
+      user_input_provider,
+      user_template_variable_validator
     }
   }
 }
@@ -60,14 +88,17 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 
   fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> TemplateVariableReview {
       let user_variables = self.user_input_provider.get_user_input(template_variables);
+      let reviewResult = self.user_template_variable_validator.review_user_template_variables(user_variables);
 
-      let valid_config =
-        ValidConfig {
-            user_variables,
-            user_config
-        };
+      // let valid_config =
+      //   ValidConfig {
+      //       user_variables,
+      //       user_config
+      //   };
 
-      TemplateVariableReview::Accepted(valid_config)
+      // TemplateVariableReview::Accepted(valid_config)
+
+      reviewResult
   }
 }
 
@@ -77,6 +108,7 @@ mod tests {
   use crate::{models::{TemplateDir, TargetDir}, user_config_provider::Ignores, variables::TemplateVariable};
   use super::*;
   use pretty_assertions::assert_eq;
+use serde::__private::de::IdentifierDeserializer;
 
 
   impl UserInputProvider for HashMap<String, String> {
@@ -100,12 +132,33 @@ mod tests {
 
   struct RejectedUserInput;
 
+  struct AcceptedUserTemplateVariables {
+    user_config: UserConfig,
+    user_variables: HashMap<UserVariableKey, UserVariableValue>
+  }
+
+  impl From<&AcceptedUserTemplateVariables> for ValidConfig {
+    fn from(field: &AcceptedUserTemplateVariables) -> Self {
+        ValidConfig {
+            user_variables: field.user_variables.clone(),
+            user_config: field.user_config.clone(),
+        }
+    }
+  }
+
 
   impl TemplateConfigValidator for RejectedUserInput {
     fn validate(&self, _user_config: UserConfig, _template_variabless: TemplateVariables) -> TemplateVariableReview {
         TemplateVariableReview::Rejected
     }
   }
+
+  impl UserTemplateVariableValidator for AcceptedUserTemplateVariables {
+    fn review_user_template_variables(&self, _variables_: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
+      let valid_config: ValidConfig = ValidConfig::from(self);
+      TemplateVariableReview::Accepted(valid_config)
+    }
+}
 
 
   impl Default for RejectedUserInput {
@@ -121,6 +174,12 @@ mod tests {
       prompt: String::default(),
       filters: Vec::default(),
     }
+  }
+
+  fn user_template_variables(key_values: &[(&str, &str)]) -> HashMap<UserVariableKey, UserVariableValue> {
+    key_values.into_iter().map(|kv|{
+      (UserVariableKey::new(kv.0.to_owned()), UserVariableValue::new(kv.1.to_owned()))
+    }).collect()
   }
 
 
@@ -143,6 +202,16 @@ mod tests {
         ]
       };
 
+
+    let validated_user_variables =
+      user_template_variables(
+        &[
+          ("token1", "value1"),
+          ("token2", "value2"),
+        ]
+      );
+
+
     let user_config =
       UserConfig {
         template_dir: TemplateDir::new("template_dir"),
@@ -150,8 +219,13 @@ mod tests {
         ignores: Ignores::default()
     };
 
+    let user_template_variables =
+      AcceptedUserTemplateVariables {
+        user_config: user_config.clone(),
+        user_variables: validated_user_variables,
+      };
 
-    let config_validator = DefaultTemplateConfigValidator::with_user_input_provider(Box::new(hash_map_input));
+    let config_validator = DefaultTemplateConfigValidator::with_all_dependencies(Box::new(hash_map_input), Box::new(user_template_variables));
 
     let validation_result = config_validator.validate(user_config.clone(), template_variables);
     let expected_config =
@@ -187,5 +261,10 @@ mod tests {
 
     assert_eq!(validation_result, TemplateVariableReview::Rejected)
   }
+
+  // #[test]
+  // fn returns_result_from_template_variable_validation() {
+  //   unimplemented!();
+  // }
 }
 
