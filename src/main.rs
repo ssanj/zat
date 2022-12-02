@@ -29,7 +29,7 @@ mod default_user_config_provider;
 mod default_template_variable_provider;
 mod default_template_config_validator;
 mod template_variable_expander;
-
+mod default_template_variable_expander;
 
 fn main() {
   run_zat()
