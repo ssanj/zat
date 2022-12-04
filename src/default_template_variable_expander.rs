@@ -113,6 +113,7 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
                   (ExpandedKey::new(filter_name.to_owned()), ExpandedValue::new(filtered_value))
                 })
                 .chain(vec![(o_key, o_value)])
+
           })
           .collect();
 
@@ -164,8 +165,18 @@ mod tests {
     let expanded = variable_expander.expand_filters(variables, user_inputs);
 
     println!("{:?}", &expanded);
+    let expanded_variables = expanded.expanded_variables;
      // We expect project and project_command keys
-     assert_eq!(expanded.expanded_variables.len(), 2);
+
+     let user_project_key = ExpandedKey::new("project".to_owned());
+     let user_project_value = ExpandedValue::new("blah".to_owned());
+
+     let filter_project_command_key = ExpandedKey::new("project_Command".to_owned());
+     let filter_project_command_value = ExpandedValue::new("blah".to_owned());
+
+     assert_eq!(expanded_variables.len(), 2);
+     assert_eq!(expanded_variables.get(&user_project_key), Some(&user_project_value));
+     assert_eq!(expanded_variables.get(&filter_project_command_key), Some(&filter_project_command_value));
   }
 
 }
