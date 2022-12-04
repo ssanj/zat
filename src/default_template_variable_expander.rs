@@ -91,7 +91,8 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
       let expanded_variables: HashMap<ExpandedKey, ExpandedValue> =
         variables
           .tokens
-          .iter().filter_map(|t|{
+          .iter()
+          .filter_map(|t|{
             let key = t.variable_name.to_owned();
             user_inputs
               .get(&UserVariableKey::new(key.clone()))
@@ -99,16 +100,19 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
                 (t, ExpandedKey::new(key), ExpandedValue::new(v.value.to_owned()))
               })
           })
-          .flat_map(|key_triple|{
-            let (t, k, v) = key_triple;
-            t
-              .filters
-              .iter()
-              .map(move |f|{
-                let filtered_value = self.filter_applicator.apply(f.filter.clone(), &v.value);
-                let filter_name = format!("{}_{}", k.value.clone(), f.name);
-                (ExpandedKey::new(filter_name.to_owned()), ExpandedValue::new(filtered_value))
-              })
+          .flat_map(|(t, k, v)|{
+              let o_key = k.clone();
+              let o_value = v.clone();
+
+              t
+                .filters
+                .iter()
+                .map(move |f|{
+                  let filtered_value = self.filter_applicator.apply(f.filter.clone(), &v.value);
+                  let filter_name = format!("{}_{}", k.value.clone(), f.name);
+                  (ExpandedKey::new(filter_name.to_owned()), ExpandedValue::new(filtered_value))
+                })
+                .chain(vec![(o_key, o_value)])
           })
           .collect();
 
