@@ -8,12 +8,13 @@ trait FilterApplicator {
   fn apply(&self, filter_type: FilterType, value_to_filter: &str) -> String;
 }
 
-struct NoopFilterApplicator;
+struct FilterNameFilterApplicator;
 
-impl FilterApplicator for NoopFilterApplicator {
+//A simple filter that just prepends the filter name the to user-supplied value
+impl FilterApplicator for FilterNameFilterApplicator {
 
   fn apply(&self, filter_type: FilterType, value_to_filter: &str) -> String {
-    value_to_filter.to_owned()
+     format!("{:?}-{}", filter_type, value_to_filter)
   }
 }
 
@@ -73,7 +74,7 @@ struct DefaultTemplateVariableExpander {
 impl DefaultTemplateVariableExpander {
   pub fn new() -> Self {
     Self {
-      filter_applicator: Box::new(NoopFilterApplicator)
+      filter_applicator: Box::new(FilterNameFilterApplicator)
     }
   }
 
@@ -172,11 +173,49 @@ mod tests {
      let user_project_value = ExpandedValue::new("blah".to_owned());
 
      let filter_project_command_key = ExpandedKey::new("project_Command".to_owned());
-     let filter_project_command_value = ExpandedValue::new("blah".to_owned());
+     let filter_project_command_value = ExpandedValue::new("Pascal-blah".to_owned());
 
      assert_eq!(expanded_variables.len(), 2);
      assert_eq!(expanded_variables.get(&user_project_key), Some(&user_project_value));
      assert_eq!(expanded_variables.get(&filter_project_command_key), Some(&filter_project_command_value));
+  }
+
+  #[test]
+  fn filter_is_not_generated_if_not_supplied() {
+    let variables_config = r#"
+      [
+        {
+          "variable_name": "MainClass",
+          "description": "Name of main class",
+          "prompt": "Please enter your main class"
+        }
+      ]
+    "#;
+
+    let variables: TemplateVariables =
+      TemplateVariables {
+        tokens: serde_json::from_str(&variables_config).unwrap()
+      };
+
+    let variable_expander = DefaultTemplateVariableExpander::new();
+    let user_inputs =
+      HashMap::from(
+        [
+          (UserVariableKey::new("MainClass".to_owned()), UserVariableValue::new("blue".to_owned()))
+        ]
+      );
+
+    let expanded = variable_expander.expand_filters(variables, user_inputs);
+
+    println!("{:?}", &expanded);
+    let expanded_variables = expanded.expanded_variables;
+     // We expect project and project_command keys
+
+    let user_main_class_key = ExpandedKey::new("MainClass".to_owned());
+    let user_main_class_value = ExpandedValue::new("blue".to_owned());
+
+    assert_eq!(expanded_variables.len(), 1);
+    assert_eq!(expanded_variables.get(&user_main_class_key), Some(&user_main_class_value));
   }
 
 }
