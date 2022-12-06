@@ -30,6 +30,7 @@ mod default_template_variable_provider;
 mod default_template_config_validator;
 mod template_variable_expander;
 mod default_template_variable_expander;
+mod filter_applicator;
 
 fn main() {
   run_zat()

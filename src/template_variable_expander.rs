@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
 
+pub const DEFAULT_FILTER: &str = "__default__";
+
 #[derive(Hash, Debug, Clone, PartialEq, Eq)]
 pub struct ExpandedKey {
   pub value: String

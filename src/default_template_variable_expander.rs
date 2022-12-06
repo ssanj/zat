@@ -1,12 +1,7 @@
-use crate::template_variable_expander::{ExpandedVariables, TemplateVariableExpander, ExpandedKey, ExpandedValue};
+use crate::template_variable_expander::{ExpandedVariables, TemplateVariableExpander, ExpandedKey, ExpandedValue, DEFAULT_FILTER};
 use crate::variables::{UserVariableKey, UserVariableValue, FilterType};
 use std::collections::HashMap;
-
-// TODO: Should this be exposed externally?
-// Does it make sense for the external system to know about this?
-trait FilterApplicator {
-  fn apply(&self, filter_type: FilterType, value_to_filter: &str) -> String;
-}
+use crate::filter_applicator::FilterApplicator;
 
 struct FilterNameFilterApplicator;
 
@@ -71,6 +66,9 @@ struct DefaultTemplateVariableExpander {
   filter_applicator: Box<dyn FilterApplicator>
 }
 
+// Does it make sense to have this default filter_applicator?
+// We have to supply a filter_applicator, so it would make sense to supply it on construction
+// Assuming FilterNameFilterApplicator by default is not what we expect as a "default"
 impl DefaultTemplateVariableExpander {
   pub fn new() -> Self {
     Self {
@@ -105,15 +103,28 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
               let o_key = k.clone();
               let o_value = v.clone();
 
-              t
-                .filters
-                .iter()
-                .map(move |f|{
-                  let filtered_value = self.filter_applicator.apply(f.filter.clone(), &v.value);
-                  let filter_name = format!("{}_{}", k.value.clone(), f.name);
-                  (ExpandedKey::new(filter_name.to_owned()), ExpandedValue::new(filtered_value))
-                })
-                .chain(vec![(o_key, o_value)])
+              let filtered_values =
+                t
+                  .filters
+                  .iter()
+                  .map(move |f|{
+                    let filtered_value = self.filter_applicator.apply(f.filter.clone(), &v.value);
+                    let filter_name =
+                      if &f.name == DEFAULT_FILTER {
+                        k.value.clone() //if the key name is __default__ then use the original key name
+                      } else {
+                        format!("{}_{}", k.value.clone(), f.name)
+                      };
+
+                    (ExpandedKey::new(filter_name.to_owned()), ExpandedValue::new(filtered_value))
+                  });
+
+                // Chain with original values, so they can get overwritten if need by by __default__
+                // It's important to have the original values first in the chain otherwise they
+                // will overwrite the filtered values.
+                vec![(o_key, o_value)]
+                  .into_iter()
+                  .chain(filtered_values)
 
           })
           .collect();
@@ -171,6 +182,57 @@ mod tests {
 
      let user_project_key = ExpandedKey::new("project".to_owned());
      let user_project_value = ExpandedValue::new("blah".to_owned());
+
+     let filter_project_command_key = ExpandedKey::new("project_Command".to_owned());
+     let filter_project_command_value = ExpandedValue::new("Pascal-blah".to_owned());
+
+     assert_eq!(expanded_variables.len(), 2);
+     assert_eq!(expanded_variables.get(&user_project_key), Some(&user_project_value));
+     assert_eq!(expanded_variables.get(&filter_project_command_key), Some(&filter_project_command_value));
+  }
+
+
+  #[test]
+  fn filter_is_generated_for_default() {
+    let variables_config = r#"
+      [
+        {
+          "variable_name": "project",
+          "description": "Name of project",
+          "prompt": "Please enter your project name",
+              "filters": [
+                { "name": "Command",
+                  "filter": "Pascal"
+                },
+                { "name": "__default__",
+                  "filter": "Snake"
+                }
+              ]
+        }
+      ]
+    "#;
+
+    let variables: TemplateVariables =
+      TemplateVariables {
+        tokens: serde_json::from_str(&variables_config).unwrap()
+      };
+
+    let variable_expander = DefaultTemplateVariableExpander::new();
+    let user_inputs =
+      HashMap::from(
+        [
+          (UserVariableKey::new("project".to_owned()), UserVariableValue::new("blah".to_owned()))
+        ]
+      );
+
+    let expanded = variable_expander.expand_filters(variables, user_inputs);
+
+    println!("{:?}", &expanded);
+    let expanded_variables = expanded.expanded_variables;
+     // We expect project and project_command keys
+
+     let user_project_key = ExpandedKey::new("project".to_owned());
+     let user_project_value = ExpandedValue::new("Snake-blah".to_owned());
 
      let filter_project_command_key = ExpandedKey::new("project_Command".to_owned());
      let filter_project_command_value = ExpandedValue::new("Pascal-blah".to_owned());
