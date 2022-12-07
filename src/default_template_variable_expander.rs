@@ -3,15 +3,6 @@ use crate::variables::{UserVariableKey, UserVariableValue, FilterType};
 use std::collections::HashMap;
 use crate::filter_applicator::FilterApplicator;
 
-struct FilterNameFilterApplicator;
-
-//A simple filter that just prepends the filter name the to user-supplied value
-impl FilterApplicator for FilterNameFilterApplicator {
-
-  fn apply(&self, filter_type: FilterType, value_to_filter: &str) -> String {
-     format!("{:?}-{}", filter_type, value_to_filter)
-  }
-}
 
 // struct ConvertCaseFilteration;
 
@@ -70,11 +61,11 @@ struct DefaultTemplateVariableExpander {
 // We have to supply a filter_applicator, so it would make sense to supply it on construction
 // Assuming FilterNameFilterApplicator by default is not what we expect as a "default"
 impl DefaultTemplateVariableExpander {
-  pub fn new() -> Self {
-    Self {
-      filter_applicator: Box::new(FilterNameFilterApplicator)
-    }
-  }
+  // pub fn new() -> Self {
+  //   Self {
+  //     filter_applicator: Box::new(FilterNameFilterApplicator)
+  //   }
+  // }
 
   pub fn with_filter_applicator(filter_applicator: Box<dyn FilterApplicator>) -> Self {
     Self {
@@ -108,7 +99,7 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
                   .filters
                   .iter()
                   .map(move |f|{
-                    let filtered_value = self.filter_applicator.apply(f.filter.clone(), &v.value);
+                    let filtered_value = self.filter_applicator.apply(&f.filter, &v.value);
                     let filter_name =
                       if &f.name == DEFAULT_FILTER {
                         k.value.clone() //if the key name is __default__ then use the original key name
@@ -144,6 +135,16 @@ mod tests {
   use super::*;
   use crate::{variables::TemplateVariables, default_template_variable_expander::DefaultTemplateVariableExpander};
 
+  struct FilterNameFilterApplicator;
+
+  //A simple filter that just prepends the filter name the to user-supplied value
+  impl FilterApplicator for FilterNameFilterApplicator {
+
+    fn apply(&self, filter_type: &FilterType, value_to_filter: &str) -> String {
+       format!("{:?}-{}", filter_type, value_to_filter)
+    }
+  }
+
   #[test]
   fn filter_is_generated() {
     let variables_config = r#"
@@ -166,7 +167,7 @@ mod tests {
         tokens: serde_json::from_str(&variables_config).unwrap()
       };
 
-    let variable_expander = DefaultTemplateVariableExpander::new();
+    let variable_expander = DefaultTemplateVariableExpander::with_filter_applicator(Box::new(FilterNameFilterApplicator));
     let user_inputs =
       HashMap::from(
         [
@@ -217,7 +218,7 @@ mod tests {
         tokens: serde_json::from_str(&variables_config).unwrap()
       };
 
-    let variable_expander = DefaultTemplateVariableExpander::new();
+    let variable_expander = DefaultTemplateVariableExpander::with_filter_applicator(Box::new(FilterNameFilterApplicator));
     let user_inputs =
       HashMap::from(
         [
@@ -259,7 +260,7 @@ mod tests {
         tokens: serde_json::from_str(&variables_config).unwrap()
       };
 
-    let variable_expander = DefaultTemplateVariableExpander::new();
+    let variable_expander = DefaultTemplateVariableExpander::with_filter_applicator(Box::new(FilterNameFilterApplicator));
     let user_inputs =
       HashMap::from(
         [
