@@ -6,7 +6,7 @@ struct ConvertCaseFilterApplicator;
 
   // See: https://docs.rs/convert_case/latest/convert_case/enum.Case.html
 impl FilterApplicator for ConvertCaseFilterApplicator {
-  fn apply(&self, filter_type: &FilterType, value: &str) -> String {
+  fn apply_filter(&self, filter_type: &FilterType, value: &str) -> String {
     match filter_type {
       FilterType::Camel  => value.to_case(Case::Camel),  /* "My variable NAME" -> "myVariableName"   */
       FilterType::Cobol  => value.to_case(Case::Cobol),  /* "My variable NAME" -> "MY-VARIABLE-NAME" */
@@ -22,4 +22,23 @@ impl FilterApplicator for ConvertCaseFilterApplicator {
   }
 }
 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn conversions() {
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Camel,  "Hello cool World"), "helloCoolWorld");
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Cobol,  "Hello cool World"), "HELLO-COOL-WORLD");
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Flat,   "Hello cool World"), "hellocoolworld");
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Kebab,  "Hello cool World"), "hello-cool-world");
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Lower,  "Hello cool World"), "hello cool world");
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Noop,   "Hello cool World"), "Hello cool World");
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Pascal, "Hello cool World"), "HelloCoolWorld");
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Snake,  "Hello cool World"), "hello_cool_world");
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Title,  "Hello cool World"), "Hello Cool World");
+      assert_eq!(ConvertCaseFilterApplicator.apply_filter(&FilterType::Upper,  "Hello cool World"), "HELLO COOL WORLD");
+    }
+}
 

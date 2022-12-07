@@ -99,7 +99,7 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
                   .filters
                   .iter()
                   .map(move |f|{
-                    let filtered_value = self.filter_applicator.apply(&f.filter, &v.value);
+                    let filtered_value = self.filter_applicator.apply_filter(&f.filter, &v.value);
                     let filter_name =
                       if &f.name == DEFAULT_FILTER {
                         k.value.clone() //if the key name is __default__ then use the original key name
@@ -140,7 +140,7 @@ mod tests {
   //A simple filter that just prepends the filter name the to user-supplied value
   impl FilterApplicator for FilterNameFilterApplicator {
 
-    fn apply(&self, filter_type: &FilterType, value_to_filter: &str) -> String {
+    fn apply_filter(&self, filter_type: &FilterType, value_to_filter: &str) -> String {
        format!("{:?}-{}", filter_type, value_to_filter)
     }
   }
