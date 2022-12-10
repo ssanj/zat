@@ -2,7 +2,7 @@ use crate::filter_applicator::FilterApplicator;
 use crate::variables::FilterType;
 use convert_case::{Case, Casing};
 
-struct ConvertCaseFilterApplicator;
+pub struct ConvertCaseFilterApplicator;
 
   // See: https://docs.rs/convert_case/latest/convert_case/enum.Case.html
 impl FilterApplicator for ConvertCaseFilterApplicator {

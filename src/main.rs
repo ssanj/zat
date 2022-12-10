@@ -7,6 +7,7 @@ use walkdir::{WalkDir, DirEntry};
 use std::fs::{self, File};
 use std::io::Read;
 use crate::models::*;
+use crate::template_config_validator::{ValidConfig, TemplateVariableReview};
 use crate::variables::*;
 use crate::cli::Args;
 use aho_corasick::AhoCorasick;
@@ -51,6 +52,10 @@ fn run_zat() {
   use template_config_validator::TemplateConfigValidator;
   use default_template_config_validator::DefaultTemplateConfigValidator;
 
+  use template_variable_expander::TemplateVariableExpander;
+  use default_template_variable_expander::DefaultTemplateVariableExpander;
+  use convert_case_filter_applicator::ConvertCaseFilterApplicator;
+
   let config_provider = DefaultUserConfigProvider::new();
   let user_config = config_provider.get_config().unwrap();
 
@@ -60,9 +65,21 @@ fn run_zat() {
   let template_config_validator = DefaultTemplateConfigValidator::new();
   let template_variable_review = template_config_validator.validate(user_config.clone(), template_variables.clone());
 
+  let filter_applicator = ConvertCaseFilterApplicator;
+  let template_variable_expander = DefaultTemplateVariableExpander::with_filter_applicator(Box::new(filter_applicator));
+
   println!("config: {:?}", user_config);
   println!("variables: {:?}", template_variables);
   println!("variable review: {:?}", template_variable_review);
+
+  match template_variable_review {
+    TemplateVariableReview::Accepted(ValidConfig { user_variables, user_config: _ }) => {
+      let expanded_variables = template_variable_expander.expand_filters(template_variables.clone(), user_variables);
+      println!("expanded variables: {:?}", expanded_variables);
+    },
+    TemplateVariableReview::Rejected => println!("The user rejected the variables.")
+  }
+
 
 
   // let cli_args = cli::get_cli_args();

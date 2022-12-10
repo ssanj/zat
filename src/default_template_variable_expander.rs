@@ -53,7 +53,7 @@ use crate::filter_applicator::FilterApplicator;
 //   }
 // }
 
-struct DefaultTemplateVariableExpander {
+pub struct DefaultTemplateVariableExpander {
   filter_applicator: Box<dyn FilterApplicator>
 }
 
