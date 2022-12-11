@@ -33,6 +33,7 @@ mod template_variable_expander;
 mod default_template_variable_expander;
 mod filter_applicator;
 mod convert_case_filter_applicator;
+mod aho_corasick_token_replacer;
 
 fn main() {
   run_zat()

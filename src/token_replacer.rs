@@ -1,9 +1,9 @@
-use std::{collections::HashMap, iter::from_fn};
+use std::collections::HashMap;
 use crate::template_variable_expander::{ExpandedKey, ExpandedValue};
 
 #[derive(Debug, Clone)]
 pub struct Token {
-  value: String
+  pub value: String
 }
 
 impl Token {
@@ -63,6 +63,19 @@ mod tests {
       assert_eq!(HashMapTokenReplacer.replace_token(&user_variables, Token::new("key1")), "value1".to_owned());
       assert_eq!(HashMapTokenReplacer.replace_token(&user_variables, Token::new("key2")), "value2".to_owned());
       assert_eq!(HashMapTokenReplacer.replace_token(&user_variables, Token::new("key3")), "value3".to_owned());
+    }
+
+    #[test]
+    fn returns_token_if_match_not_found() {
+      let user_variables =
+        HashMap::from(
+          [
+            (ExpandedKey::new("key1"), ExpandedValue::new("value1")),
+            (ExpandedKey::new("key2"), ExpandedValue::new("value2")),
+            (ExpandedKey::new("key3"), ExpandedValue::new("value3"))
+          ]
+        );
+
       assert_eq!(HashMapTokenReplacer.replace_token(&user_variables, Token::new("key4")), "key4".to_owned());
     }
 }
