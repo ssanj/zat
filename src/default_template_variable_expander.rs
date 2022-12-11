@@ -3,69 +3,12 @@ use crate::variables::{UserVariableKey, UserVariableValue, FilterType};
 use std::collections::HashMap;
 use crate::filter_applicator::FilterApplicator;
 
-
-// struct ConvertCaseFilteration;
-
-// impl FilterApplicator for ConvertCaseFilteration {
-
-// }
-
-// impl  ConvertCaseFilteration {
-//   pub fn expand_filters(variables: &Vec<TemplateVariable>, user_inputs: &HashMap<String, String>) -> HashMap<String, String> {
-//     let mut user_inputs_updated = user_inputs.clone();
-
-//     for v in variables {
-//       if let Some(variable_value) = user_inputs.get(&v.variable_name) {
-//         for filter in &v.filters {
-//           let filter_name = &filter.name;
-//           let filter_type = &filter.filter;
-
-//           let updated_value = apply_filter(filter_type, &variable_value);
-
-//           let filter_key =
-//             if filter_name == DEFAULT_FILTER { /* Default filter to apply to variable value */
-//               v.variable_name.clone()
-//             } else {
-//               format!("{}__{}", &v.variable_name, &filter_name)
-//             };
-
-//           let _ = user_inputs_updated.insert(filter_key, updated_value);
-//         }
-//       }
-//     }
-//     user_inputs_updated
-//   }
-
-//   // See: https://docs.rs/convert_case/latest/convert_case/enum.Case.html
-//   fn apply_filter(filter_type: &FilterType, value: &str) -> String {
-//     match filter_type {
-//       FilterType::Camel  => value.to_case(Case::Camel),  /* "My variable NAME" -> "myVariableName"   */
-//       FilterType::Cobol  => value.to_case(Case::Cobol),  /* "My variable NAME" -> "MY-VARIABLE-NAME" */
-//       FilterType::Flat   => value.to_case(Case::Flat),   /* "My variable NAME" -> "myvariablename"   */
-//       FilterType::Kebab  => value.to_case(Case::Kebab),  /* "My variable NAME" -> "my-variable-name" */
-//       FilterType::Lower  => value.to_case(Case::Lower),  /* "My variable NAME" -> "my variable name" */
-//       FilterType::Noop   => value.to_owned(),            /* "My variable NAME" -> "My variable NAME" */
-//       FilterType::Pascal => value.to_case(Case::Pascal), /* "My variable NAME" -> "MyVariableName"   */
-//       FilterType::Snake  => value.to_case(Case::Snake),  /* "My variable NAME" -> "my_variable_name" */
-//       FilterType::Title  => value.to_case(Case::Title),  /* "My variable NAME" -> "My Variable Name" */
-//       FilterType::Upper  => value.to_case(Case::Upper),  /* "My variable NAME" -> "MY VARIABLE NAME" */
-//     }
-//   }
-// }
-
 pub struct DefaultTemplateVariableExpander {
   filter_applicator: Box<dyn FilterApplicator>
 }
 
-// Does it make sense to have this default filter_applicator?
-// We have to supply a filter_applicator, so it would make sense to supply it on construction
-// Assuming FilterNameFilterApplicator by default is not what we expect as a "default"
+
 impl DefaultTemplateVariableExpander {
-  // pub fn new() -> Self {
-  //   Self {
-  //     filter_applicator: Box::new(FilterNameFilterApplicator)
-  //   }
-  // }
 
   pub fn with_filter_applicator(filter_applicator: Box<dyn FilterApplicator>) -> Self {
     Self {
@@ -83,11 +26,11 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
           .tokens
           .iter()
           .filter_map(|t|{
-            let key = t.variable_name.to_owned();
+            let key = t.variable_name.clone();
             user_inputs
               .get(&UserVariableKey::new(key.clone()))
               .map(|v|{
-                (t, ExpandedKey::new(key), ExpandedValue::new(v.value.to_owned()))
+                (t, ExpandedKey::new(&key), ExpandedValue::new(&v.value))
               })
           })
           .flat_map(|(t, k, v)|{
@@ -107,7 +50,7 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
                         format!("{}_{}", k.value.clone(), f.name)
                       };
 
-                    (ExpandedKey::new(filter_name.to_owned()), ExpandedValue::new(filtered_value))
+                    (ExpandedKey::new(&filter_name), ExpandedValue::new(&filtered_value))
                   });
 
                 // Chain with original values, so they can get overwritten if need by by __default__
@@ -181,11 +124,11 @@ mod tests {
     let expanded_variables = expanded.expanded_variables;
      // We expect project and project_command keys
 
-     let user_project_key = ExpandedKey::new("project".to_owned());
-     let user_project_value = ExpandedValue::new("blah".to_owned());
+     let user_project_key = ExpandedKey::new("project");
+     let user_project_value = ExpandedValue::new("blah");
 
-     let filter_project_command_key = ExpandedKey::new("project_Command".to_owned());
-     let filter_project_command_value = ExpandedValue::new("Pascal-blah".to_owned());
+     let filter_project_command_key = ExpandedKey::new("project_Command");
+     let filter_project_command_value = ExpandedValue::new("Pascal-blah");
 
      assert_eq!(expanded_variables.len(), 2);
      assert_eq!(expanded_variables.get(&user_project_key), Some(&user_project_value));
@@ -232,11 +175,11 @@ mod tests {
     let expanded_variables = expanded.expanded_variables;
      // We expect project and project_command keys
 
-     let user_project_key = ExpandedKey::new("project".to_owned());
-     let user_project_value = ExpandedValue::new("Snake-blah".to_owned());
+     let user_project_key = ExpandedKey::new("project");
+     let user_project_value = ExpandedValue::new("Snake-blah");
 
-     let filter_project_command_key = ExpandedKey::new("project_Command".to_owned());
-     let filter_project_command_value = ExpandedValue::new("Pascal-blah".to_owned());
+     let filter_project_command_key = ExpandedKey::new("project_Command");
+     let filter_project_command_value = ExpandedValue::new("Pascal-blah");
 
      assert_eq!(expanded_variables.len(), 2);
      assert_eq!(expanded_variables.get(&user_project_key), Some(&user_project_value));
@@ -272,10 +215,10 @@ mod tests {
 
     println!("{:?}", &expanded);
     let expanded_variables = expanded.expanded_variables;
-     // We expect project and project_command keys
+    // We expect project and project_command keys
 
-    let user_main_class_key = ExpandedKey::new("MainClass".to_owned());
-    let user_main_class_value = ExpandedValue::new("blue".to_owned());
+    let user_main_class_key = ExpandedKey::new("MainClass");
+    let user_main_class_value = ExpandedValue::new("blue");
 
     assert_eq!(expanded_variables.len(), 1);
     assert_eq!(expanded_variables.get(&user_main_class_key), Some(&user_main_class_value));

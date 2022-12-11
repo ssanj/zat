@@ -10,9 +10,9 @@ pub struct ExpandedKey {
 
 
 impl ExpandedKey {
-  pub fn new(value: String) -> Self {
+  pub fn new(input: &str) -> Self {
     ExpandedKey {
-      value
+      value: input.to_owned()
     }
   }
 }
@@ -23,9 +23,9 @@ pub struct ExpandedValue {
 }
 
 impl ExpandedValue {
-  pub fn new(value: String) -> Self {
+  pub fn new(input: &str) -> Self {
     ExpandedValue {
-      value
+      value: input.to_owned()
     }
   }
 }

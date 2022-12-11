@@ -1,13 +1,70 @@
+use std::{collections::HashMap, iter::from_fn};
+use crate::template_variable_expander::{ExpandedKey, ExpandedValue};
+
 #[derive(Debug, Clone)]
-pub struct Token(String);
+pub struct Token {
+  value: String
+}
+
+impl Token {
+  pub fn new(input: &str) -> Self {
+    Self {
+      value: input.to_owned()
+    }
+  }
+}
+
+impl From<Token> for ExpandedKey {
+  fn from(field: Token) -> Self {
+      ExpandedKey {
+        value: field.value
+      }
+  }
+}
 
 impl AsRef<str> for Token {
   fn as_ref(&self) -> &str {
-      &self.0.as_str()
+      &self.value
   }
 }
 
 pub trait TokenReplacer {
-  fn replace_token<T>(token: T) -> String where
-    T: AsRef<str>;
+  /// expanded_variables The key/values specified in the .variables file, expanded to include filters
+  /// token The token to replace. If the token is found, then a replacement will be returned, if not the original value will be returned
+  fn replace_token(&self, expanded_variables: &HashMap<ExpandedKey, ExpandedValue>, token: Token) -> String;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct HashMapTokenReplacer;
+
+    impl TokenReplacer for HashMapTokenReplacer {
+        fn replace_token(&self, expanded_variables: &HashMap<ExpandedKey, ExpandedValue>, token: Token) -> String {
+          expanded_variables
+            .get(&ExpandedKey::from(token.clone()))
+            .map(|t| t.value.clone())
+            .unwrap_or_else(|| token.value)
+        }
+    }
+
+    #[test]
+    fn returns_matched_token() {
+      let user_variables =
+        HashMap::from(
+          [
+            (ExpandedKey::new("key1"), ExpandedValue::new("value1")),
+            (ExpandedKey::new("key2"), ExpandedValue::new("value2")),
+            (ExpandedKey::new("key3"), ExpandedValue::new("value3"))
+          ]
+        );
+
+      assert_eq!(HashMapTokenReplacer.replace_token(&user_variables, Token::new("key1")), "value1".to_owned());
+      assert_eq!(HashMapTokenReplacer.replace_token(&user_variables, Token::new("key2")), "value2".to_owned());
+      assert_eq!(HashMapTokenReplacer.replace_token(&user_variables, Token::new("key3")), "value3".to_owned());
+      assert_eq!(HashMapTokenReplacer.replace_token(&user_variables, Token::new("key4")), "key4".to_owned());
+    }
+}
+
+
