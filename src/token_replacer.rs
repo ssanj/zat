@@ -1,12 +1,11 @@
 use crate::template_variable_expander::ExpandedKey;
 
 #[derive(Debug, Clone)]
-pub struct Token {
+pub struct ContentWithTokens {
   pub value: String
 }
 
-// TODO: Rename, this is not so much a token as it is content
-impl Token {
+impl ContentWithTokens {
   pub fn new(input: &str) -> Self {
     Self {
       value: input.to_owned()
@@ -14,24 +13,24 @@ impl Token {
   }
 }
 
-impl From<Token> for ExpandedKey {
-  fn from(field: Token) -> Self {
+impl From<ContentWithTokens> for ExpandedKey {
+  fn from(field: ContentWithTokens) -> Self {
       ExpandedKey {
         value: field.value
       }
   }
 }
 
-impl AsRef<str> for Token {
+impl AsRef<str> for ContentWithTokens {
   fn as_ref(&self) -> &str {
       &self.value
   }
 }
 
 pub trait TokenReplacer {
-  /// expanded_variables The key/values specified in the .variables file, expanded to include filters
-  /// token The token to replace. If the token is found, then a replacement will be returned, if not the original value will be returned
-  fn replace_token(&self, token: Token) -> String;
+  /// content_with_tokens The content that has token to replace. Any matching tokens will be replaced and the updated content returned.
+  /// If no matching tokens are found the original content will be returned
+  fn replace_content_token(&self, content_with_tokens: ContentWithTokens) -> String;
 }
 
 #[cfg(test)]
@@ -52,46 +51,50 @@ mod tests {
       }
     }
 
+    // Reference implementation
     impl TokenReplacer for HashMapTokenReplacer {
-        fn replace_token(&self, token: Token) -> String {
+        fn replace_content_token(&self, content_with_token: ContentWithTokens) -> String {
           self
             .expanded_variables
-            .get(&ExpandedKey::from(token.clone()))
-            .map(|t| t.value.clone())
-            .unwrap_or_else(|| token.value)
+            .iter()
+            .fold(content_with_token.value, |acc, (k, v)|{
+              acc.replace(&k.value, &v.value)
+            })
         }
     }
 
     #[test]
-    fn returns_matched_token() {
+    fn updates_content_tokens() {
       let user_variables =
         HashMap::from(
           [
-            (ExpandedKey::new("key1"), ExpandedValue::new("value1")),
-            (ExpandedKey::new("key2"), ExpandedValue::new("value2")),
-            (ExpandedKey::new("key3"), ExpandedValue::new("value3"))
+            (ExpandedKey::new("token1"), ExpandedValue::new("replacement1")),
+            (ExpandedKey::new("token2"), ExpandedValue::new("replacement2")),
+            (ExpandedKey::new("token3"), ExpandedValue::new("replacement3"))
           ]
         );
 
       let token_replacer = HashMapTokenReplacer::new(user_variables);
-      assert_eq!(token_replacer.replace_token(Token::new("key1")), "value1".to_owned());
-      assert_eq!(token_replacer.replace_token(Token::new("key2")), "value2".to_owned());
-      assert_eq!(token_replacer.replace_token(Token::new("key3")), "value3".to_owned());
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("token1")), "replacement1".to_owned());
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("token2")), "replacement2".to_owned());
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("token3")), "replacement3".to_owned());
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("This content has token1 in it twice token1")), "This content has replacement1 in it twice replacement1".to_owned());
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("All the token3 token2 token1 are present")), "All the replacement3 replacement2 replacement1 are present".to_owned());
     }
 
     #[test]
-    fn returns_token_if_match_not_found() {
+    fn returns_original_content_without_matching_tokens() {
       let user_variables =
         HashMap::from(
           [
-            (ExpandedKey::new("key1"), ExpandedValue::new("value1")),
-            (ExpandedKey::new("key2"), ExpandedValue::new("value2")),
-            (ExpandedKey::new("key3"), ExpandedValue::new("value3"))
+            (ExpandedKey::new("token1"), ExpandedValue::new("replacement1")),
+            (ExpandedKey::new("token2"), ExpandedValue::new("replacement2")),
+            (ExpandedKey::new("token3"), ExpandedValue::new("replacement3"))
           ]
         );
 
       let token_replacer = HashMapTokenReplacer::new(user_variables);
-      assert_eq!(token_replacer.replace_token(Token::new("key4")), "key4".to_owned());
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("This content has no tokens in it")), "This content has no tokens in it".to_owned());
     }
 }
 
