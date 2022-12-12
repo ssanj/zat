@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-use crate::template_variable_expander::{ExpandedKey, ExpandedValue};
+use crate::template_variable_expander::ExpandedKey;
 
 #[derive(Debug, Clone)]
 pub struct Token {
@@ -38,6 +37,8 @@ pub trait TokenReplacer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
+    use crate::template_variable_expander::ExpandedValue;
 
     struct HashMapTokenReplacer {
       expanded_variables: HashMap<ExpandedKey, ExpandedValue>
