@@ -27,10 +27,29 @@ impl AsRef<str> for ContentWithTokens {
   }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct ContentTokensReplaced {
+  pub value: String
+}
+
+impl ContentTokensReplaced {
+  pub fn new(input: &str) -> Self {
+    Self {
+      value: input.to_owned()
+    }
+  }
+}
+
+impl AsRef<str> for ContentTokensReplaced {
+  fn as_ref(&self) -> &str {
+      &self.value
+  }
+}
+
 pub trait TokenReplacer {
   /// content_with_tokens The content that has token to replace. Any matching tokens will be replaced and the updated content returned.
   /// If no matching tokens are found the original content will be returned
-  fn replace_content_token(&self, content_with_tokens: ContentWithTokens) -> String;
+  fn replace_content_token(&self, content_with_tokens: ContentWithTokens) -> ContentTokensReplaced; // TODO: Should this be strongly typed?
 }
 
 #[cfg(test)]
@@ -53,13 +72,16 @@ mod tests {
 
     // Reference implementation
     impl TokenReplacer for HashMapTokenReplacer {
-        fn replace_content_token(&self, content_with_token: ContentWithTokens) -> String {
-          self
-            .expanded_variables
-            .iter()
-            .fold(content_with_token.value, |acc, (k, v)|{
-              acc.replace(&k.value, &v.value)
-            })
+        fn replace_content_token(&self, content_with_token: ContentWithTokens) -> ContentTokensReplaced {
+          let with_tokens_replaced =
+            self
+              .expanded_variables
+              .iter()
+              .fold(content_with_token.value, |acc: String, (k, v):(&ExpandedKey, &ExpandedValue)|{
+                acc.replace(&k.value, &v.value)
+              });
+
+          ContentTokensReplaced::new(&with_tokens_replaced)
         }
     }
 
@@ -75,11 +97,11 @@ mod tests {
         );
 
       let token_replacer = HashMapTokenReplacer::new(user_variables);
-      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("token1")), "replacement1".to_owned());
-      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("token2")), "replacement2".to_owned());
-      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("token3")), "replacement3".to_owned());
-      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("This content has token1 in it twice token1")), "This content has replacement1 in it twice replacement1".to_owned());
-      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("All the token3 token2 token1 are present")), "All the replacement3 replacement2 replacement1 are present".to_owned());
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("token1")).as_ref(), "replacement1");
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("token2")).as_ref(), "replacement2");
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("token3")).as_ref(), "replacement3");
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("This content has token1 in it twice token1")).as_ref(), "This content has replacement1 in it twice replacement1");
+      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("All the token3 token2 token1 are present")).as_ref(), "All the replacement3 replacement2 replacement1 are present");
     }
 
     #[test]
@@ -94,7 +116,10 @@ mod tests {
         );
 
       let token_replacer = HashMapTokenReplacer::new(user_variables);
-      assert_eq!(token_replacer.replace_content_token(ContentWithTokens::new("This content has no tokens in it")), "This content has no tokens in it".to_owned());
+      assert_eq!(
+        token_replacer.replace_content_token(ContentWithTokens::new("This content has no tokens in it")).as_ref(),
+        "This content has no tokens in it"
+      )
     }
 }
 

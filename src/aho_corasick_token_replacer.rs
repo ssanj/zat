@@ -1,4 +1,4 @@
-use crate::token_replacer::{ContentWithTokens, TokenReplacer};
+use crate::token_replacer::{ContentWithTokens, TokenReplacer, ContentTokensReplaced};
 use crate::template_variable_expander::{ExpandedKey, ExpandedValue};
 use std::collections::HashMap;
 use aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
@@ -31,8 +31,10 @@ impl AhoCorasickTokenReplacer {
 }
 
 impl TokenReplacer for AhoCorasickTokenReplacer {
-    fn replace_content_token(&self, content_with_token: ContentWithTokens) -> String {
-      self.ahocorasick.replace_all(&content_with_token.value, &self.replacements)
+    fn replace_content_token(&self, content_with_token: ContentWithTokens) -> ContentTokensReplaced {
+      ContentTokensReplaced {
+        value: self.ahocorasick.replace_all(&content_with_token.value, &self.replacements)
+      }
     }
 }
 
@@ -99,7 +101,7 @@ mod tests {
         );
 
       let replacer = AhoCorasickTokenReplacer::new(user_variables);
-      assert_eq!(replacer.replace_content_token(ContentWithTokens::new("project")), "blee blue".to_owned());
+      assert_eq!(replacer.replace_content_token(ContentWithTokens::new("project")).as_ref(), "blee blue");
     }
 
     #[test]
@@ -113,7 +115,7 @@ mod tests {
         );
 
       let replacer = AhoCorasickTokenReplacer::new(user_variables);
-      assert_eq!(replacer.replace_content_token(ContentWithTokens::new(PROJECT_CONTENT)), EXPECTED_PROJECT_CONTENT.to_owned());
+      assert_eq!(replacer.replace_content_token(ContentWithTokens::new(PROJECT_CONTENT)).as_ref(), EXPECTED_PROJECT_CONTENT);
     }
 
     #[test]
@@ -128,14 +130,14 @@ mod tests {
 
       let replacer = AhoCorasickTokenReplacer::new(user_variables);
       // Returns "BleeBlue" instead of matching on "project" and returning "blee blue_Pascal"
-      assert_eq!(replacer.replace_content_token(ContentWithTokens::new("project_Pascal")), "BleeBlue".to_owned());
+      assert_eq!(replacer.replace_content_token(ContentWithTokens::new("project_Pascal")).as_ref(), "BleeBlue");
     }
 
     #[test]
     fn returns_token_if_match_not_found() {
       let user_variables = HashMap::new();
       let replacer = AhoCorasickTokenReplacer::new(user_variables);
-      assert_eq!(replacer.replace_content_token(ContentWithTokens::new(PROJECT_CONTENT)), PROJECT_CONTENT.to_owned());
+      assert_eq!(replacer.replace_content_token(ContentWithTokens::new(PROJECT_CONTENT)).as_ref(), PROJECT_CONTENT);
     }
 
 }
