@@ -1,29 +1,37 @@
 use crate::token_replacer::{Token, TokenReplacer};
 use crate::template_variable_expander::{ExpandedKey, ExpandedValue};
 use std::collections::HashMap;
-use aho_corasick::AhoCorasickBuilder;
-use aho_corasick::MatchKind::LeftmostLongest;
+use aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
 
-pub struct AhoCorasickTokenReplacer;
+pub struct AhoCorasickTokenReplacer {
+  ahocorasick: AhoCorasick,
+  replacements: Vec<String>
+}
 
-// TODO: We may need to move out the ashMap as we want to initialise it only once
-impl TokenReplacer for AhoCorasickTokenReplacer {
-    fn replace_token(&self, expanded_variables: &HashMap<ExpandedKey, ExpandedValue>, token: Token) -> String {
-      // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
-      let mut token_keys: Vec<&str> = vec![];
-      let mut token_values: Vec<&str> = vec![];
+impl AhoCorasickTokenReplacer {
+  pub fn new(expanded_variables: HashMap<ExpandedKey, ExpandedValue>) -> Self {
+      let mut token_keys: Vec<String> = vec![];
+      let mut token_values: Vec<String> = vec![];
       for (key, value) in expanded_variables {
-        token_keys.push(&key.value); // key
-        token_values.push(&value.value); // value
+        token_keys.push(key.value); // key
+        token_values.push(value.value); // value
       };
 
-      // TODO: This should be created once in the constructor
-      let ac =
+      let ahocorasick =
         AhoCorasickBuilder::new()
-          .match_kind(LeftmostLongest)
+          .match_kind(MatchKind::LeftmostLongest)
           .build(token_keys);
 
-      ac.replace_all(&token.value, &token_values)
+      Self {
+        ahocorasick,
+        replacements: token_values
+      }
+  }
+}
+
+impl TokenReplacer for AhoCorasickTokenReplacer {
+    fn replace_token(&self, token: Token) -> String {
+      self.ahocorasick.replace_all(&token.value, &self.replacements)
     }
 }
 
@@ -89,7 +97,8 @@ mod tests {
           ]
         );
 
-      assert_eq!(AhoCorasickTokenReplacer.replace_token(&user_variables, Token::new("project")), "blee blue".to_owned());
+      let replacer = AhoCorasickTokenReplacer::new(user_variables);
+      assert_eq!(replacer.replace_token(Token::new("project")), "blee blue".to_owned());
     }
 
     #[test]
@@ -102,7 +111,8 @@ mod tests {
           ]
         );
 
-      assert_eq!(AhoCorasickTokenReplacer.replace_token(&user_variables, Token::new(PROJECT_CONTENT)), EXPECTED_PROJECT_CONTENT.to_owned());
+      let replacer = AhoCorasickTokenReplacer::new(user_variables);
+      assert_eq!(replacer.replace_token(Token::new(PROJECT_CONTENT)), EXPECTED_PROJECT_CONTENT.to_owned());
     }
 
     #[test]
@@ -115,14 +125,16 @@ mod tests {
           ]
         );
 
+      let replacer = AhoCorasickTokenReplacer::new(user_variables);
       // Returns "BleeBlue" instead of matching on "project" and returning "blee blue_Pascal"
-      assert_eq!(AhoCorasickTokenReplacer.replace_token(&user_variables, Token::new("project_Pascal")), "BleeBlue".to_owned());
+      assert_eq!(replacer.replace_token(Token::new("project_Pascal")), "BleeBlue".to_owned());
     }
 
     #[test]
     fn returns_token_if_match_not_found() {
       let user_variables = HashMap::new();
-      assert_eq!(AhoCorasickTokenReplacer.replace_token(&user_variables, Token::new(PROJECT_CONTENT)), PROJECT_CONTENT.to_owned());
+      let replacer = AhoCorasickTokenReplacer::new(user_variables);
+      assert_eq!(replacer.replace_token(Token::new(PROJECT_CONTENT)), PROJECT_CONTENT.to_owned());
     }
 
 }
