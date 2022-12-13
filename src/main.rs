@@ -34,6 +34,8 @@ mod default_template_variable_expander;
 mod filter_applicator;
 mod convert_case_filter_applicator;
 mod aho_corasick_token_replacer;
+mod key_tokenizer;
+mod default_key_tokenizer;
 
 fn main() {
   run_zat()
