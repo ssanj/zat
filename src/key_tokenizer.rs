@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::template_variable_expander::{ExpandedKey, ExpandedValue};
+use crate::template_variable_expander::{ExpandedKey, ExpandedValue, ExpandedVariables};
 
 #[derive(Hash, Debug, Clone, PartialEq, Eq)]
 pub struct TokenizedExpandedKey {
@@ -23,5 +23,5 @@ impl AsRef<str> for TokenizedExpandedKey {
 
 
 pub trait KeyTokenizer {
-  fn tokenize_keys(&self, expanded_variables: HashMap<ExpandedKey, ExpandedValue>) -> HashMap<TokenizedExpandedKey, ExpandedValue>;
+  fn tokenize_keys(&self, expanded_variables: ExpandedVariables) -> HashMap<TokenizedExpandedKey, ExpandedValue>;
 }

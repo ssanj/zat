@@ -6,6 +6,7 @@ use tokens::UserSelection;
 use walkdir::{WalkDir, DirEntry};
 use std::fs::{self, File};
 use std::io::Read;
+use crate::default_key_tokenizer::DefaultKeyTokenizer;
 use crate::models::*;
 use crate::template_config_validator::{ValidConfig, TemplateVariableReview};
 use crate::variables::*;
@@ -37,6 +38,8 @@ mod aho_corasick_token_replacer;
 mod key_tokenizer;
 mod default_key_tokenizer;
 
+const KEY_TOKEN: &str = "$";
+
 fn main() {
   run_zat()
 }
@@ -58,6 +61,8 @@ fn run_zat() {
   use template_variable_expander::TemplateVariableExpander;
   use default_template_variable_expander::DefaultTemplateVariableExpander;
   use convert_case_filter_applicator::ConvertCaseFilterApplicator;
+  use key_tokenizer::KeyTokenizer;
+  use default_key_tokenizer::DefaultKeyTokenizer;
 
   let config_provider = DefaultUserConfigProvider::new();
   let user_config = config_provider.get_config().unwrap();
@@ -78,7 +83,11 @@ fn run_zat() {
   match template_variable_review {
     TemplateVariableReview::Accepted(ValidConfig { user_variables, user_config: _ }) => {
       let expanded_variables = template_variable_expander.expand_filters(template_variables.clone(), user_variables);
+      let key_tokenizer = DefaultKeyTokenizer::new(KEY_TOKEN);
+      // let tokenized_key_expanded_variables = key_tokenizer.tokenize_keys(&expanded_variables.expanded_variables);
+
       println!("expanded variables: {:?}", expanded_variables);
+      // println!("tokenized keys with expanded variables: {:?}", tokenized_key_expanded_variables);
     },
     TemplateVariableReview::Rejected => println!("The user rejected the variables.")
   }

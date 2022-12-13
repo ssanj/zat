@@ -1,5 +1,6 @@
+use crate::key_tokenizer::TokenizedExpandedKey;
 use crate::token_replacer::{ContentWithTokens, TokenReplacer, ContentTokensReplaced};
-use crate::template_variable_expander::{ExpandedKey, ExpandedValue};
+use crate::template_variable_expander::ExpandedValue;
 use std::collections::HashMap;
 use aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
 
@@ -9,7 +10,7 @@ pub struct AhoCorasickTokenReplacer {
 }
 
 impl AhoCorasickTokenReplacer {
-  pub fn new(expanded_variables: HashMap<ExpandedKey, ExpandedValue>) -> Self {
+  pub fn new(expanded_variables: HashMap<TokenizedExpandedKey, ExpandedValue>) -> Self {
       // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
       let mut token_keys: Vec<String> = vec![];
       let mut token_values: Vec<String> = vec![];
@@ -95,8 +96,8 @@ mod tests {
       let user_variables =
         HashMap::from(
           [
-            (ExpandedKey::new("project"), ExpandedValue::new("blee blue")),
-            (ExpandedKey::new("project_Pascal"), ExpandedValue::new("BleeBlue"))
+            (TokenizedExpandedKey::new("project"), ExpandedValue::new("blee blue")),
+            (TokenizedExpandedKey::new("project_Pascal"), ExpandedValue::new("BleeBlue"))
           ]
         );
 
@@ -109,8 +110,8 @@ mod tests {
       let user_variables =
         HashMap::from(
           [
-            (ExpandedKey::new("project"), ExpandedValue::new("blee blue")),
-            (ExpandedKey::new("project_Pascal"), ExpandedValue::new("BleeBlue"))
+            (TokenizedExpandedKey::new("project"), ExpandedValue::new("blee blue")),
+            (TokenizedExpandedKey::new("project_Pascal"), ExpandedValue::new("BleeBlue"))
           ]
         );
 
@@ -123,8 +124,8 @@ mod tests {
       let user_variables =
         HashMap::from(
           [
-            (ExpandedKey::new("project"), ExpandedValue::new("blee blue")),
-            (ExpandedKey::new("project_Pascal"), ExpandedValue::new("BleeBlue"))
+            (TokenizedExpandedKey::new("project"), ExpandedValue::new("blee blue")),
+            (TokenizedExpandedKey::new("project_Pascal"), ExpandedValue::new("BleeBlue"))
           ]
         );
 

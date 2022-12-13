@@ -13,13 +13,6 @@ impl ContentWithTokens {
   }
 }
 
-impl From<ContentWithTokens> for ExpandedKey {
-  fn from(field: ContentWithTokens) -> Self {
-      ExpandedKey {
-        value: field.value
-      }
-  }
-}
 
 impl AsRef<str> for ContentWithTokens {
   fn as_ref(&self) -> &str {
@@ -56,14 +49,14 @@ pub trait TokenReplacer {
 mod tests {
     use super::*;
     use std::collections::HashMap;
-    use crate::template_variable_expander::ExpandedValue;
+    use crate::{template_variable_expander::ExpandedValue, key_tokenizer::TokenizedExpandedKey};
 
     struct HashMapTokenReplacer {
-      expanded_variables: HashMap<ExpandedKey, ExpandedValue>
+      expanded_variables: HashMap<TokenizedExpandedKey, ExpandedValue>
     }
 
     impl HashMapTokenReplacer {
-      fn new(expanded_variables: HashMap<ExpandedKey, ExpandedValue>) -> Self {
+      fn new(expanded_variables: HashMap<TokenizedExpandedKey, ExpandedValue>) -> Self {
         Self {
           expanded_variables
         }
@@ -77,7 +70,7 @@ mod tests {
             self
               .expanded_variables
               .iter()
-              .fold(content_with_token.value, |acc: String, (k, v):(&ExpandedKey, &ExpandedValue)|{
+              .fold(content_with_token.value, |acc: String, (k, v):(&TokenizedExpandedKey, &ExpandedValue)|{
                 acc.replace(&k.value, &v.value)
               });
 
@@ -90,9 +83,9 @@ mod tests {
       let user_variables =
         HashMap::from(
           [
-            (ExpandedKey::new("token1"), ExpandedValue::new("replacement1")),
-            (ExpandedKey::new("token2"), ExpandedValue::new("replacement2")),
-            (ExpandedKey::new("token3"), ExpandedValue::new("replacement3"))
+            (TokenizedExpandedKey::new("token1"), ExpandedValue::new("replacement1")),
+            (TokenizedExpandedKey::new("token2"), ExpandedValue::new("replacement2")),
+            (TokenizedExpandedKey::new("token3"), ExpandedValue::new("replacement3"))
           ]
         );
 
@@ -109,9 +102,9 @@ mod tests {
       let user_variables =
         HashMap::from(
           [
-            (ExpandedKey::new("token1"), ExpandedValue::new("replacement1")),
-            (ExpandedKey::new("token2"), ExpandedValue::new("replacement2")),
-            (ExpandedKey::new("token3"), ExpandedValue::new("replacement3"))
+            (TokenizedExpandedKey::new("token1"), ExpandedValue::new("replacement1")),
+            (TokenizedExpandedKey::new("token2"), ExpandedValue::new("replacement2")),
+            (TokenizedExpandedKey::new("token3"), ExpandedValue::new("replacement3"))
           ]
         );
 
