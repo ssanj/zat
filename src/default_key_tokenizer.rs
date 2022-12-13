@@ -15,7 +15,7 @@ impl DefaultKeyTokenizer {
 }
 
 impl KeyTokenizer for DefaultKeyTokenizer {
-    fn tokenize_keys(&self, expanded_variables: HashMap<ExpandedKey, ExpandedValue>) -> HashMap<crate::key_tokenizer::TokenizedExpandedKey, ExpandedValue> {
+    fn tokenize_keys(&self, expanded_variables: HashMap<ExpandedKey, ExpandedValue>) -> HashMap<TokenizedExpandedKey, ExpandedValue> {
         expanded_variables
           .into_iter()
           .map(|(k, v)|{
@@ -43,11 +43,11 @@ mod tests {
       let key_tokenizer = DefaultKeyTokenizer::new("$");
       let tokenized_keys = key_tokenizer.tokenize_keys(user_variables.clone());
 
-      assert_eq!(user_variables.len(), tokenized_keys.len());
+      assert_eq!(user_variables.len(), tokenized_keys.len(), "user_variables and tokenized_keys HashMaps should be the same size");
 
       user_variables.iter().for_each(|(k, v)| {
-        let tokenized_key = TokenizedExpandedKey::new(&format!("${}$", k.value));
-        assert_eq!(Some(v), tokenized_keys.get(&tokenized_key), "Checking for key: {}", &tokenized_key.value)
+        let tokenized_key = TokenizedExpandedKey::new(&format!("x{}$", k.value));
+        assert_eq!(Some(v), tokenized_keys.get(&tokenized_key), "Could not find entry for key: {} in {:?}", &tokenized_key.value, &tokenized_keys)
       })
     }
 }
