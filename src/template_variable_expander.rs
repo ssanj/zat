@@ -31,7 +31,7 @@ impl ExpandedValue {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExpandedVariables {
   pub expanded_variables: HashMap<ExpandedKey, ExpandedValue>
 }

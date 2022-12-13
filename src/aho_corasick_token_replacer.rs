@@ -1,7 +1,6 @@
-use crate::key_tokenizer::TokenizedExpandedKey;
+use crate::key_tokenizer::TokenizedKeysExpandedVariables;
 use crate::token_replacer::{ContentWithTokens, TokenReplacer, ContentTokensReplaced};
-use crate::template_variable_expander::ExpandedValue;
-use std::collections::HashMap;
+
 use aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
 
 pub struct AhoCorasickTokenReplacer {
@@ -10,11 +9,11 @@ pub struct AhoCorasickTokenReplacer {
 }
 
 impl AhoCorasickTokenReplacer {
-  pub fn new(expanded_variables: HashMap<TokenizedExpandedKey, ExpandedValue>) -> Self {
+  pub fn new(tokenized_keys_expanded_values: TokenizedKeysExpandedVariables) -> Self {
       // Grab the keys and values so the orders are consistent (HashMap has inconsistent ordering)
       let mut token_keys: Vec<String> = vec![];
       let mut token_values: Vec<String> = vec![];
-      for (key, value) in expanded_variables {
+      for (key, value) in tokenized_keys_expanded_values.value {
         token_keys.push(key.value); // key
         token_values.push(value.value); // value
       };
@@ -41,7 +40,10 @@ impl TokenReplacer for AhoCorasickTokenReplacer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+  use super::*;
+  use std::collections::HashMap;
+  use crate::key_tokenizer::TokenizedExpandedKey;
+  use crate::template_variable_expander::ExpandedValue;
 
    const PROJECT_CONTENT: &str =
       r#"
@@ -101,7 +103,12 @@ mod tests {
           ]
         );
 
-      let replacer = AhoCorasickTokenReplacer::new(user_variables);
+      let tokenized_keys_expanded_variables =
+        TokenizedKeysExpandedVariables {
+          value: user_variables
+        };
+
+      let replacer = AhoCorasickTokenReplacer::new(tokenized_keys_expanded_variables);
       assert_eq!(replacer.replace_content_token(ContentWithTokens::new("project")).as_ref(), "blee blue");
     }
 
@@ -115,7 +122,12 @@ mod tests {
           ]
         );
 
-      let replacer = AhoCorasickTokenReplacer::new(user_variables);
+      let tokenized_keys_expanded_variables =
+        TokenizedKeysExpandedVariables {
+          value: user_variables
+        };
+
+      let replacer = AhoCorasickTokenReplacer::new(tokenized_keys_expanded_variables);
       assert_eq!(replacer.replace_content_token(ContentWithTokens::new(PROJECT_CONTENT)).as_ref(), EXPECTED_PROJECT_CONTENT);
     }
 
@@ -129,7 +141,12 @@ mod tests {
           ]
         );
 
-      let replacer = AhoCorasickTokenReplacer::new(user_variables);
+      let tokenized_keys_expanded_variables =
+        TokenizedKeysExpandedVariables {
+          value: user_variables
+        };
+
+      let replacer = AhoCorasickTokenReplacer::new(tokenized_keys_expanded_variables);
       // Returns "BleeBlue" instead of matching on "project" and returning "blee blue_Pascal"
       assert_eq!(replacer.replace_content_token(ContentWithTokens::new("project_Pascal")).as_ref(), "BleeBlue");
     }
@@ -137,7 +154,13 @@ mod tests {
     #[test]
     fn returns_token_if_match_not_found() {
       let user_variables = HashMap::new();
-      let replacer = AhoCorasickTokenReplacer::new(user_variables);
+
+      let tokenized_keys_expanded_variables =
+        TokenizedKeysExpandedVariables {
+          value: user_variables
+        };
+
+      let replacer = AhoCorasickTokenReplacer::new(tokenized_keys_expanded_variables);
       assert_eq!(replacer.replace_content_token(ContentWithTokens::new(PROJECT_CONTENT)).as_ref(), PROJECT_CONTENT);
     }
 

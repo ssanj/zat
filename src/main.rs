@@ -1,18 +1,5 @@
 use std::ffi::OsStr;
-use std::io::{stdin, BufRead};
-use std::{fs::create_dir, collections::HashMap, path::Path};
-
-use tokens::UserSelection;
-use walkdir::{WalkDir, DirEntry};
-use std::fs::{self, File};
-use std::io::Read;
-use crate::default_key_tokenizer::DefaultKeyTokenizer;
-use crate::models::*;
-use crate::template_config_validator::{ValidConfig, TemplateVariableReview};
-use crate::variables::*;
-use crate::cli::Args;
-use aho_corasick::AhoCorasick;
-
+use std::path::Path;
 
 mod models;
 mod variables;
@@ -63,6 +50,10 @@ fn run_zat() {
   use convert_case_filter_applicator::ConvertCaseFilterApplicator;
   use key_tokenizer::KeyTokenizer;
   use default_key_tokenizer::DefaultKeyTokenizer;
+  use crate::template_config_validator::TemplateVariableReview;
+  use crate::template_config_validator::ValidConfig;
+  use token_replacer::TokenReplacer;
+  use aho_corasick_token_replacer::AhoCorasickTokenReplacer;
 
   let config_provider = DefaultUserConfigProvider::new();
   let user_config = config_provider.get_config().unwrap();
@@ -84,10 +75,19 @@ fn run_zat() {
     TemplateVariableReview::Accepted(ValidConfig { user_variables, user_config: _ }) => {
       let expanded_variables = template_variable_expander.expand_filters(template_variables.clone(), user_variables);
       let key_tokenizer = DefaultKeyTokenizer::new(KEY_TOKEN);
-      // let tokenized_key_expanded_variables = key_tokenizer.tokenize_keys(&expanded_variables.expanded_variables);
+      let tokenized_key_expanded_variables = key_tokenizer.tokenize_keys(expanded_variables.clone());
+      let token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
+
+       // TODO: Remove dummies once we have everything working
+      let dummy_value_replace = format!("{}{}{}", KEY_TOKEN, "project", KEY_TOKEN);
+      let dummy_content = token_replacer::ContentWithTokens {
+        value: dummy_value_replace
+      };
+      let replaced_value = token_replacer.replace_content_token(dummy_content);
 
       println!("expanded variables: {:?}", expanded_variables);
-      // println!("tokenized keys with expanded variables: {:?}", tokenized_key_expanded_variables);
+      println!("tokenized keys with expanded variables: {:?}", tokenized_key_expanded_variables);
+      println!("replaced value: {:?}", replaced_value);
     },
     TemplateVariableReview::Rejected => println!("The user rejected the variables.")
   }
