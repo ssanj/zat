@@ -18,6 +18,7 @@ mod tests {
     use crate::{user_config_provider::Ignores, models::{TemplateDir, TargetDir}};
 
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[derive(Clone, Debug)]
     struct VecFileTraverser {
