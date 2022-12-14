@@ -24,6 +24,7 @@ mod convert_case_filter_applicator;
 mod aho_corasick_token_replacer;
 mod key_tokenizer;
 mod default_key_tokenizer;
+mod file_traverser;
 
 const KEY_TOKEN: &str = "$";
 
