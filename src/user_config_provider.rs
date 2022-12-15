@@ -54,7 +54,7 @@ pub struct UserConfig {
   // pub user_tokens: HashMap<String, String>,
   pub template_dir: TemplateDir,
   pub target_dir: TargetDir,
-  pub ignores: Ignores
+  pub ignores: Ignores //TODO: We will need to always include the ".variables" file into the ignores
 }
 
 /// Behaviour to return configuration provided by the "user"
