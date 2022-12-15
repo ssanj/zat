@@ -7,7 +7,7 @@ pub enum TemplateFile {
   Symlink(String)
 }
 
-trait FileTraverser {
+pub trait FileTraverser {
   /// user_config: Use the `template_dir` and `ignores` to return the files and directory to be considered
   fn traverse_files(&self, user_config: UserConfig) -> Vec<TemplateFile>;
 }
