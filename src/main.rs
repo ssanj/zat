@@ -26,6 +26,8 @@ mod key_tokenizer;
 mod default_key_tokenizer;
 mod file_traverser;
 mod walk_dir_file_traverser;
+mod file_chooser;
+mod regex_file_chooser;
 
 const KEY_TOKEN: &str = "$";
 

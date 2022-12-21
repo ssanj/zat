@@ -4,8 +4,21 @@ use std::path::Path;
 use crate::models::{SourceFile, TargetDir, TargetFile, TemplateDir};
 use crate::shared_models::*;
 
+#[derive(Debug, Clone)]
+pub struct FileFilter {
+  value: String
+}
+
+impl FileFilter {
+  pub fn new(value: &str) -> Self {
+    Self {
+      value: value.to_owned()
+    }
+  }
+}
+
 #[derive(Debug, Clone, PartialEq)]
-pub struct Ignores {
+pub struct Ignores { //TODO: Use regex filtering for these
   pub files: Vec<String>,
   pub directories: Vec<String>,
 }

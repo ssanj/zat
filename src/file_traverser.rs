@@ -13,6 +13,20 @@ pub trait FileTraverser {
 }
 
 
+impl TemplateFile {
+  pub fn new_file(file: &str) -> Self {
+    Self::File(file.to_owned())
+  }
+
+  pub fn new_dir(dir: &str) -> Self {
+    Self::Dir(dir.to_owned())
+  }
+
+  pub fn new_symlink(symlink: &str) -> Self {
+    Self::Symlink(symlink.to_owned())
+  }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{user_config_provider::Ignores, models::{TemplateDir, TargetDir}};
