@@ -17,7 +17,7 @@ impl DefaultTemplateVariableProvider {
 // TODO: Should we move the file checks to a fake file system?
 // That would make it easier to test and lead to more reuse of code
 impl TemplateVariableProvider for DefaultTemplateVariableProvider {
-  fn get_tokens(&self, user_config: UserConfig) -> ZatResultX<TemplateVariables> {
+  fn get_tokens(&self, user_config: UserConfigX) -> ZatResultX<TemplateVariables> {
     let variables_file: VariableFile = VariableFile::from(user_config.template_dir);
 
     let tokens: Vec<TemplateVariable> =
@@ -58,10 +58,10 @@ mod tests {
 
     let template_token_provider = DefaultTemplateVariableProvider::new();
 
-    let user_config = UserConfig {
+    let user_config = UserConfigX {
       template_dir: TemplateDir::new(&template_dir_path),
       target_dir: TargetDir::new(&target_dir_path),
-      ignores: Ignores::default()
+      filters: Filters::default()
     };
 
     let tokens = template_token_provider.get_tokens(user_config).expect("Expected to get tokens");
@@ -109,10 +109,10 @@ mod tests {
 
     let template_config_provider = DefaultTemplateVariableProvider::new();
 
-    let user_config = UserConfig {
+    let user_config = UserConfigX {
       template_dir: TemplateDir::new(&template_dir_path),
       target_dir: TargetDir::new(&target_dir_path),
-      ignores: Ignores::default()
+      filters: Filters::default()
     };
 
     let tokens = template_config_provider.get_tokens(user_config).expect("Expected to get tokens");
@@ -147,10 +147,10 @@ mod tests {
 
     let template_config_provider = DefaultTemplateVariableProvider::new();
 
-    let user_config = UserConfig {
+    let user_config = UserConfigX {
       template_dir: TemplateDir::new(&template_dir_path),
       target_dir: TargetDir::new(&target_dir_path),
-      ignores: Ignores::default()
+      filters: Filters::default()
     };
 
     match template_config_provider.get_tokens(user_config) {
@@ -161,6 +161,5 @@ mod tests {
 
     drop(variable_file);
   }
-
 
 }

@@ -23,6 +23,7 @@ pub struct Ignores { //TODO: Use regex filtering for these
   pub directories: Vec<String>,
 }
 
+
 impl Default for Ignores {
   fn default() -> Self {
     Ignores {
@@ -70,8 +71,30 @@ pub struct UserConfig {
   pub ignores: Ignores //TODO: We will need to always include the ".variables" file into the ignores
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct Filters {
+  pub values: Vec<String>,
+}
+
+
+impl Default for Filters {
+    fn default() -> Self {
+        Self {
+          values: vec![]
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct UserConfigX {
+  // pub user_tokens: HashMap<String, String>,
+  pub template_dir: TemplateDir,
+  pub target_dir: TargetDir,
+  pub filters: Filters
+}
+
 /// Behaviour to return configuration provided by the "user"
 pub trait UserConfigProvider {
   /// Returns the UserConfig
-  fn get_config(&self) -> ZatResultX<UserConfig>;
+  fn get_config(&self) -> ZatResultX<UserConfigX>;
 }

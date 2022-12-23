@@ -24,6 +24,14 @@ impl RegExFileChooser {
   }
 }
 
+impl Default for RegExFileChooser {
+    fn default() -> Self {
+        Self {
+          filters: vec![]
+        }
+    }
+}
+
 impl FileChooser for RegExFileChooser {
     fn is_included(&self, file_type: TemplateFile) -> bool {
         let excluded =

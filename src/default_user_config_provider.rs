@@ -52,7 +52,7 @@ impl DefaultUserConfigProvider {
 }
 
 impl UserConfigProvider for DefaultUserConfigProvider {
-  fn get_config(&self) -> ZatResultX<UserConfig> {
+  fn get_config(&self) -> ZatResultX<UserConfigX> {
     let args = self.arg_supplier.get_args();
 
     let template_dir = TemplateDir::new(&args.template_dir);
@@ -63,14 +63,14 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
     if *template_dir_exists && !(*target_dir_exists) {
 
-      let ignores = Ignores::default(); // TODO: Get this from the user
+      let filters = Filters::default(); // TODO: Get this from the user
 
       Ok(
-        UserConfig {
+        UserConfigX {
           // user_tokens,
           template_dir,
           target_dir,
-          ignores
+          filters
         }
       )
     } else if !template_dir_exists {
@@ -129,12 +129,12 @@ mod tests {
     let config = user_config_provider.get_config().expect("Could not get config");
 
     let expected_template_dir = TemplateDir::new(&template_dir_path);
-    let expected_ignores = Ignores::default();
+    let expected_filters = Filters::default();
 
 
     assert_eq!(config.template_dir, expected_template_dir);
     assert_eq!(&config.target_dir.path, &target_dir_path);
-    assert_eq!(config.ignores, expected_ignores)
+    assert_eq!(config.filters, expected_filters)
   }
 
   #[test]
