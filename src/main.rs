@@ -80,14 +80,14 @@ fn run_zat() {
       let expanded_variables = template_variable_expander.expand_filters(template_variables.clone(), user_variables);
       let key_tokenizer = DefaultKeyTokenizer::new(KEY_TOKEN);
       let tokenized_key_expanded_variables = key_tokenizer.tokenize_keys(expanded_variables.clone());
-      let token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
+      let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
 
        // TODO: Remove dummies once we have everything working
       let dummy_value_replace = format!("{}{}{}", KEY_TOKEN, "project", KEY_TOKEN);
       let dummy_content = token_replacer::ContentWithTokens {
         value: dummy_value_replace
       };
-      let replaced_value = token_replacer.replace_content_token(dummy_content);
+      let replaced_value = aho_token_replacer.replace_content_token(dummy_content);
 
       println!("expanded variables: {:?}", expanded_variables);
       println!("tokenized keys with expanded variables: {:?}", tokenized_key_expanded_variables);

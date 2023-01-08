@@ -87,7 +87,6 @@ impl Default for Filters {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UserConfigX {
-  // pub user_tokens: HashMap<String, String>,
   pub template_dir: TemplateDir,
   pub target_dir: TargetDir,
   pub filters: Filters
