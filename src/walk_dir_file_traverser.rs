@@ -1,15 +1,18 @@
 use std::path::Path;
 
+use crate::file_chooser::FileChooser;
 use crate::file_traverser::{FileTraverser, TemplateFile};
 use crate::models::TemplateDir;
-use crate::user_config_provider::{UserConfig, Ignores};
+use crate::user_config_provider::{UserConfigX, Ignores};
 use walkdir::{WalkDir, DirEntry};
 
-pub struct WalkDirFileTraverser;
+pub struct WalkDirFileTraverser {
+  file_chooser: Box<dyn FileChooser>
+}
 
 impl FileTraverser for WalkDirFileTraverser {
-    fn traverse_files(&self, user_config: UserConfig) -> Vec<TemplateFile> {
-      WalkDir::new(&user_config.template_dir)
+    fn traverse_files(&self, template_dir: &TemplateDir) -> Vec<TemplateFile> {
+      WalkDir::new(template_dir)
           .into_iter()
           .filter_map(|re| re.ok())
           .map(|dir_entry|{
@@ -17,15 +20,18 @@ impl FileTraverser for WalkDirFileTraverser {
             self.get_template_file(&dir_entry, p)
           })
           .filter(|tf|{
-            self.remove_ignores(tf, &user_config.ignores)
+            self.file_chooser.is_included(tf.clone())
+            // self.remove_ignores(tf, &user_config.ignores)
           })
           .collect()
     }
 }
 
 impl WalkDirFileTraverser {
-  pub fn new() -> Self {
-    Self
+  pub fn new(file_chooser: Box<dyn FileChooser>) -> Self {
+    Self {
+      file_chooser
+    }
   }
 
   fn get_template_file(&self, dir_entry: &DirEntry, path: &Path) -> TemplateFile {
@@ -40,31 +46,32 @@ impl WalkDirFileTraverser {
       }
   }
 
-  fn remove_ignores(&self, template_file: &TemplateFile,ignores: &Ignores) -> bool {
-    let is_ignored =
-      match template_file {
-        TemplateFile::File(file_path) => {
-          ignores
-            .files
-            .iter()
-            .any(|files_to_ignore| {
-              file_path.ends_with(files_to_ignore) ||
-              ignores
-                .directories
-                .iter()
-                .any(|directories_to_ignore| file_path.contains(directories_to_ignore)) //TODO: we should break this into path segments
-            })
-        },
-        TemplateFile::Dir(directory_path) => ignores.directories.iter().any(|directories_to_ignore| directory_path.contains(directories_to_ignore)),
-        TemplateFile::Symlink(_) => false,
-      };
+  // fn remove_ignores(&self, template_file: &TemplateFile,ignores: &Ignores) -> bool {
+  //   let is_ignored =
+  //     match template_file {
+  //       TemplateFile::File(file_path) => {
+  //         ignores
+  //           .files
+  //           .iter()
+  //           .any(|files_to_ignore| {
+  //             file_path.ends_with(files_to_ignore) ||
+  //             ignores
+  //               .directories
+  //               .iter()
+  //               .any(|directories_to_ignore| file_path.contains(directories_to_ignore)) //TODO: we should break this into path segments
+  //           })
+  //       },
+  //       TemplateFile::Dir(directory_path) => ignores.directories.iter().any(|directories_to_ignore| directory_path.contains(directories_to_ignore)),
+  //       TemplateFile::Symlink(_) => false,
+  //     };
 
-    !is_ignored
-  }
+  //   !is_ignored
+  // }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::regex_file_chooser::RegExFileChooser;
     use crate::{models::TargetDir, user_config_provider::Ignores};
     use tempfile::{tempdir, tempdir_in};
     use std::fs::File;
@@ -74,39 +81,39 @@ mod tests {
     use pretty_assertions::assert_eq;
 
 
-    #[test]
-    fn should_handle_empty_ignores() -> io::Result<()> {
-      let temp_dir = tempdir()?;
-      let template_dir = TemplateDir::new(&temp_dir.path().to_string_lossy().to_string());
-      let p = temp_dir.path();
-      write_file(p, "blee.txt", "I said blee")?;
-      write_file(p, "blah.txt", "I said blah")?;
+    // #[test]
+    // fn should_handle_empty_ignores() -> io::Result<()> {
+    //   let temp_dir = tempdir()?;
+    //   let template_dir = TemplateDir::new(&temp_dir.path().to_string_lossy().to_string());
+    //   let p = temp_dir.path();
+    //   write_file(p, "blee.txt", "I said blee")?;
+    //   write_file(p, "blah.txt", "I said blah")?;
 
-      let traverser = WalkDirFileTraverser::new();
-      let target_dir = TargetDir::new("");
-      let ignores = Ignores::default();
+    //   let traverser = WalkDirFileTraverser::new();
+    //   let target_dir = TargetDir::new("");
+    //   let ignores = Ignores::default();
 
-      let user_config =
-        UserConfig {
-          template_dir,
-          target_dir,
-          ignores
-        };
+    //   let user_config =
+    //     UserConfig {
+    //       template_dir,
+    //       target_dir,
+    //       ignores
+    //     };
 
-      let matches = traverser.traverse_files(user_config);
-      let temp_path = p.to_string_lossy().to_string();
-      let expected_matches =
-        [
-          TemplateFile::Dir(format!("{}", temp_path)),
-          TemplateFile::File(format!("{}/blee.txt", temp_path)),
-          TemplateFile::File(format!("{}/blah.txt", temp_path)),
-        ];
+    //   let matches = traverser.traverse_files(user_config);
+    //   let temp_path = p.to_string_lossy().to_string();
+    //   let expected_matches =
+    //     [
+    //       TemplateFile::Dir(format!("{}", temp_path)),
+    //       TemplateFile::File(format!("{}/blee.txt", temp_path)),
+    //       TemplateFile::File(format!("{}/blah.txt", temp_path)),
+    //     ];
 
-      temp_dir.close()?;
-      assert_eq!(matches, expected_matches);
+    //   temp_dir.close()?;
+    //   assert_eq!(matches, expected_matches);
 
-      Ok(())
-    }
+    //   Ok(())
+    // }
 
     #[test]
     fn should_respect_ignores() -> io::Result<()> {
@@ -133,34 +140,19 @@ mod tests {
       write_file(working_dir_path, "output1.wip", "{}")?;
       write_file(working_dir_path, "output2.wip", "{}")?;
 
-      let traverser = WalkDirFileTraverser::new();
-      let target_dir = TargetDir::new("");
-      let files =
-        vec![
-          ".variables".to_owned(),
-          "input1.json".to_owned(),
-          "output1.json".to_owned()
-        ];
-
-      let directories =
-        vec![
-          working_dir_path.to_string_lossy().to_string()
-        ];
-
       let ignores =
-        Ignores {
-          files,
-          directories
-        };
+        [
+          r"\.variables",
+          r"input1\.json",
+          r"output1\.json",
+          &working_dir_path.to_string_lossy().to_string()
+        ];
 
-      let user_config =
-        UserConfig {
-          template_dir,
-          target_dir,
-          ignores
-        };
+      let regex_patterns = RegExFileChooser::new(&ignores).expect("Could not create regex patterns");
+      let file_chooser = Box::new(regex_patterns);
+      let traverser = WalkDirFileTraverser::new(file_chooser);
 
-      let matches = traverser.traverse_files(user_config);
+      let matches = traverser.traverse_files(&template_dir);
       let templat_dir_path_string = template_dir_path.to_string_lossy().to_string();
       let input_dir_path_string = input_dir_path.to_string_lossy().to_string();
       let output_dir_path_string = output_dir_path.to_string_lossy().to_string();

@@ -83,6 +83,7 @@ fn run_zat() {
       let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
 
        // TODO: Remove dummies once we have everything working
+       // These values will be supplied from the files and directories read
       let dummy_value_replace = format!("{}{}{}", KEY_TOKEN, "project", KEY_TOKEN);
       let dummy_content = token_replacer::ContentWithTokens {
         value: dummy_value_replace
