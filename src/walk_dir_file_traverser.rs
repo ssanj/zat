@@ -50,78 +50,74 @@ impl WalkDirFileTraverser {
 mod tests {
     use crate::regex_file_chooser::RegExFileChooser;
     use tempfile::{tempdir, tempdir_in};
+    use std::collections::HashSet;
     use std::fs::File;
     use std::io::{self, Write};
 
     use super::*;
     use pretty_assertions::assert_eq;
 
+    enum InputFileType {
+      TemplateDirFile(String, String),
+      InputDirFile(String, String),
+      OutputDirFile(String, String),
+      WorkingDirFile(String, String)
+    }
+
+
+    struct TemplateDirectory(String);
+    struct InputDirectory(String);
+    struct OutputDirectory(String);
+    struct WorkingDirectory(String);
+
+
     #[test]
     fn should_include_all_without_ignores() -> io::Result<()> {
-      let temp_dir = tempdir()?;
-      let template_dir = TemplateDir::new(&temp_dir.path().to_string_lossy().to_string());
-      let template_dir_path = temp_dir.path();
-
-      let input_dir = tempdir_in(template_dir_path)?;
-      let output_dir = tempdir_in(template_dir_path)?;
-      let working_dir = tempdir_in(template_dir_path)?;
-
-      let input_dir_path = input_dir.path();
-      let output_dir_path = output_dir.path();
-
-      let working_dir_path = working_dir.path();
-
-      write_file(template_dir_path, "blee.txt", "I said blee")?;
-      write_file(template_dir_path, "blah.txt", "I said blah")?;
-      write_file(template_dir_path, ".variables", "{}")?;
-      write_file(input_dir_path, "input1.json", "{}")?;
-      write_file(input_dir_path, "input2.json", "{}")?;
-      write_file(output_dir_path, "output1.json", "{}")?;
-      write_file(output_dir_path, "output2.json", "{}")?;
-      write_file(working_dir_path, "output1.wip", "{}")?;
-      write_file(working_dir_path, "output2.wip", "{}")?;
+      let source_files =
+        [
+          InputFileType::TemplateDirFile("blee.txt".to_owned(), "I said blee".to_owned()),
+          InputFileType::TemplateDirFile("blah.txt".to_owned(), "I said blah".to_owned()),
+          InputFileType::TemplateDirFile(".variables".to_owned(), "{}".to_owned()),
+          InputFileType::InputDirFile("input1.json".to_owned(), "{}".to_owned()),
+          InputFileType::InputDirFile("input2.json".to_owned(), "{}".to_owned()),
+          InputFileType::OutputDirFile("output1.json".to_owned(), "{}".to_owned()),
+          InputFileType::OutputDirFile("output2.json".to_owned(), "{}".to_owned()),
+          InputFileType::WorkingDirFile("output1.wip".to_owned(), "{}".to_owned()),
+          InputFileType::WorkingDirFile("output2.wip".to_owned(), "{}".to_owned()),
+        ];
 
       let ignores = [];
 
-      let regex_patterns = RegExFileChooser::new(&ignores).expect("Could not create regex patterns");
-      let file_chooser = Box::new(regex_patterns);
-      let traverser = WalkDirFileTraverser::new(file_chooser);
+      let expected_files =
+        |template_dir_path: TemplateDirectory, input_dir_path: InputDirectory, output_dir_path: OutputDirectory, working_dir_path: WorkingDirectory| {
 
-      let matches = traverser.traverse_files(&template_dir);
-      let templat_dir_path_string = template_dir_path.to_string_lossy().to_string();
-      let input_dir_path_string = input_dir_path.to_string_lossy().to_string();
-      let output_dir_path_string = output_dir_path.to_string_lossy().to_string();
-      let working_dir_path_string = working_dir_path.to_string_lossy().to_string();
+          let template_dir_path_string = template_dir_path.0;
+          let input_dir_path_string = input_dir_path.0;
+          let output_dir_path_string = output_dir_path.0;
+          let working_dir_path_string = working_dir_path.0;
 
-      println!("input_dir_path: {}", input_dir_path_string);
-      println!("output_dir_path: {}", output_dir_path_string);
-      println!("working_dir: {}", working_dir_path_string);
+          vec![
+            TemplateFile::Dir(format!("{}", template_dir_path_string)),
+            TemplateFile::Dir(format!("{}", input_dir_path_string)),
+            TemplateFile::Dir(format!("{}", output_dir_path_string)),
+            TemplateFile::Dir(format!("{}", working_dir_path_string)),
 
-      let expected_matches =
-        [
-          TemplateFile::Dir(format!("{}", templat_dir_path_string)),
-          TemplateFile::Dir(format!("{}", input_dir_path_string)),
-          TemplateFile::Dir(format!("{}", output_dir_path_string)),
-          TemplateFile::Dir(format!("{}", working_dir_path_string)),
+            TemplateFile::File(format!("{}/blee.txt", template_dir_path_string)),
+            TemplateFile::File(format!("{}/blah.txt", template_dir_path_string)),
+            TemplateFile::File(format!("{}/.variables", template_dir_path_string)),
 
-          TemplateFile::File(format!("{}/blee.txt", templat_dir_path_string)),
-          TemplateFile::File(format!("{}/blah.txt", templat_dir_path_string)),
-          TemplateFile::File(format!("{}/.variables", templat_dir_path_string)),
+            TemplateFile::File(format!("{}/input1.json", input_dir_path_string)),
+            TemplateFile::File(format!("{}/input2.json", input_dir_path_string)),
 
-          TemplateFile::File(format!("{}/input1.json", input_dir_path_string)),
-          TemplateFile::File(format!("{}/input2.json", input_dir_path_string)),
+            TemplateFile::File(format!("{}/output1.json", output_dir_path_string)),
+            TemplateFile::File(format!("{}/output2.json", output_dir_path_string)),
 
-          TemplateFile::File(format!("{}/output1.json", output_dir_path_string)),
-          TemplateFile::File(format!("{}/output2.json", output_dir_path_string)),
+            TemplateFile::File(format!("{}/output1.wip", working_dir_path_string)),
+            TemplateFile::File(format!("{}/output2.wip", working_dir_path_string)),
+          ]
+        };
 
-          TemplateFile::File(format!("{}/output1.wip", working_dir_path_string)),
-          TemplateFile::File(format!("{}/output1.wip", working_dir_path_string)),
-        ];
-
-      temp_dir.close()?;
-      assert_eq!(matches.len(), expected_matches.len(), "Expected the same number of items returned and expected");
-
-      Ok(())
+       assert_ignores(&source_files, &ignores, expected_files)
     }
 
 
@@ -199,6 +195,70 @@ mod tests {
       let working_dir_output2_file = TemplateFile::Dir(format!("{}/output1.wip", working_dir_path_string));
       assert!(!expected_matches.contains(&working_dir_output1_file), "should not contain {:?}", working_dir_output1_file);
       assert!(!expected_matches.contains(&working_dir_output2_file), "should not contain {:?}", working_dir_output2_file);
+
+      Ok(())
+    }
+
+
+    fn assert_ignores<F>(source_files: &[InputFileType], ignores: &[&str], expected_files: F) -> io::Result<()> where
+      F: FnOnce(TemplateDirectory, InputDirectory, OutputDirectory, WorkingDirectory) -> Vec<TemplateFile>
+    {
+      let temp_dir = tempdir()?;
+      let template_dir = TemplateDir::new(&temp_dir.path().to_string_lossy().to_string());
+      let template_dir_path = temp_dir.path();
+
+      let input_dir = tempdir_in(template_dir_path)?;
+      let output_dir = tempdir_in(template_dir_path)?;
+      let working_dir = tempdir_in(template_dir_path)?;
+
+      let input_dir_path = input_dir.path();
+      let output_dir_path = output_dir.path();
+
+      let working_dir_path = working_dir.path();
+
+      for f in source_files {
+        match f {
+            InputFileType::TemplateDirFile(filename, content) =>  write_file(template_dir_path, filename, content)?,
+            InputFileType::InputDirFile(filename, content) =>  write_file(input_dir_path, filename, content)?,
+            InputFileType::OutputDirFile(filename, content) =>  write_file(output_dir_path, filename, content)?,
+            InputFileType::WorkingDirFile(filename, content) =>  write_file(working_dir_path, filename, content)?,
+        }
+      }
+
+      let regex_patterns = RegExFileChooser::new(&ignores).expect("Could not create regex patterns");
+      let file_chooser = Box::new(regex_patterns);
+      let traverser = WalkDirFileTraverser::new(file_chooser);
+
+      let matches = traverser.traverse_files(&template_dir);
+
+      let templat_dir_path_string = template_dir_path.to_string_lossy().to_string();
+      let input_dir_path_string = input_dir_path.to_string_lossy().to_string();
+      let output_dir_path_string = output_dir_path.to_string_lossy().to_string();
+      let working_dir_path_string = working_dir_path.to_string_lossy().to_string();
+
+      println!("templat_dir_path_string: {}", &templat_dir_path_string);
+      println!("input_dir_path: {}", &input_dir_path_string);
+      println!("output_dir_path: {}", &output_dir_path_string);
+      println!("working_dir: {}", &working_dir_path_string);
+
+      let expected_matches =
+        expected_files(
+          TemplateDirectory(templat_dir_path_string.to_owned()),
+          InputDirectory(input_dir_path_string.to_owned()),
+          OutputDirectory(output_dir_path_string.to_owned()),
+          WorkingDirectory(working_dir_path_string.to_owned())
+        );
+
+
+      temp_dir.close()?;
+
+      let matches_set: HashSet<TemplateFile> = HashSet::from_iter(matches);
+      let expected_matches_set: HashSet<TemplateFile> = HashSet::from_iter(expected_matches);
+
+      println!("matches_set: {:?}", &matches_set);
+      println!("expected_matches_set: {:?}", &expected_matches_set);
+
+      assert_eq!(matches_set, expected_matches_set, "Expected the same number of items");
 
       Ok(())
     }

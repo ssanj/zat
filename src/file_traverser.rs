@@ -1,6 +1,6 @@
 use crate::{user_config_provider::UserConfigX, models::TemplateDir};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum TemplateFile {
   File(String),
   Dir(String),
