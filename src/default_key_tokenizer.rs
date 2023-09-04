@@ -21,7 +21,7 @@ impl KeyTokenizer for DefaultKeyTokenizer {
             .expanded_variables
             .into_iter()
             .map(|(k, v)|{
-              let tokenized_key = format!("{}{}{}", &self.token, k.value, &self.token);
+              let tokenized_key = format!("{}{}{}", &self.token, k.value, &self.token); // Surround keys with the token delimiter;  usually `$`
               (TokenizedExpandedKey::new(&tokenized_key), v)
             })
             .collect();

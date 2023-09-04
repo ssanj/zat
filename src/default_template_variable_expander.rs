@@ -28,9 +28,9 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
           .filter_map(|t|{
             let key = t.variable_name.clone();
             user_inputs
-              .get(&UserVariableKey::new(key.clone()))
+              .get(&UserVariableKey::new(key.clone())) // The user supplied the value for this filter key
               .map(|v|{
-                (t, ExpandedKey::new(&key), ExpandedValue::new(&v.value))
+                (t, ExpandedKey::new(&key), ExpandedValue::new(&v.value)) // These are not really expanded, we just put them into the Expanded containers to align the types
               })
           })
           .flat_map(|(t, k, v)|{
@@ -42,20 +42,20 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
                   .filters
                   .iter()
                   .map(move |f|{
-                    let filtered_value = self.filter_applicator.apply_filter(&f.filter, &v.value);
+                    let filtered_value = self.filter_applicator.apply_filter(&f.filter, &v.value); // Apply the filter to the value supplied by the user
                     let filter_name =
                       if &f.name == DEFAULT_FILTER {
-                        k.value.clone() //if the key name is __default__ then use the original key name
+                        k.value.clone() //if the key name is __default__ then use the original KEYNAME
                       } else {
-                        format!("{}_{}", k.value.clone(), f.name)
+                        format!("{}_{}", k.value.clone(), f.name) // otherwise the key name is KEYNAME_FILTERNAME
                       };
 
                     (ExpandedKey::new(&filter_name), ExpandedValue::new(&filtered_value))
                   });
 
-                // Chain with original values, so they can get overwritten if need by by __default__
+                // Chain with original values, so they can get overwritten if needed by __default__
                 // It's important to have the original values first in the chain otherwise they
-                // will overwrite the filtered values.
+                // will overwrite the filtered values. (Why? Because default filters with (__default__) will have the same name as the original, and overwrite them)
                 vec![(o_key, o_value)]
                   .into_iter()
                   .chain(filtered_values)
@@ -64,8 +64,8 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
           .collect();
 
         // for each filter defined:
-        // 1. apply filter
-        // 2. insert filtered value under filtered name (except with __default__)
+        // 1. apply filter with the user-supplied value
+        // 2. insert filtered value under filtered name (except with __default__) KEYNAME_FILTERNAME
 
       ExpandedVariables::new(expanded_variables)
     }
