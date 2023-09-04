@@ -6,6 +6,7 @@ pub struct RegExFileChooser {
   filters: Vec<Regex>
 }
 
+
 impl RegExFileChooser {
   pub fn new(values: &[&str]) -> Result<RegExFileChooser, regex::Error> {
     let maybe_filters: Result<Vec<Regex>, regex::Error> =

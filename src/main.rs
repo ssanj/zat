@@ -1,6 +1,8 @@
 use std::ffi::OsStr;
 use std::path::Path;
 
+use crate::file_traverser::FileTraverser;
+
 mod models;
 mod variables;
 mod tokens;
@@ -58,6 +60,7 @@ fn run_zat() {
   use crate::template_config_validator::ValidConfig;
   use token_replacer::TokenReplacer;
   use aho_corasick_token_replacer::AhoCorasickTokenReplacer;
+  use walk_dir_file_traverser::WalkDirFileTraverser;
 
   let config_provider = DefaultUserConfigProvider::new();
   let user_config = config_provider.get_config().unwrap();
@@ -82,6 +85,10 @@ fn run_zat() {
       let tokenized_key_expanded_variables = key_tokenizer.tokenize_keys(expanded_variables.clone());
       let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
 
+      let ignores = [];
+      let file_chooser = regex_file_chooser::RegExFileChooser::new(&ignores).expect("Could not create file chooser");
+      let file_traverser = WalkDirFileTraverser::new(Box::new(file_chooser));
+      let files_to_process = file_traverser.traverse_files(&user_config.template_dir);
        // TODO: Remove dummies once we have everything working
        // These values will be supplied from the files and directories read
       let dummy_value_replace = format!("{}{}{}", KEY_TOKEN, "project", KEY_TOKEN);
@@ -93,6 +100,7 @@ fn run_zat() {
       println!("expanded variables: {:?}", expanded_variables);
       println!("tokenized keys with expanded variables: {:?}", tokenized_key_expanded_variables);
       println!("replaced value: {:?}", replaced_value);
+      println!("files_to_process: {:?}", files_to_process);
     },
     TemplateVariableReview::Rejected => println!("The user rejected the variables.")
   }

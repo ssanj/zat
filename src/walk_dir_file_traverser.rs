@@ -17,7 +17,7 @@ impl FileTraverser for WalkDirFileTraverser {
           .filter_map(|re| re.ok())
           .map(|dir_entry|{
             let p = dir_entry.path();
-            self.get_template_file(&dir_entry, p)
+            self.categories_files(&dir_entry, p)
           })
           .filter(|tf|{
             self.file_chooser.is_included(tf.clone())
@@ -33,7 +33,7 @@ impl WalkDirFileTraverser {
     }
   }
 
-  fn get_template_file(&self, dir_entry: &DirEntry, path: &Path) -> TemplateFile {
+  fn categories_files(&self, dir_entry: &DirEntry, path: &Path) -> TemplateFile {
     let string_path = path.to_string_lossy().to_string();
     let entry_file_type = dir_entry.file_type();
       if entry_file_type.is_file() {
