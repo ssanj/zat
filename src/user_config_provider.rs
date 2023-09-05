@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use crate::models::{SourceFile, TargetDir, TargetFile, TemplateDir};
@@ -36,17 +36,42 @@ impl Default for Ignores {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IgnoredFiles {
-  pub ignores: Vec<String>,
+  pub ignores: HashSet<String>,
 }
 
+
+impl IgnoredFiles {
+  pub const DOT_VARIABLES_DOT_PROMPT: &'static str  = ".variables.prompt";
+  pub const DOT_GIT: &'static str  = ".git";
+  pub const DEFAULT_IGNORES: [&str; 2] = [Self::DOT_VARIABLES_DOT_PROMPT, Self::DOT_GIT];
+
+  pub fn default_ignores() -> Vec<String> {
+    Self::DEFAULT_IGNORES
+      .into_iter()
+      .map(|v| v.to_owned())
+      .collect()
+  }
+}
 
 impl Default for IgnoredFiles {
   fn default() -> Self {
     IgnoredFiles {
-      ignores: vec![VariableFile::PATH.to_owned(), ".git".to_owned()],
+      ignores:
+        HashSet::from_iter(Self::default_ignores()),
     }
   }
 }
+
+impl <F> From<F> for IgnoredFiles
+  where F: Iterator<Item = String>
+{
+  fn from(values: F) -> Self {
+    IgnoredFiles {
+      ignores: HashSet::from_iter(values)
+    }
+  }
+}
+
 
 #[derive(Debug, Clone)]
 pub struct VariableFile {

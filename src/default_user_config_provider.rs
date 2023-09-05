@@ -46,7 +46,14 @@ impl UserConfigProvider for DefaultUserConfigProvider {
     let template_dir_exists = &template_dir.does_exist();
     let target_dir_exists = &target_dir.does_exist();
 
-    let ignores = IgnoredFiles { ignores: args.ignores };
+    let default_ignores = vec![VariableFile::PATH.to_owned(), ".git".to_owned()];
+
+    let ignores_with_defaults =
+      default_ignores
+        .into_iter()
+        .chain(args.ignores.into_iter());
+
+    let ignores = IgnoredFiles::from(ignores_with_defaults);
 
     if *template_dir_exists && !(*target_dir_exists) {
 
@@ -97,7 +104,6 @@ use super::*;
 
   #[test]
   fn config_is_loaded() {
-
     let target_dir = TempDir::new().unwrap();
     let template_dir = TempDir::new().unwrap();
 
@@ -128,12 +134,14 @@ use super::*;
 
     let expected_template_dir = TemplateDir::new(&template_dir_path);
     let expected_filters = Filters::default();
-    let expected_ignores =
+    let mut expected_ignores =
       vec![
         "blah".to_owned(),
         "blee/".to_owned(),
-        ".blue".to_owned()
+        ".blue".to_owned(),
       ];
+
+    expected_ignores.append(&mut IgnoredFiles::default_ignores());
 
     assert_eq!(config.template_dir, expected_template_dir);
     assert_eq!(&config.target_dir.path, &target_dir_path);
@@ -143,12 +151,49 @@ use super::*;
     let expected_ignores_set: HashSet<String> = HashSet::from_iter(expected_ignores);
 
     assert_eq!(actual_ignores_set, expected_ignores_set)
+  }
 
+  #[test]
+  fn config_uses_default_ignores_if_not_supplied() {
+    let target_dir = TempDir::new().unwrap();
+    let template_dir = TempDir::new().unwrap();
+
+    let template_dir_path = template_dir.path().display().to_string();
+    let target_dir_path = target_dir.path().display().to_string();
+
+    let ignores = vec![];
+
+    // Delete target_dir because it should not exist
+    // We only create it to get a random directory name
+    drop(target_dir);
+
+    let args = TestArgs {
+      args: Args {
+        template_dir: template_dir_path.clone(),
+        target_dir: target_dir_path.clone(),
+        ignores: ignores
+      }
+    };
+
+    let user_config_provider = DefaultUserConfigProvider::with_args_supplier(Box::new(args));
+    let config = user_config_provider.get_config().expect("Could not get config");
+
+    let expected_template_dir = TemplateDir::new(&template_dir_path);
+    let expected_filters = Filters::default();
+    let expected_ignores = IgnoredFiles::default_ignores();
+
+    assert_eq!(config.template_dir, expected_template_dir);
+    assert_eq!(&config.target_dir.path, &target_dir_path);
+    assert_eq!(config.filters, expected_filters);
+
+    let actual_ignores_set: HashSet<String> = config.ignores.ignores;
+    let expected_ignores_set: HashSet<String> = HashSet::from_iter(expected_ignores);
+
+    assert_eq!(actual_ignores_set, expected_ignores_set)
   }
 
   #[test]
   fn config_fails_to_load_if_template_dir_does_not_exist() {
-
     let target_dir = TempDir::new().unwrap();
     let template_dir = TempDir::new().unwrap();
 
@@ -178,7 +223,6 @@ use super::*;
 
   #[test]
   fn config_fails_to_load_if_target_dir_exists() {
-
     let target_dir = TempDir::new().unwrap();
     let template_dir = TempDir::new().unwrap();
 
