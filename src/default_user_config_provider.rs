@@ -4,21 +4,6 @@ use crate::user_config_provider::*;
 use crate::cli;
 use crate::models::{TargetDir, TemplateDir};
 
-// impl Prod {
-//   fn get_tokens() -> HashMap<String, String> {
-//     todo!()
-
-//     // if variables_file.exists() {
-//     //       println!("Loading variables file");
-//     //       let mut f = File::open(variables_file).map_err(|e| ZatError::IOError(e.to_string()))?;
-//     //       let mut variables_json = String::new();
-
-//     //       f.read_to_string(&mut variables_json).map_err(|e| ZatError::IOError(e.to_string()))?;
-
-//     //       let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_json).map_err(|e| ZatError::SerdeError(e.to_string()))?;
-//     //       println!("loaded: {:?}", &variables);
-//       }
-// }
 
 pub trait ArgSupplier {
   fn get_args(&self) -> Args;
@@ -94,7 +79,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 #[cfg(test)]
 mod tests {
 
-  use std::vec;
+  use std::{vec, collections::HashSet};
 
 use super::*;
   use tempfile::TempDir;
@@ -119,7 +104,12 @@ use super::*;
     let template_dir_path = template_dir.path().display().to_string();
     let target_dir_path = target_dir.path().display().to_string();
 
-    let ignores = vec!["blah".to_owned(), "blee/".to_owned(), ".blue".to_owned()];
+    let ignores =
+      vec![
+        "blah".to_owned(),
+        "blee/".to_owned(),
+        ".blue".to_owned()
+      ];
 
     // Delete target_dir because it should not exist
     // We only create it to get a random directory name
@@ -139,15 +129,20 @@ use super::*;
     let expected_template_dir = TemplateDir::new(&template_dir_path);
     let expected_filters = Filters::default();
     let expected_ignores =
-      IgnoredFiles {
-        ignores: vec!["blah".to_owned(), "blee/".to_owned(), ".blue".to_owned()]
-      };
-
+      vec![
+        "blah".to_owned(),
+        "blee/".to_owned(),
+        ".blue".to_owned()
+      ];
 
     assert_eq!(config.template_dir, expected_template_dir);
     assert_eq!(&config.target_dir.path, &target_dir_path);
     assert_eq!(config.filters, expected_filters);
-    assert_eq!(config.ignores, expected_ignores)
+
+    let actual_ignores_set: HashSet<String> = HashSet::from_iter(config.ignores.ignores);
+    let expected_ignores_set: HashSet<String> = HashSet::from_iter(expected_ignores);
+
+    assert_eq!(actual_ignores_set, expected_ignores_set)
 
   }
 
