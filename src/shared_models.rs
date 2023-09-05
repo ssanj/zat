@@ -8,6 +8,8 @@ pub enum ZatErrorX {
   VariableOpenError(String),
   VariableReadError(String),
   VariableDecodeError(String),
+  ReadingFileError(String),
+  WritingFileError(String),
 }
 
 impl std::fmt::Display for ZatErrorX {
@@ -17,6 +19,8 @@ impl std::fmt::Display for ZatErrorX {
         ZatErrorX::VariableOpenError(error) => format!("VariableOpenError({})", error),
         ZatErrorX::VariableReadError(error) => format!("VariableReadError({})", error),
         ZatErrorX::VariableDecodeError(error) => format!("VariableDecodeError({})", error),
+        ZatErrorX::ReadingFileError(error) => format!("ReadingFileError({})", error),
+        ZatErrorX::WritingFileError(error) => format!("WritingFileError({})", error),
       };
 
       write!(f, "{}", string_rep)

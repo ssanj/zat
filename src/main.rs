@@ -30,6 +30,10 @@ mod file_traverser;
 mod walk_dir_file_traverser;
 mod file_chooser;
 mod regex_file_chooser;
+mod file_writer;
+mod default_file_writer;
+mod source_file;
+mod destination_file;
 
 const KEY_TOKEN: &str = "$";
 
