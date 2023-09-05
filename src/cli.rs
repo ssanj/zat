@@ -13,6 +13,10 @@ pub struct Args {
    #[clap(long, value_parser)]
    pub target_dir: String,
 
+   /// Which files to ignore. The files '.variables.prompt' and '.git' are always specified.
+   #[clap(long, value_parser,)]
+   pub ignores: Vec<String>
+
    //TODO: Add ignores
 }
 

@@ -17,18 +17,33 @@ impl FileFilter {
   }
 }
 
+// TODO: Deprecated
 #[derive(Debug, Clone, PartialEq)]
 pub struct Ignores { //TODO: Use regex filtering for these
   pub files: Vec<String>,
   pub directories: Vec<String>,
 }
 
-
+// TODO: Deprecated
 impl Default for Ignores {
   fn default() -> Self {
     Ignores {
       files: vec![],
       directories: vec![]
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct IgnoredFiles {
+  pub ignores: Vec<String>,
+}
+
+
+impl Default for IgnoredFiles {
+  fn default() -> Self {
+    IgnoredFiles {
+      ignores: vec![VariableFile::PATH.to_owned(), ".git".to_owned()],
     }
   }
 }
@@ -89,7 +104,8 @@ impl Default for Filters {
 pub struct UserConfigX {
   pub template_dir: TemplateDir,
   pub target_dir: TargetDir,
-  pub filters: Filters
+  pub filters: Filters,
+  pub ignores: IgnoredFiles
 }
 
 /// Behaviour to return configuration provided by the "user"

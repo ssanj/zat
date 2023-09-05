@@ -85,7 +85,8 @@ fn run_zat() {
       let tokenized_key_expanded_variables = key_tokenizer.tokenize_keys(expanded_variables.clone());
       let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
 
-      let ignores = [];
+      // TODO: Get this from the Config
+      let ignores = [""];
       let file_chooser = regex_file_chooser::RegExFileChooser::new(&ignores).expect("Could not create file chooser");
       let file_traverser = WalkDirFileTraverser::new(Box::new(file_chooser));
       let files_to_process = file_traverser.traverse_files(&user_config.template_dir);

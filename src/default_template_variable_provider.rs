@@ -61,7 +61,8 @@ mod tests {
     let user_config = UserConfigX {
       template_dir: TemplateDir::new(&template_dir_path),
       target_dir: TargetDir::new(&target_dir_path),
-      filters: Filters::default()
+      filters: Filters::default(),
+      ignores: IgnoredFiles::default()
     };
 
     let tokens = template_token_provider.get_tokens(user_config).expect("Expected to get tokens");
@@ -112,7 +113,8 @@ mod tests {
     let user_config = UserConfigX {
       template_dir: TemplateDir::new(&template_dir_path),
       target_dir: TargetDir::new(&target_dir_path),
-      filters: Filters::default()
+      filters: Filters::default(),
+      ignores: IgnoredFiles::default()
     };
 
     let tokens = template_config_provider.get_tokens(user_config).expect("Expected to get tokens");
@@ -150,7 +152,8 @@ mod tests {
     let user_config = UserConfigX {
       template_dir: TemplateDir::new(&template_dir_path),
       target_dir: TargetDir::new(&target_dir_path),
-      filters: Filters::default()
+      filters: Filters::default(),
+      ignores: IgnoredFiles::default()
     };
 
     match template_config_provider.get_tokens(user_config) {

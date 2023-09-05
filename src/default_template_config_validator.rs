@@ -120,7 +120,7 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 #[cfg(test)]
 mod tests {
 
-  use crate::{models::{TemplateDir, TargetDir}, user_config_provider::Filters, variables::TemplateVariable};
+  use crate::{models::{TemplateDir, TargetDir}, user_config_provider::{Filters, IgnoredFiles}, variables::TemplateVariable};
   use super::*;
   use pretty_assertions::assert_eq;
 
@@ -232,7 +232,8 @@ mod tests {
       UserConfigX {
         template_dir: TemplateDir::new("template_dir"),
         target_dir: TargetDir::new("target_idr"),
-        filters: Filters::default()
+        filters: Filters::default(),
+        ignores: IgnoredFiles::default()
     };
 
     let user_template_variables =
@@ -270,7 +271,8 @@ mod tests {
       UserConfigX {
         template_dir: TemplateDir::new("template_dir"),
         target_dir: TargetDir::new("target_idr"),
-        filters: Filters::default()
+        filters: Filters::default(),
+        ignores: IgnoredFiles::default()
     };
 
     let validation_result = config_validator.validate(user_config, template_variables);

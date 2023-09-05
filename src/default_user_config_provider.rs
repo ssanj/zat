@@ -61,6 +61,8 @@ impl UserConfigProvider for DefaultUserConfigProvider {
     let template_dir_exists = &template_dir.does_exist();
     let target_dir_exists = &target_dir.does_exist();
 
+    let ignores = IgnoredFiles { ignores: args.ignores };
+
     if *template_dir_exists && !(*target_dir_exists) {
 
       let filters = Filters::default(); // TODO: Get this from the user
@@ -70,7 +72,8 @@ impl UserConfigProvider for DefaultUserConfigProvider {
           // user_tokens,
           template_dir,
           target_dir,
-          filters
+          filters,
+          ignores
         }
       )
     } else if !template_dir_exists {
@@ -91,7 +94,9 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 #[cfg(test)]
 mod tests {
 
-  use super::*;
+  use std::vec;
+
+use super::*;
   use tempfile::TempDir;
 
   struct TestArgs{
@@ -114,6 +119,8 @@ mod tests {
     let template_dir_path = template_dir.path().display().to_string();
     let target_dir_path = target_dir.path().display().to_string();
 
+    let ignores = vec!["blah".to_owned(), "blee/".to_owned(), ".blue".to_owned()];
+
     // Delete target_dir because it should not exist
     // We only create it to get a random directory name
     drop(target_dir);
@@ -121,7 +128,8 @@ mod tests {
     let args = TestArgs {
       args: Args {
         template_dir: template_dir_path.clone(),
-        target_dir: target_dir_path.clone()
+        target_dir: target_dir_path.clone(),
+        ignores: ignores
       }
     };
 
@@ -130,11 +138,17 @@ mod tests {
 
     let expected_template_dir = TemplateDir::new(&template_dir_path);
     let expected_filters = Filters::default();
+    let expected_ignores =
+      IgnoredFiles {
+        ignores: vec!["blah".to_owned(), "blee/".to_owned(), ".blue".to_owned()]
+      };
 
 
     assert_eq!(config.template_dir, expected_template_dir);
     assert_eq!(&config.target_dir.path, &target_dir_path);
-    assert_eq!(config.filters, expected_filters)
+    assert_eq!(config.filters, expected_filters);
+    assert_eq!(config.ignores, expected_ignores)
+
   }
 
   #[test]
@@ -152,7 +166,8 @@ mod tests {
     let args = TestArgs {
       args: Args {
         template_dir: template_dir_path.clone(),
-        target_dir: target_dir_path.clone()
+        target_dir: target_dir_path.clone(),
+        ignores: vec![]
       }
     };
 
@@ -178,7 +193,8 @@ mod tests {
     let args = TestArgs {
       args: Args {
         template_dir: template_dir_path.clone(),
-        target_dir: target_dir_path.clone()
+        target_dir: target_dir_path.clone(),
+        ignores: vec![]
       }
     };
 
