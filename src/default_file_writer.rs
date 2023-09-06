@@ -110,7 +110,7 @@ mod tests {
     }
 
     #[test]
-    fn should_write_out_file_with_tokens_in_its_name_but_not_content() {
+    fn should_write_out_file_with_tokens_in_its_name_but_not_content_if_not_a_template() {
       let temp_source_file = NamedTempFile::new().unwrap();
       let temp_destination_dir = tempdir().unwrap();
 
