@@ -13,8 +13,7 @@ impl FileWriter for DefaultFileWriter {
     where T: Fn(&str) -> String {
      let content = source_file.read()?;
 
-    // let target_file_name_tokens_applied = target_file.map(&replace_tokens);
-    let target_file_name_tokens_applied = destination_file;
+    let target_file_name_tokens_applied = destination_file.map(&token_replacer);
 
     // if let Some("tmpl") = &target_file.get_extension().as_deref() { // It's a template
 
@@ -40,7 +39,7 @@ impl DefaultFileWriter {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Read;
+    use std::{io::Read, fs::OpenOptions};
 
     use super::*;
     use tempfile::{tempdir, tempfile, NamedTempFile};
@@ -54,7 +53,7 @@ mod tests {
       let destination_file = DestinationFile(temp_destination_file.path().to_string_lossy().to_string());
 
       let file_writer = DefaultFileWriter;
-      let source_content = b"HelloWorld";
+      let source_content = b"HelloWorld from $project_underscore$";
       fs::write(&source_file, &source_content).unwrap();
 
       let replacer = |c:&str| c.to_owned();
@@ -67,6 +66,44 @@ mod tests {
 
       let mut destination_content = String::new();
       let _ = temp_destination_file.read_to_string(&mut destination_content).unwrap();
+      let source_content_utf = std::str::from_utf8(source_content).unwrap();
+
+      assert_eq!(&source_content_utf, &destination_content, "source content should be equal to the destination content");
+    }
+
+    #[test]
+    fn should_write_out_file_with_tokens_in_its_name() {
+      let temp_source_file = NamedTempFile::new().unwrap();
+      let temp_destination_dir = tempdir().unwrap();
+
+      let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
+
+      let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
+      let destination_file = destination_dir.join("$project_underscore$.py");
+      let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
+
+      let file_writer = DefaultFileWriter;
+      let source_content = b"HelloWorld from $project_underscore$";
+      fs::write(&source_file, &source_content).unwrap();
+
+      let replacer = |c:&str| c.replace("$project_underscore$", "my-cool-project");
+
+      file_writer.write_source_to_destination(
+        &source_file,
+        &destination_file,
+        replacer
+      ).unwrap();
+
+      let mut destination_content = String::new();
+
+      let mut destination_file =
+        fs::OpenOptions::new()
+          .read(true)
+          .create(false) // don't create this if it does not exist
+          .open(&token_replaced_destination_file)
+          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+
+      let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let source_content_utf = std::str::from_utf8(source_content).unwrap();
 
       assert_eq!(&source_content_utf, &destination_content, "source content should be equal to the destination content");
