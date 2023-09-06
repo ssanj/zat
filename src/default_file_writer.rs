@@ -3,7 +3,7 @@ use crate::source_file::SourceFile;
 use crate::destination_file::DestinationFile;
 use crate::shared_models::{ZatErrorX, ZatResultX};
 use std::{fs, todo, path::Path, fmt::Display};
-use std::io;
+use std::{io, println};
 
 pub struct DefaultFileWriter;
 
@@ -11,19 +11,19 @@ impl FileWriter for DefaultFileWriter {
 
   fn write_source_to_destination<T>(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: T) -> ZatResultX<()>
     where T: Fn(&str) -> String {
-     let content = source_file.read()?;
+    let content = source_file.read()?;
 
     let target_file_name_tokens_applied = destination_file.map(&token_replacer);
 
-    // if let Some("tmpl") = &target_file.get_extension().as_deref() { // It's a template
-
-    //   let parent_dir = &target_file_name_tokens_applied.parent_directory();
-    //   let full_target_file_path_templated = parent_dir.join(&target_file_name_tokens_applied.file_stem());
-    //   let content_with_tokens_applied = &replace_tokens(&content);
-    //   write_file(&full_target_file_path_templated, &content_with_tokens_applied)
-    // } else {
+    if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a template
+      let parent_dir = &target_file_name_tokens_applied.parent_directory();
+      let full_target_file_path_templated = parent_dir.join(&target_file_name_tokens_applied.file_stem());
+      let content_with_tokens_applied = &token_replacer(&content);
+      Self::write_file(&full_target_file_path_templated, &content_with_tokens_applied)
+    } else {
       Self::write_file(&target_file_name_tokens_applied, &content)
     }
+  }
 }
 
 impl DefaultFileWriter {
@@ -107,5 +107,83 @@ mod tests {
       let source_content_utf = std::str::from_utf8(source_content).unwrap();
 
       assert_eq!(&source_content_utf, &destination_content, "source content should be equal to the destination content");
+    }
+
+    #[test]
+    fn should_write_out_file_with_tokens_in_its_name_but_not_content() {
+      let temp_source_file = NamedTempFile::new().unwrap();
+      let temp_destination_dir = tempdir().unwrap();
+
+      let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
+
+      let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
+      let destination_file = destination_dir.join("$project_underscore$.py");
+      let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
+
+      let file_writer = DefaultFileWriter;
+      let source_content = b"HelloWorld from $project$";
+      fs::write(&source_file, &source_content).unwrap();
+
+      let replacer = |c:&str| c.replace("$project_underscore$", "my-cool-project").replace("$project$", "My Cool Project");
+
+      file_writer.write_source_to_destination(
+        &source_file,
+        &destination_file,
+        replacer
+      ).unwrap();
+
+      let mut destination_content = String::new();
+
+      let mut destination_file =
+        fs::OpenOptions::new()
+          .read(true)
+          .create(false) // don't create this if it does not exist
+          .open(&token_replaced_destination_file)
+          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+
+      let _ = destination_file.read_to_string(&mut destination_content).unwrap();
+      let source_content_utf = std::str::from_utf8(source_content).unwrap();
+
+      assert_eq!(&source_content_utf, &destination_content, "source content should be equal to the destination content");
+    }
+
+    #[test]
+    fn should_write_out_file_with_tokens_in_its_name_and_replace_tokenised_content_in_template_file() {
+      let temp_source_file = NamedTempFile::new().unwrap();
+      let temp_destination_dir = tempdir().unwrap();
+
+      let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
+
+      let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
+      let destination_template_file = destination_dir.join("$project_underscore$.py.tmpl");
+      let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
+
+      let file_writer = DefaultFileWriter;
+      let source_content = b"HelloWorld from $project$";
+      fs::write(&source_file, &source_content).unwrap();
+
+      let replacer = |c:&str| c.replace("$project_underscore$", "my-cool-project").replace("$project$", "My Cool Project");
+
+      let token_replaced_destination_content = b"HelloWorld from My Cool Project";
+
+      file_writer.write_source_to_destination(
+        &source_file,
+        &destination_template_file,
+        replacer
+      ).unwrap();
+
+      let mut destination_content = String::new();
+
+      let mut destination_file =
+        fs::OpenOptions::new()
+          .read(true)
+          .create(false) // don't create this if it does not exist
+          .open(&token_replaced_destination_file)
+          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+
+      let _ = destination_file.read_to_string(&mut destination_content).unwrap();
+      let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
+
+      assert_eq!(&expected_destination_content, &destination_content, "token replaced content should be equal to the destination content");
     }
 }

@@ -37,7 +37,7 @@ impl DestinationFile {
   pub fn file_stem(&self) -> DestinationFile {
     let file_stem =
       Path::new(&self.0)
-        .file_name()
+        .file_stem()
         .expect(&format!("Could not get file stem for: {}", &self.0))
         .to_string_lossy();
 
