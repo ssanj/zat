@@ -34,6 +34,8 @@ mod file_writer;
 mod default_file_writer;
 mod source_file;
 mod destination_file;
+mod directory_creator;
+mod default_directory_creator;
 
 const KEY_TOKEN: &str = "$";
 

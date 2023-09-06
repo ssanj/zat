@@ -135,7 +135,7 @@ mod tests {
       let mut destination_content = String::new();
 
       let mut destination_file =
-        fs::OpenOptions::new()
+        OpenOptions::new()
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&token_replaced_destination_file)

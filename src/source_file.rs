@@ -7,6 +7,7 @@ use crate::shared_models::{ZatResultX, ZatErrorX};
 pub struct SourceFile(pub String);
 
 // TODO: Test
+// TODO: Should this be a trait?
 impl SourceFile {
 
   pub fn read(&self) -> ZatResultX<String> {
