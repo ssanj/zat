@@ -36,8 +36,8 @@ mod source_file;
 mod destination_file;
 mod directory_creator;
 mod default_directory_creator;
-mod template_file_processor;
-mod default_template_file_processor;
+mod enriched_template_file_processor;
+mod enriched_default_template_file_processor;
 
 const KEY_TOKEN: &str = "$";
 
