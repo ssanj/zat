@@ -42,7 +42,7 @@ mod tests {
     use std::{io::Read, fs::OpenOptions};
 
     use super::*;
-    use tempfile::{tempdir, tempfile, NamedTempFile};
+    use tempfile::{tempdir, NamedTempFile};
 
     #[test]
     fn should_write_out_file_without_tokens_in_its_name() {

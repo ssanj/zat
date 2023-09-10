@@ -3,7 +3,6 @@ use std::path::Path;
 use crate::file_chooser::FileChooser;
 use crate::file_traverser::{FileTraverser, TemplateFile};
 use crate::models::TemplateDir;
-use crate::user_config_provider::{UserConfigX, Ignores};
 use walkdir::{WalkDir, DirEntry};
 
 pub struct WalkDirFileTraverser {
@@ -19,8 +18,8 @@ impl FileTraverser for WalkDirFileTraverser {
             let p = dir_entry.path();
             self.categories_files(&dir_entry, p)
           })
-          .filter(|tf|{
-            self.file_chooser.is_included(tf.clone())
+          .filter_map(|tf|{
+            tf.filter(|template| self.file_chooser.is_included(template.clone()))
           })
           .collect()
     }
@@ -33,15 +32,15 @@ impl WalkDirFileTraverser {
     }
   }
 
-  fn categories_files(&self, dir_entry: &DirEntry, path: &Path) -> TemplateFile {
+  fn categories_files(&self, dir_entry: &DirEntry, path: &Path) -> Option<TemplateFile> {
     let string_path = path.to_string_lossy().to_string();
     let entry_file_type = dir_entry.file_type();
       if entry_file_type.is_file() {
-        TemplateFile::File(string_path)
+        Some(TemplateFile::File(string_path))
       } else if entry_file_type.is_dir() {
-        TemplateFile::Dir(string_path)
+        Some(TemplateFile::Dir(string_path))
       } else {
-        TemplateFile::Symlink(string_path)
+        None
       }
   }
 }
