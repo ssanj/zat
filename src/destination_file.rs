@@ -3,10 +3,14 @@ use std::path::PathBuf;
 use std::{fmt, fmt::Display, path::Path};
 use std::fs;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DestinationFile(pub String);
 
 impl DestinationFile {
+
+  pub fn new(file: &str) -> Self {
+    Self(file.to_owned())
+  }
 
   pub fn get_extension(&self) -> Option<Cow<'_, str>> {
      Path::new(&self.0)

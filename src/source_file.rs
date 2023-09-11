@@ -3,12 +3,16 @@ use std::{fmt, path::Path, ffi::OsStr, borrow::Cow};
 use std::fs;
 use crate::shared_models::{ZatResultX, ZatErrorX};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SourceFile(pub String);
 
 // TODO: Test
 // TODO: Should this be a trait?
 impl SourceFile {
+
+  pub fn new(file: &str) -> Self {
+    Self(file.to_owned())
+  }
 
   pub fn read(&self) -> ZatResultX<String> {
     fs::read(&self.0)
@@ -28,12 +32,15 @@ impl SourceFile {
       })
   }
 
-  pub fn strip_prefix(&self, prefix: &str)  -> ZatResultX<String> {
-    (&self.0).strip_prefix(prefix)
-    .ok_or_else(||{
-      ZatErrorX::ReadingFileError(format!("Could remove path prefix: {} from directory: {}", prefix, &self.0))
-    })
-    .map(|p| p.to_owned())
+  pub fn strip_prefix<P>(&self, prefix: P)  -> ZatResultX<String>
+    where P: AsRef<Path>
+  {
+    Path::new(&self.0)
+      .strip_prefix(&prefix)
+      .map_err(|e|{
+        ZatErrorX::ReadingFileError(format!("Could remove path prefix: {} from directory: {}, because of: {}", prefix.as_ref().to_string_lossy().to_string(), &self.0, e))
+      })
+      .map(|p| p.to_string_lossy().to_string())
   }
 }
 

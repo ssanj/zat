@@ -1,8 +1,9 @@
 use crate::destination_file::DestinationFile;
 use crate::file_traverser::TemplateFile;
-use crate::models::SourceFile;
+use crate::source_file::SourceFile;
 use crate::shared_models::ZatResultX;
 
+#[derive(PartialEq, Debug)]
 pub enum EnrichedTemplateFile {
   File(SourceFile, DestinationFile),
   Dir(DestinationFile),

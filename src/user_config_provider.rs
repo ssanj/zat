@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::default;
 use std::path::Path;
 
 use crate::models::{SourceFile, TargetDir, TargetFile, TemplateDir};
@@ -38,7 +39,6 @@ impl Default for Ignores {
 pub struct IgnoredFiles {
   pub ignores: HashSet<String>,
 }
-
 
 impl IgnoredFiles {
   pub const DOT_VARIABLES_DOT_PROMPT: &'static str  = ".variables.prompt";
@@ -131,6 +131,18 @@ pub struct UserConfigX {
   pub target_dir: TargetDir,
   pub filters: Filters,
   pub ignores: IgnoredFiles
+}
+
+impl UserConfigX {
+  pub fn new(source_dir: &str, destination_dir: &str) -> Self {
+    Self {
+      template_dir: TemplateDir::new(source_dir),
+      target_dir: TargetDir::new(destination_dir),
+      filters: Default::default(),
+      ignores: Default::default()
+
+    }
+  }
 }
 
 /// Behaviour to return configuration provided by the "user"

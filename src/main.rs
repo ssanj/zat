@@ -38,6 +38,8 @@ mod directory_creator;
 mod default_directory_creator;
 mod enriched_template_file_processor;
 mod enriched_default_template_file_processor;
+mod template_enricher;
+mod default_template_enricher;
 
 const KEY_TOKEN: &str = "$";
 
