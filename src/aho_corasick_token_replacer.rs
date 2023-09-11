@@ -1,4 +1,5 @@
 use crate::key_tokenizer::TokenizedKeysExpandedVariables;
+use crate::string_token_replacer::StringTokenReplacer;
 use crate::token_replacer::{ContentWithTokens, TokenReplacer, ContentTokensReplaced};
 
 use aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
@@ -31,10 +32,17 @@ impl AhoCorasickTokenReplacer {
 }
 
 impl TokenReplacer for AhoCorasickTokenReplacer {
+    // TODO: Deprecate this
     fn replace_content_token(&self, content_with_token: ContentWithTokens) -> ContentTokensReplaced {
       ContentTokensReplaced {
         value: self.ahocorasick.replace_all(&content_with_token.value, &self.replacements)
       }
+    }
+}
+
+impl StringTokenReplacer for AhoCorasickTokenReplacer {
+    fn replace(&self, input: &str) -> String {
+      self.ahocorasick.replace_all(input, &self.replacements)
     }
 }
 

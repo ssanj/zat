@@ -2,6 +2,7 @@ use crate::file_writer::FileWriter;
 use crate::source_file::SourceFile;
 use crate::destination_file::DestinationFile;
 use crate::shared_models::{ZatErrorX, ZatResultX};
+use crate::string_token_replacer::StringTokenReplacer;
 use std::{fs, todo, path::Path, fmt::Display};
 use std::{io, println};
 
@@ -9,16 +10,15 @@ pub struct DefaultFileWriter;
 
 impl FileWriter for DefaultFileWriter {
 
-  fn write_source_to_destination<T>(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: T) -> ZatResultX<()>
-    where T: Fn(&str) -> String {
+  fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
     let content = source_file.read()?;
 
-    let target_file_name_tokens_applied = destination_file.map(&token_replacer);
+    let target_file_name_tokens_applied = destination_file.map(|df| token_replacer.replace(df));
 
-    if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a template
+    if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a templates
       let parent_dir = &target_file_name_tokens_applied.parent_directory();
       let full_target_file_path_templated = parent_dir.join(&target_file_name_tokens_applied.file_stem());
-      let content_with_tokens_applied = &token_replacer(&content);
+      let content_with_tokens_applied = token_replacer.replace(&content);
       Self::write_file(&full_target_file_path_templated, &content_with_tokens_applied)
     } else {
       Self::write_file(&target_file_name_tokens_applied, &content)
@@ -41,6 +41,8 @@ impl DefaultFileWriter {
 mod tests {
     use std::{io::Read, fs::OpenOptions};
 
+    use crate::string_token_replacer::{EchoingStringTokenReplacer, ReplacingStringTokenReplacer};
+
     use super::*;
     use tempfile::{tempdir, NamedTempFile};
 
@@ -56,12 +58,12 @@ mod tests {
       let source_content = b"HelloWorld from $project_underscore$";
       fs::write(&source_file, &source_content).unwrap();
 
-      let replacer = |c:&str| c.to_owned();
+      let replacer = EchoingStringTokenReplacer;
 
       file_writer.write_source_to_destination(
         &source_file,
         &destination_file,
-        replacer
+        &replacer
       ).unwrap();
 
       let mut destination_content = String::new();
@@ -86,12 +88,13 @@ mod tests {
       let source_content = b"HelloWorld from $project_underscore$";
       fs::write(&source_file, &source_content).unwrap();
 
-      let replacer = |c:&str| c.replace("$project_underscore$", "my-cool-project");
+      let replacer =
+        ReplacingStringTokenReplacer::new(&[("$project_underscore$", "my-cool-project")]);
 
       file_writer.write_source_to_destination(
         &source_file,
         &destination_file,
-        replacer
+        &replacer
       ).unwrap();
 
       let mut destination_content = String::new();
@@ -124,12 +127,13 @@ mod tests {
       let source_content = b"HelloWorld from $project$";
       fs::write(&source_file, &source_content).unwrap();
 
-      let replacer = |c:&str| c.replace("$project_underscore$", "my-cool-project").replace("$project$", "My Cool Project");
+      let replacer =
+        ReplacingStringTokenReplacer::new(&[("$project_underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
 
       file_writer.write_source_to_destination(
         &source_file,
         &destination_file,
-        replacer
+        &replacer
       ).unwrap();
 
       let mut destination_content = String::new();
@@ -162,14 +166,15 @@ mod tests {
       let source_content = b"HelloWorld from $project$";
       fs::write(&source_file, &source_content).unwrap();
 
-      let replacer = |c:&str| c.replace("$project_underscore$", "my-cool-project").replace("$project$", "My Cool Project");
+      let replacer =
+        ReplacingStringTokenReplacer::new(&[("$project_underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
 
       let token_replaced_destination_content = b"HelloWorld from My Cool Project";
 
       file_writer.write_source_to_destination(
         &source_file,
         &destination_template_file,
-        replacer
+        &replacer
       ).unwrap();
 
       let mut destination_content = String::new();
