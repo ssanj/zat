@@ -1,7 +1,14 @@
 use std::ffi::OsStr;
 use std::path::Path;
+use std::println;
 
+use crate::default_template_enricher::DefaultTemplateEnricher;
+use crate::enriched_default_template_file_processor::DefaultEnrichedTemplateFileProcessor;
+use crate::enriched_template_file_processor::EnrichedTemplateFile;
 use crate::file_traverser::FileTraverser;
+use crate::models::ZatResult;
+use crate::shared_models::{ZatActionX, ZatResultX};
+use crate::template_enricher::TemplateEnricher;
 
 mod models;
 mod variables;
@@ -48,10 +55,6 @@ fn main() {
   run_zat()
 }
 
-fn alternate_run_zat() {
-  todo!()
-}
-
 fn run_zat() {
   use default_user_config_provider::DefaultUserConfigProvider;
   use user_config_provider::UserConfigProvider;
@@ -69,9 +72,11 @@ fn run_zat() {
   use default_key_tokenizer::DefaultKeyTokenizer;
   use crate::template_config_validator::TemplateVariableReview;
   use crate::template_config_validator::ValidConfig;
-  use token_replacer::TokenReplacer;
   use aho_corasick_token_replacer::AhoCorasickTokenReplacer;
   use walk_dir_file_traverser::WalkDirFileTraverser;
+
+  use crate::enriched_template_file_processor::EnrichedTemplateFileProcessor;
+  use crate::DefaultEnrichedTemplateFileProcessor;
 
   let config_provider = DefaultUserConfigProvider::new();
   let user_config = config_provider.get_config().unwrap();
@@ -96,7 +101,7 @@ fn run_zat() {
       let tokenized_key_expanded_variables = key_tokenizer.tokenize_keys(expanded_variables.clone());
       let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
 
-      // TODO: Get this from the Config
+      // TODO: This should be moved elsewhere
       let ignores: Vec<&str> =
         user_config
           .ignores.ignores
@@ -107,22 +112,27 @@ fn run_zat() {
       let file_chooser = regex_file_chooser::RegExFileChooser::new(&ignores).expect("Could not create file chooser");
       let file_traverser = WalkDirFileTraverser::new(Box::new(file_chooser));
       let files_to_process = file_traverser.traverse_files(&user_config.template_dir);
-       // TODO: Remove dummies once we have everything working
-       // These values will be supplied from the files and directories read
-      let dummy_value_replace = format!("{}{}{}", KEY_TOKEN, "project", KEY_TOKEN);
-      let dummy_content = token_replacer::ContentWithTokens {
-        value: dummy_value_replace
-      };
-      let replaced_value = aho_token_replacer.replace_content_token(dummy_content);
 
-      println!("expanded variables: {:?}", expanded_variables);
-      println!("tokenized keys with expanded variables: {:?}", tokenized_key_expanded_variables);
-      println!("replaced value: {:?}", replaced_value);
-      println!("files_to_process: {:?}", files_to_process);
+      let template_enricher = DefaultTemplateEnricher::new(user_config);
+      let enriched_template_file_processor = DefaultEnrichedTemplateFileProcessor::with_defaults();
+
+      // TODO: Move this into an encapsulating module
+      let zat_results: ZatActionX =
+        files_to_process
+          .into_iter()
+          .map(|tf| template_enricher.enrich(tf))
+          .collect::<ZatResultX<Vec<EnrichedTemplateFile>>>()
+          .and_then(|enriched_templates|{
+            enriched_template_file_processor.process_enriched_template_files(&enriched_templates, &aho_token_replacer)
+          });
+
+      match zat_results {
+        Ok(()) => println!("Zat completed successfully"),
+        Err(error) => println!("Zat got an error: {}", error)
+      }
     },
     TemplateVariableReview::Rejected => println!("The user rejected the variables.")
   }
-
 
 
   // let cli_args = cli::get_cli_args();
@@ -153,12 +163,6 @@ fn run_zat() {
   // } else {
   //   eprintln!("Target path already exists: {}. Please supply an empty directory for the target", &target_dir.path)
   // }
-}
-
-fn does_path_exist<A>(path: A) -> bool where
-  A: AsRef<OsStr>
-{
-  Path::new(&path).exists()
 }
 
 
