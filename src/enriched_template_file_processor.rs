@@ -11,5 +11,5 @@ pub enum EnrichedTemplateFile {
 }
 
 pub trait EnrichedTemplateFileProcessor {
-  fn process_enriched_template_files<T>(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResultX<()>;
+  fn process_enriched_template_files(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResultX<()>;
   }
