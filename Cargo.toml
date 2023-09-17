@@ -18,3 +18,4 @@ regex = "1.7"
 [dev-dependencies]
 pretty_assertions = "1.0"
 tempfile = "3.3"
+assert_cmd = "2.0"
