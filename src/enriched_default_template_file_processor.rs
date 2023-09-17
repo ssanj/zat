@@ -1,4 +1,4 @@
-use crate::{enriched_template_file_processor::{EnrichedTemplateFileProcessor, EnrichedTemplateFile}, shared_models::{ZatResultX, ZatErrorX}, file_traverser::TemplateFile, file_writer::FileWriter, directory_creator::DirectoryCreator, default_file_writer::DefaultFileWriter, default_directory_creator::DefaultDirectoryCreator, destination_file, string_token_replacer::StringTokenReplacer};
+use crate::{enriched_template_file_processor::{EnrichedTemplateFileProcessor, EnrichedTemplateFile}, shared_models::{ZatResultX, ZatErrorX}, file_writer::FileWriter, directory_creator::DirectoryCreator, default_file_writer::DefaultFileWriter, default_directory_creator::DefaultDirectoryCreator, string_token_replacer::StringTokenReplacer};
 
 pub struct DefaultEnrichedTemplateFileProcessor<'a> {
   file_writer: &'a dyn FileWriter,
@@ -52,11 +52,11 @@ impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> 
 
 #[cfg(test)]
 mod tests {
-    use std::{todo, cell::Cell, vec, unimplemented};
+    use std::{vec, unimplemented};
 
     use super::*;
-    use crate::{source_file::SourceFile, string_token_replacer::EchoingStringTokenReplacer, directory_creator};
-    use destination_file::DestinationFile;
+    use crate::source_file::SourceFile;
+    use crate::destination_file::DestinationFile;
     use pretty_assertions::assert_eq;
 
     struct Succeeding;
@@ -70,20 +70,20 @@ mod tests {
 
     impl FileWriter for Succeeding {
 
-      fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+      fn write_source_to_destination(&self, _source_file: &SourceFile, _destination_file: &DestinationFile, _token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
         Ok(())
       }
     }
 
     impl DirectoryCreator for Succeeding {
 
-      fn create_directory(&self, destination_directory: &DestinationFile, replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+      fn create_directory(&self, _destination_directory: &DestinationFile, _replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
         Ok(())
       }
     }
 
     impl StringTokenReplacer for NotImplemented {
-      fn replace(&self, input: &str) -> String {
+      fn replace(&self, _input: &str) -> String {
         unimplemented!()
       }
     }
@@ -105,7 +105,7 @@ mod tests {
     }
 
     impl <'a> FileWriter for Failing<'a> {
-      fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+      fn write_source_to_destination(&self, source_file: &SourceFile, _destination_file: &DestinationFile, _token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
         if self.source_files.contains(&source_file) {
           Err(ZatErrorX::WritingFileError(format!("Could not write file: {}", source_file)))
         } else {
@@ -115,7 +115,7 @@ mod tests {
     }
 
     impl <'a> DirectoryCreator for Failing<'a> {
-      fn create_directory(&self, destination_directory: &DestinationFile, replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+      fn create_directory(&self, destination_directory: &DestinationFile, _replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
         if self.destination_files.contains(&destination_directory) {
           Err(ZatErrorX::WritingFileError(format!("Could not write file: {}", destination_directory)))
         } else {
