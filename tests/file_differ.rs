@@ -1,6 +1,8 @@
 use std::{path::Path, collections::HashSet, fmt, println};
 
 use walkdir::{WalkDir, DirEntry};
+use similar::{ChangeTag, TextDiff};
+use ansi_term::Colour;
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 enum FileType {
@@ -31,6 +33,7 @@ struct Changes {
   common: Vec<Common>,
 }
 
+// TODO: This definitely needs colour
 pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: S, target_directory: D) {
   let changes = diff(&expected_target_directory, &target_directory);
 
@@ -56,10 +59,45 @@ pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: 
   }
 
   println!("");
-  println!("Files present in example and actual render");
-  for common in changes.common {
-    println!("{}", common.0)
+
+  let files: Vec<_> =
+    changes
+      .common
+      .iter()
+      .filter_map(|c|{
+        match &c.0 {
+          FileType::Dir(_) => None,
+          FileType::File(file) => Some(file)
+        }
+      })
+      .collect();
+
+  for file in files {
+    let expected_file = expected_target_directory.as_ref().join(file);
+    let actual_file = target_directory.as_ref().join(file);
+
+    let expected_content = read_file(expected_file);
+    let actual_content = read_file(actual_file);
+
+    if expected_content != actual_content {
+      println!("Changes found in: {}", Colour::Red.paint(file.as_str()).to_string());
+      let text_diff = TextDiff::from_lines(&expected_content, &actual_content);
+      for change in text_diff.iter_all_changes() {
+          let sign = match change.tag() {
+              ChangeTag::Delete => Colour::Red.paint("-").to_string(),
+              ChangeTag::Insert => Colour::Green.paint("+").to_string(),
+              ChangeTag::Equal => Colour::RGB(128, 128, 128).paint("|").to_string(),
+          };
+          print!("  {}{}", sign, change);
+      }
+    }
   }
+
+  // We also need the files that are identical
+}
+
+fn read_file(file: std::path::PathBuf) -> String {
+    std::fs::read_to_string(&file).expect(&format!("could not read file: {}", file.to_string_lossy().to_string()))
 }
 
 fn diff<S: AsRef<Path>, D: AsRef<Path>>(source_dir: S, destination_dir: D) -> Changes {
