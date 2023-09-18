@@ -1,0 +1,15 @@
+[
+  {
+    "variable_name": "project",
+    "description": "Name of project",
+    "prompt": "Please enter your project name",
+    "filters": [
+      { "name": "__default__",
+        "filter": "Pascal"
+      },
+      { "name": "underscore",
+        "filter": "Snake"
+      }
+    ]
+  }
+]
