@@ -44,3 +44,28 @@ fn runs_a_simple_template() -> Result<(), Box<dyn std::error::Error>> {
 
   Ok(())
 }
+
+#[test]
+fn runs_a_sublime_plugin_template() -> Result<(), Box<dyn std::error::Error>> {
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+  let working_directory = tempdir()?;
+  let target_directory = working_directory.into_path().join("sublime-plugin-template").to_string_lossy().to_string();
+  let expected_target_directory = "./tests/examples/sublime-plugin/destination";
+  let template_directory = "./tests/examples/sublime-plugin/template";
+  println!("target directory: {}", &target_directory);
+
+  cmd
+    .arg("--template-dir")
+    .arg(&template_directory)
+    .arg("--target-dir")
+    .arg(&target_directory)
+    .write_stdin("HelloWorld\nSays Hello\ny\n")
+    .assert()
+    .success();
+
+  print_changes(&expected_target_directory, &target_directory);
+
+  assert!(!dir_diff::is_different(&target_directory, expected_target_directory).unwrap());
+
+  Ok(())
+}

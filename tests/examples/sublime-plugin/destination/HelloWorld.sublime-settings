@@ -1,0 +1,4 @@
+{
+  // Whether to turn on debug logging
+  "debug": true
+}

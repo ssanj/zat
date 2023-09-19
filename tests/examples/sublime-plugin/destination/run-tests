@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Run the tests the first time - without any changes
+python3 -m unittest discover -v -p '*_test.py'
+
+# Watch for file changes and run tests
+chokidar "./tests/**/*.py" -c "python3 -m unittest discover -v -p '*_test.py'"

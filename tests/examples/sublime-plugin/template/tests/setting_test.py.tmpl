@@ -1,0 +1,10 @@
+import unittest
+
+import $project__underscore$_setting as S
+
+# Example test with valid imports and a test to get started.
+class SettingTest(unittest.TestCase):
+
+  def test_str(self):
+    settings = S.$project$Setting(debug = True)
+    self.assertEqual("$project$Setting(debug=True)", str(settings))

@@ -106,7 +106,7 @@ fn run_zat() {
       // Surround expanded variable names with a token - the default is KEY_TOKEN ($)
       let key_tokenizer = DefaultKeyTokenizer::new(KEY_TOKEN);
       let tokenized_key_expanded_variables = key_tokenizer.tokenize_keys(expanded_variables.clone());
-
+      println!("tokenized variables: {:?}", &tokenized_key_expanded_variables);
       // TODO: This should be moved elsewhere
       let ignores: Vec<&str> =
         user_config

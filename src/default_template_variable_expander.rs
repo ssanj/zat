@@ -47,7 +47,7 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
                       if &f.name == DEFAULT_FILTER {
                         k.value.clone() //if the key name is __default__ then use the original KEYNAME
                       } else {
-                        format!("{}_{}", k.value.clone(), f.name) // otherwise the key name is KEYNAME_FILTERNAME
+                        format!("{}__{}", k.value.clone(), f.name) // otherwise the key name is KEYNAME__FILTERNAME
                       };
 
                     (ExpandedKey::new(&filter_name), ExpandedValue::new(&filtered_value))
@@ -127,7 +127,7 @@ mod tests {
      let user_project_key = ExpandedKey::new("project");
      let user_project_value = ExpandedValue::new("blah");
 
-     let filter_project_command_key = ExpandedKey::new("project_Command");
+     let filter_project_command_key = ExpandedKey::new("project__Command");
      let filter_project_command_value = ExpandedValue::new("Pascal-blah");
 
      assert_eq!(expanded_variables.len(), 2);
@@ -178,7 +178,7 @@ mod tests {
      let user_project_key = ExpandedKey::new("project");
      let user_project_value = ExpandedValue::new("Snake-blah");
 
-     let filter_project_command_key = ExpandedKey::new("project_Command");
+     let filter_project_command_key = ExpandedKey::new("project__Command");
      let filter_project_command_value = ExpandedValue::new("Pascal-blah");
 
      assert_eq!(expanded_variables.len(), 2);
