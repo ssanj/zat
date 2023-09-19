@@ -3,8 +3,7 @@ use std::io::BufRead;
 
 use crate::template_config_validator::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
 use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
-use crate::user_config_provider::UserConfigX;
-use crate::tokens::VariablesCorrect;
+use crate::config::UserConfigX;
 
 // This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
 trait UserInputProvider {
@@ -120,7 +119,7 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 #[cfg(test)]
 mod tests {
 
-  use crate::{models::{TemplateDir, TargetDir}, user_config_provider::{Filters, IgnoredFiles}, variables::TemplateVariable};
+  use crate::{models::{TemplateDir, TargetDir}, config::{Filters, IgnoredFiles}, variables::TemplateVariable};
   use super::*;
   use pretty_assertions::assert_eq;
 

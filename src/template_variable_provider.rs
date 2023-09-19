@@ -1,7 +1,5 @@
-use serde::Deserialize;
-
-use crate::{shared_models::*, user_config_provider::UserConfigX, variables::TemplateVariables};
-
+use crate::{shared_models::ZatResultX, variables::TemplateVariables};
+use crate::config::UserConfigX;
 
 /// Behaviour to return tokens defined in a template
 pub trait TemplateVariableProvider {

@@ -1,7 +1,3 @@
-use std::ffi::OsStr;
-use std::path::Path;
-use std::println;
-
 use crate::default_template_enricher::DefaultTemplateEnricher;
 use crate::enriched_default_template_file_processor::DefaultEnrichedTemplateFileProcessor;
 use crate::enriched_template_file_processor::EnrichedTemplateFile;
@@ -10,12 +6,12 @@ use crate::models::ZatResult;
 use crate::shared_models::{ZatActionX, ZatResultX};
 use crate::template_enricher::TemplateEnricher;
 
+mod args;
 mod models;
 mod variables;
 mod tokens;
 mod cli;
 mod template_processor;
-mod user_config_provider;
 mod template_variable_provider;
 mod template_config_validator;
 mod template_selector;
@@ -23,7 +19,7 @@ mod template_proc;
 mod template_renderer;
 mod token_replacer;
 mod shared_models;
-mod default_user_config_provider;
+mod config;
 mod default_template_variable_provider;
 mod default_template_config_validator;
 mod template_variable_expander;
@@ -56,8 +52,8 @@ fn main() {
 }
 
 fn run_zat() {
-  use default_user_config_provider::DefaultUserConfigProvider;
-  use user_config_provider::UserConfigProvider;
+  use args::default_user_config_provider::DefaultUserConfigProvider;
+  use crate::args::user_config_provider::UserConfigProvider;
 
   use template_variable_provider::TemplateVariableProvider;
   use default_template_variable_provider::DefaultTemplateVariableProvider;

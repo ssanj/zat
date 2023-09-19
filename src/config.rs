@@ -1,39 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::default;
 use std::path::Path;
-
 use crate::models::{SourceFile, TargetDir, TargetFile, TemplateDir};
 use crate::shared_models::*;
 
-#[derive(Debug, Clone)]
-pub struct FileFilter {
-  value: String
-}
-
-impl FileFilter {
-  pub fn new(value: &str) -> Self {
-    Self {
-      value: value.to_owned()
-    }
-  }
-}
-
-// TODO: Deprecated
-#[derive(Debug, Clone, PartialEq)]
-pub struct Ignores { //TODO: Use regex filtering for these
-  pub files: Vec<String>,
-  pub directories: Vec<String>,
-}
-
-// TODO: Deprecated
-impl Default for Ignores {
-  fn default() -> Self {
-    Ignores {
-      files: vec![],
-      directories: vec![]
-    }
-  }
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IgnoredFiles {
@@ -102,15 +72,6 @@ impl AsRef<Path> for VariableFile {
   }
 }
 
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct UserConfig {
-  // pub user_tokens: HashMap<String, String>,
-  pub template_dir: TemplateDir,
-  pub target_dir: TargetDir,
-  pub ignores: Ignores //TODO: We will need to always include the ".variables" file into the ignores
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Filters {
   pub values: Vec<String>,
@@ -143,10 +104,4 @@ impl UserConfigX {
 
     }
   }
-}
-
-/// Behaviour to return configuration provided by the "user"
-pub trait UserConfigProvider {
-  /// Returns the UserConfig
-  fn get_config(&self) -> ZatResultX<UserConfigX>;
 }

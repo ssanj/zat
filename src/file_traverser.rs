@@ -1,6 +1,5 @@
-use crate::{user_config_provider::UserConfigX, models::TemplateDir};
+use crate::models::TemplateDir;
 
-// TODO: We need SourceFile and DestinationFile information for these
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum TemplateFile {
   File(String),
