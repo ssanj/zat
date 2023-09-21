@@ -1,4 +1,4 @@
-use crate::key_tokenizer::TokenizedKeysExpandedVariables;
+use crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables;
 use crate::string_token_replacer::StringTokenReplacer;
 use crate::token_replacer::{ContentWithTokens, TokenReplacer, ContentTokensReplaced};
 
@@ -50,8 +50,8 @@ impl StringTokenReplacer for AhoCorasickTokenReplacer {
 mod tests {
   use super::*;
   use std::collections::HashMap;
-  use crate::key_tokenizer::TokenizedExpandedKey;
-  use crate::template_variable_expander::ExpandedValue;
+  use crate::token_expander::key_tokenizer::TokenizedExpandedKey;
+  use crate::token_expander::template_variable_expander::ExpandedValue;
 
    const PROJECT_CONTENT: &str =
       r#"

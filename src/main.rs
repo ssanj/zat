@@ -3,24 +3,20 @@ use crate::enriched_template_file_processor::EnrichedTemplateFile;
 use crate::file_traverser::FileTraverser;
 use crate::shared_models::{ZatActionX, ZatResultX};
 use crate::template_enricher::TemplateEnricher;
+use crate::token_expander::expand_filters::ExpandFilters;
 
 mod args;
 mod models;
 mod variables;
-mod tokens;
 mod cli;
 mod template_processor;
 mod templates;
 mod token_replacer;
 mod shared_models;
 mod config;
-mod template_variable_expander;
-mod default_template_variable_expander;
+mod token_expander;
 mod filter_applicator;
-mod convert_case_filter_applicator;
 mod aho_corasick_token_replacer;
-mod key_tokenizer;
-mod default_key_tokenizer;
 mod file_traverser;
 mod walk_dir_file_traverser;
 mod file_chooser;
@@ -55,11 +51,8 @@ fn run_zat() {
   use templates::template_config_validator::TemplateVariableReview;
   use templates::template_config_validator::ValidConfig;
 
-  use template_variable_expander::TemplateVariableExpander;
-  use default_template_variable_expander::DefaultTemplateVariableExpander;
-  use convert_case_filter_applicator::ConvertCaseFilterApplicator;
-  use key_tokenizer::KeyTokenizer;
-  use default_key_tokenizer::DefaultKeyTokenizer;
+  use token_expander::expand_filters::ExpandFilters;
+  use token_expander::default_expand_filters::DefaultExpandFilters;
 
   use aho_corasick_token_replacer::AhoCorasickTokenReplacer;
   use walk_dir_file_traverser::WalkDirFileTraverser;
@@ -87,15 +80,10 @@ fn run_zat() {
 
   match template_variable_review {
     TemplateVariableReview::Accepted(ValidConfig { user_variables, user_config: _ }) => {
-      // Expands variables names (VARIABLENAME__FILTER_NAME) for each variable supplied and mapped to their supplied values
-      let filter_applicator = ConvertCaseFilterApplicator;
-      let template_variable_expander = DefaultTemplateVariableExpander::with_filter_applicator(Box::new(filter_applicator));
-      let expanded_variables = template_variable_expander.expand_filters(template_variables.clone(), user_variables);
-
-      // Surround expanded variable names with a token - the default is KEY_TOKEN ($)
-      let key_tokenizer = DefaultKeyTokenizer::new(KEY_TOKEN);
-      let tokenized_key_expanded_variables = key_tokenizer.tokenize_keys(expanded_variables.clone());
+      let expand_filters = DefaultExpandFilters::new();
+      let tokenized_key_expanded_variables = expand_filters.expand_filers(template_variables, user_variables);
       println!("tokenized variables: {:?}", &tokenized_key_expanded_variables);
+
       // TODO: This should be moved elsewhere
       let ignores: Vec<&str> =
         user_config

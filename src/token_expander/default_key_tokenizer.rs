@@ -1,6 +1,6 @@
-use crate::{key_tokenizer::{KeyTokenizer, TokenizedExpandedKey, TokenizedKeysExpandedVariables}, template_variable_expander::ExpandedVariables};
+use crate::token_expander::{key_tokenizer::{KeyTokenizer, TokenizedExpandedKey, TokenizedKeysExpandedVariables}, template_variable_expander::ExpandedVariables};
 use std::collections::HashMap;
-use crate::template_variable_expander::{ExpandedKey, ExpandedValue};
+use crate::token_expander::template_variable_expander::{ExpandedKey, ExpandedValue};
 
 pub struct DefaultKeyTokenizer {
   token: String
