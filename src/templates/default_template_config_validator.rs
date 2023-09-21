@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::BufRead;
 
-use crate::template_config_validator::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
+use crate::templates::template_config_validator::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
 use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
 use crate::config::UserConfigX;
 

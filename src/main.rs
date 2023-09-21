@@ -1,8 +1,6 @@
 use crate::default_template_enricher::DefaultTemplateEnricher;
-use crate::enriched_default_template_file_processor::DefaultEnrichedTemplateFileProcessor;
 use crate::enriched_template_file_processor::EnrichedTemplateFile;
 use crate::file_traverser::FileTraverser;
-use crate::models::ZatResult;
 use crate::shared_models::{ZatActionX, ZatResultX};
 use crate::template_enricher::TemplateEnricher;
 
@@ -12,16 +10,10 @@ mod variables;
 mod tokens;
 mod cli;
 mod template_processor;
-mod template_variable_provider;
-mod template_config_validator;
-mod template_selector;
-mod template_proc;
-mod template_renderer;
+mod templates;
 mod token_replacer;
 mod shared_models;
 mod config;
-mod default_template_variable_provider;
-mod default_template_config_validator;
 mod template_variable_expander;
 mod default_template_variable_expander;
 mod filter_applicator;
@@ -53,26 +45,27 @@ fn main() {
 
 fn run_zat() {
   use args::default_user_config_provider::DefaultUserConfigProvider;
-  use crate::args::user_config_provider::UserConfigProvider;
+  use args::user_config_provider::UserConfigProvider;
 
-  use template_variable_provider::TemplateVariableProvider;
-  use default_template_variable_provider::DefaultTemplateVariableProvider;
+  use templates::template_variable_provider::TemplateVariableProvider;
+  use templates::default_template_variable_provider::DefaultTemplateVariableProvider;
 
-  use template_config_validator::TemplateConfigValidator;
-  use default_template_config_validator::DefaultTemplateConfigValidator;
+  use templates::template_config_validator::TemplateConfigValidator;
+  use templates::default_template_config_validator::DefaultTemplateConfigValidator;
+  use templates::template_config_validator::TemplateVariableReview;
+  use templates::template_config_validator::ValidConfig;
 
   use template_variable_expander::TemplateVariableExpander;
   use default_template_variable_expander::DefaultTemplateVariableExpander;
   use convert_case_filter_applicator::ConvertCaseFilterApplicator;
   use key_tokenizer::KeyTokenizer;
   use default_key_tokenizer::DefaultKeyTokenizer;
-  use crate::template_config_validator::TemplateVariableReview;
-  use crate::template_config_validator::ValidConfig;
+
   use aho_corasick_token_replacer::AhoCorasickTokenReplacer;
   use walk_dir_file_traverser::WalkDirFileTraverser;
 
   use crate::enriched_template_file_processor::EnrichedTemplateFileProcessor;
-  use crate::DefaultEnrichedTemplateFileProcessor;
+  use crate::enriched_default_template_file_processor::DefaultEnrichedTemplateFileProcessor;
 
   // Verifies that the source dir exists, and the destination does not and handles ignores (defaults and supplied).
   // Basically everything from the cli config.
