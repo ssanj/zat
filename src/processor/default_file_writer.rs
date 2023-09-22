@@ -1,8 +1,8 @@
-use crate::file_writer::FileWriter;
+use super::file_writer::FileWriter;
 use crate::source_file::SourceFile;
 use crate::destination_file::DestinationFile;
 use crate::shared_models::{ZatErrorX, ZatResultX};
-use crate::string_token_replacer::StringTokenReplacer;
+use super::string_token_replacer::StringTokenReplacer;
 use std::{fs, todo, path::Path, fmt::Display};
 use std::{io, println};
 
@@ -41,7 +41,7 @@ impl DefaultFileWriter {
 mod tests {
     use std::{io::Read, fs::OpenOptions};
 
-    use crate::string_token_replacer::{EchoingStringTokenReplacer, ReplacingStringTokenReplacer};
+    use super::super::string_token_replacer::{EchoingStringTokenReplacer, ReplacingStringTokenReplacer};
 
     use super::*;
     use tempfile::{tempdir, NamedTempFile};

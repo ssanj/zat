@@ -1,10 +1,11 @@
 use std::path::Path;
 use crate::destination_file::DestinationFile;
-use crate::file_traverser::TemplateFile;
+use super::file_traverser::TemplateFile;
 use crate::shared_models::ZatResultX;
 use crate::source_file::SourceFile;
-use crate::{config::UserConfigX, template_enricher::TemplateEnricher};
-use crate::enriched_template_file_processor::EnrichedTemplateFile;
+use crate::config::UserConfigX;
+use super::template_enricher::TemplateEnricher;
+use super::enriched_template_file_processor::EnrichedTemplateFile;
 
 pub struct DefaultTemplateEnricher {
   config: UserConfigX

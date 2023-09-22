@@ -1,8 +1,8 @@
 use crate::destination_file::DestinationFile;
-use crate::file_traverser::TemplateFile;
+use super::file_traverser::TemplateFile;
 use crate::source_file::SourceFile;
 use crate::shared_models::ZatResultX;
-use crate::string_token_replacer::StringTokenReplacer;
+use super::string_token_replacer::StringTokenReplacer;
 
 #[derive(PartialEq, Debug)]
 pub enum EnrichedTemplateFile {

@@ -1,5 +1,5 @@
-use crate::file_chooser::FileChooser;
-use crate::file_traverser::TemplateFile;
+use super::file_chooser::FileChooser;
+use super::file_traverser::TemplateFile;
 use regex::Regex;
 
 pub struct RegExFileChooser {

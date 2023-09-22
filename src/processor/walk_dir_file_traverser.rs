@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use crate::file_chooser::FileChooser;
-use crate::file_traverser::{FileTraverser, TemplateFile};
+use super::file_chooser::FileChooser;
+use super::file_traverser::{FileTraverser, TemplateFile};
 use crate::models::TemplateDir;
 use walkdir::{WalkDir, DirEntry};
 
@@ -47,7 +47,7 @@ impl WalkDirFileTraverser {
 
 #[cfg(test)]
 mod tests {
-    use crate::regex_file_chooser::RegExFileChooser;
+    use super::super::regex_file_chooser::RegExFileChooser;
     use tempfile::{tempdir, tempdir_in};
     use std::collections::HashSet;
     use std::fs::File;

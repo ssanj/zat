@@ -1,7 +1,7 @@
 use crate::shared_models::ZatResultX;
 use crate::source_file::SourceFile;
 use crate::destination_file::DestinationFile;
-use crate::string_token_replacer::StringTokenReplacer;
+use super::string_token_replacer::StringTokenReplacer;
 
 /// Responsible for writing out a file name and contents with any tokens replaced. The tokens within the content of the file
 /// is only replaced if the file is a template file (extension of '.tmpl'). The template file is written out without the '.tmpl'

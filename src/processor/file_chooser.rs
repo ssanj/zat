@@ -1,4 +1,4 @@
-use crate::{file_traverser::TemplateFile};
+use super::file_traverser::TemplateFile;
 
 /// Chooses files to include or exclude
 /// property: is_included should be the inverse of is_ignored (meaning the same input can't be ignored and included at the same time)
