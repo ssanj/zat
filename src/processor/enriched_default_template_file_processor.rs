@@ -45,7 +45,7 @@ impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> 
         .collect();
 
      if !errors.is_empty() {
-      Err(ZatErrorX::MultipleErrors(errors))
+      Err(ZatErrorX::ProcessingErrors(errors))
      } else {
       Ok(())
      }
@@ -192,7 +192,7 @@ mod tests {
       let result = template_processor.process_enriched_template_files(&enriched_templates, &token_replacer);
 
       let expected_errors =
-        ZatErrorX::MultipleErrors(
+        ZatErrorX::ProcessingErrors(
           vec![
             ZatErrorX::WritingFileError("Could not write file: some/destination/dir2".to_owned()),
             ZatErrorX::WritingFileError("Could not write file: some/source/file2".to_owned()),

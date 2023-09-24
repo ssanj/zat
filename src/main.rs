@@ -36,7 +36,7 @@ use crate::processor::default_process_templates::DefaultProcessTemplates;
 fn main() {
   match run_zat() {
     Ok(_) => println!("Zat completed successfully."),
-    Err(error) => eprintln!("Zat failed with the following error: {}", error),
+    Err(error) => eprintln!("Zat failed with the following error: \n  {}", error),
   }
 }
 
