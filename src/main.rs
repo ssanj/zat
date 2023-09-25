@@ -7,9 +7,6 @@ mod config;
 mod token_expander;
 mod processor;
 
-mod source_file;
-mod destination_file;
-
 use std::eprintln;
 
 use args::default_user_config_provider::DefaultUserConfigProvider;

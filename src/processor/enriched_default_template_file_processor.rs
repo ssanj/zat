@@ -57,8 +57,8 @@ mod tests {
     use std::{vec, unimplemented};
 
     use super::*;
-    use crate::source_file::SourceFile;
-    use crate::destination_file::DestinationFile;
+    use super::super::source_file::SourceFile;
+    use super::super::destination_file::DestinationFile;
     use pretty_assertions::assert_eq;
 
     struct Succeeding;

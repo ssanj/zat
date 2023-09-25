@@ -1,8 +1,8 @@
 use std::path::Path;
-use crate::destination_file::DestinationFile;
+use super::destination_file::DestinationFile;
 use super::file_traverser::TemplateFile;
 use crate::shared_models::ZatResultX;
-use crate::source_file::SourceFile;
+use super::source_file::SourceFile;
 use crate::config::UserConfig;
 use super::template_enricher::TemplateEnricher;
 use super::enriched_template_file_processor::EnrichedTemplateFile;
@@ -56,8 +56,8 @@ impl TemplateEnricher for DefaultTemplateEnricher {
 mod tests {
     use pretty_assertions::assert_eq;
 
-    use crate::source_file::SourceFile;
-    use crate::destination_file::DestinationFile;
+    use super::super::source_file::SourceFile;
+    use super::super::destination_file::DestinationFile;
 
     use super::*;
     use tempfile::tempdir;

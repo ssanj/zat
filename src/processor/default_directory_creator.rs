@@ -1,5 +1,5 @@
 use super::directory_creator::DirectoryCreator;
-use crate::destination_file::DestinationFile;
+use super::destination_file::DestinationFile;
 use crate::shared_models::{ZatErrorX, ZatResultX};
 use super::string_token_replacer::StringTokenReplacer;
 use std::fs;

@@ -1,6 +1,6 @@
 use crate::shared_models::ZatResultX;
-use crate::source_file::SourceFile;
-use crate::destination_file::DestinationFile;
+use super::source_file::SourceFile;
+use super::destination_file::DestinationFile;
 use super::string_token_replacer::StringTokenReplacer;
 
 /// Responsible for writing out a file name and contents with any tokens replaced. The tokens within the content of the file

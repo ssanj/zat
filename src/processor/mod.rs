@@ -16,3 +16,5 @@ mod aho_corasick_token_replacer;
 mod default_file_writer;
 mod enriched_default_template_file_processor;
 mod default_directory_creator;
+mod source_file;
+mod destination_file;

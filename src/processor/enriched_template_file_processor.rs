@@ -1,6 +1,5 @@
-use crate::destination_file::DestinationFile;
-use super::file_traverser::TemplateFile;
-use crate::source_file::SourceFile;
+use super::destination_file::DestinationFile;
+use super::source_file::SourceFile;
 use crate::shared_models::ZatResultX;
 use super::string_token_replacer::StringTokenReplacer;
 
