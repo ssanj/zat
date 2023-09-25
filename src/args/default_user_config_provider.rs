@@ -1,7 +1,7 @@
-use crate::cli::Args;
 use crate::shared_models::*;
 use crate::args::user_config_provider::*;
-use crate::cli;
+use super::cli::Args;
+use super::cli;
 use crate::config::user_config::UserConfig;
 use crate::config::ignored_files::IgnoredFiles;
 use crate::config::variable_file::VariableFile;

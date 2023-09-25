@@ -1,13 +1,9 @@
 mod args;
-mod cli;
 mod templates;
-
 mod shared_models;
 mod config;
 mod token_expander;
 mod processor;
-
-use std::eprintln;
 
 use args::default_user_config_provider::DefaultUserConfigProvider;
 use args::user_config_provider::UserConfigProvider;
@@ -66,6 +62,3 @@ fn run_zat() -> ZatActionX {
 
   Ok(())
 }
-
-
-
