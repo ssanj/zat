@@ -1,8 +1,7 @@
 use std::collections::HashSet;
-use std::default;
 use std::path::Path;
-use crate::models::{SourceFile, TargetDir, TargetFile, TemplateDir};
-use crate::shared_models::*;
+use crate::args::target_directory::TargetDir;
+use crate::args::template_directory::TemplateDir;
 
 
 #[derive(Debug, Clone, PartialEq)]

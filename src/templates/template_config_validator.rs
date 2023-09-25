@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use crate::models::{TargetDir, TemplateDir};
 use crate::config::UserConfigX;
 use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables}; // Should this be moved into a shared models?
 

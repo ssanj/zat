@@ -45,7 +45,8 @@ mod tests {
   use super::*;
   use tempfile::TempDir;
   use crate::config::{Filters, IgnoredFiles};
-  use crate::models::{TemplateDir, TargetDir};
+  use crate::args::template_directory::TemplateDir;
+  use crate::args::target_directory::TargetDir;
 
   #[test]
   fn tokens_are_empty_if_variable_file_does_not_exist() {

@@ -119,7 +119,9 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 #[cfg(test)]
 mod tests {
 
-  use crate::{models::{TemplateDir, TargetDir}, config::{Filters, IgnoredFiles}, variables::TemplateVariable};
+  use crate::{config::{Filters, IgnoredFiles}, variables::TemplateVariable};
+  use crate::args::template_directory::TemplateDir;
+  use crate::args::target_directory::TargetDir;
   use super::*;
   use pretty_assertions::assert_eq;
 

@@ -13,7 +13,6 @@ pub enum ZatErrorX {
   ProcessingErrors(Vec<ZatErrorX>),
 }
 
-// TODO: Clean up this output
 impl std::fmt::Display for ZatErrorX {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
       let string_rep = match self {

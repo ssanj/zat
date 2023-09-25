@@ -16,8 +16,6 @@ pub struct Args {
    /// One or more files ignore. Supply multiple times for different files or folders. The files '.variables.prompt' and '.git' are always specified.
    #[clap(long, value_parser,)]
    pub ignores: Vec<String>
-
-   //TODO: Add ignores
 }
 
 pub fn get_cli_args() -> Args {

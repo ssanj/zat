@@ -3,7 +3,8 @@ use crate::shared_models::*;
 use crate::args::user_config_provider::*;
 use crate::cli;
 use crate::config::{UserConfigX, IgnoredFiles, VariableFile, Filters};
-use crate::models::{TargetDir, TemplateDir};
+use super::target_directory::TargetDir;
+use super::template_directory::TemplateDir;
 
 pub trait ArgSupplier {
   fn get_args(&self) -> Args;
