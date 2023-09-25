@@ -1,4 +1,4 @@
-use crate::shared_models::ZatResultX;
+use crate::error::ZatResultX;
 use crate::config::user_config::UserConfig;
 
 

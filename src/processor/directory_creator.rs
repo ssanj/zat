@@ -1,5 +1,5 @@
 use super::destination_file::DestinationFile;
-use crate::shared_models::ZatResultX;
+use crate::error::ZatResultX;
 use super::string_token_replacer::StringTokenReplacer;
 
 /// Creates the directory specified after replacing any tokens in its name

@@ -1,6 +1,6 @@
 mod args;
 mod templates;
-mod shared_models;
+mod error;
 mod config;
 mod token_expander;
 mod processor;
@@ -8,7 +8,8 @@ mod processor;
 use args::default_user_config_provider::DefaultUserConfigProvider;
 use args::user_config_provider::UserConfigProvider;
 
-use shared_models::ZatActionX;
+use error::ZatActionX;
+
 use templates::template_variable_provider::TemplateVariableProvider;
 use templates::default_template_variable_provider::DefaultTemplateVariableProvider;
 

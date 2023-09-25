@@ -1,6 +1,6 @@
 use std::{fmt, path::Path};
 use std::fs;
-use crate::shared_models::{ZatResultX, ZatErrorX};
+use crate::error::{ZatResultX, ZatErrorX};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SourceFile(pub String);

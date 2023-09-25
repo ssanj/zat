@@ -1,10 +1,9 @@
 use super::file_writer::FileWriter;
 use super::source_file::SourceFile;
 use super::destination_file::DestinationFile;
-use crate::shared_models::{ZatErrorX, ZatResultX};
+use crate::error::{ZatErrorX, ZatResultX};
 use super::string_token_replacer::StringTokenReplacer;
-use std::{fs, todo, path::Path, fmt::Display};
-use std::{io, println};
+use std::{fs, path::Path, fmt::Display};
 
 pub struct DefaultFileWriter;
 

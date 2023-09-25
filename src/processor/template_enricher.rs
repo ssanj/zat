@@ -1,4 +1,4 @@
-use crate::shared_models::ZatResultX;
+use crate::error::ZatResultX;
 use super::{file_traverser::TemplateFile, enriched_template_file_processor::EnrichedTemplateFile};
 
 pub trait TemplateEnricher {

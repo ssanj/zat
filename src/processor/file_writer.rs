@@ -1,4 +1,4 @@
-use crate::shared_models::ZatResultX;
+use crate::error::ZatResultX;
 use super::source_file::SourceFile;
 use super::destination_file::DestinationFile;
 use super::string_token_replacer::StringTokenReplacer;

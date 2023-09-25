@@ -1,4 +1,4 @@
-use crate::{shared_models::ZatActionX, token_expander::key_tokenizer::TokenizedKeysExpandedVariables};
+use crate::{error::ZatActionX, token_expander::key_tokenizer::TokenizedKeysExpandedVariables};
 use crate::config::user_config::UserConfig;
 
 pub trait ProcessTemplates {

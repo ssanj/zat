@@ -1,6 +1,6 @@
 use super::destination_file::DestinationFile;
 use super::source_file::SourceFile;
-use crate::shared_models::ZatResultX;
+use crate::error::ZatResultX;
 use super::string_token_replacer::StringTokenReplacer;
 
 #[derive(PartialEq, Debug)]

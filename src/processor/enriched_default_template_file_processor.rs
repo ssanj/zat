@@ -1,5 +1,5 @@
 // TODO: rename file to: default_enriched_template_file_processor
-use crate::shared_models::{ZatResultX, ZatErrorX};
+use crate::error::{ZatResultX, ZatErrorX};
 use super::{enriched_template_file_processor::{EnrichedTemplateFileProcessor, EnrichedTemplateFile}, file_writer::FileWriter, directory_creator::DirectoryCreator, default_file_writer::DefaultFileWriter, default_directory_creator::DefaultDirectoryCreator, string_token_replacer::StringTokenReplacer};
 
 pub struct DefaultEnrichedTemplateFileProcessor<'a> {
