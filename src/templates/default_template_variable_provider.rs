@@ -1,6 +1,6 @@
 use crate::shared_models::*;
 use crate::templates::template_variable_provider::TemplateVariableProvider;
-use crate::config::{UserConfigX, VariableFile};
+use crate::config::{UserConfig, VariableFile};
 use crate::variables::{TemplateVariable, TemplateVariables};
 use std::fs::File;
 use std::io::{Read, Write};
@@ -16,7 +16,7 @@ impl DefaultTemplateVariableProvider {
 // TODO: Should we move the file checks to a fake file system?
 // That would make it easier to test and lead to more reuse of code
 impl TemplateVariableProvider for DefaultTemplateVariableProvider {
-  fn get_tokens(&self, user_config: UserConfigX) -> ZatResultX<TemplateVariables> {
+  fn get_tokens(&self, user_config: UserConfig) -> ZatResultX<TemplateVariables> {
     let variables_file: VariableFile = VariableFile::from(user_config.template_dir);
 
     let tokens: Vec<TemplateVariable> =
@@ -60,7 +60,7 @@ mod tests {
 
     let template_token_provider = DefaultTemplateVariableProvider::new();
 
-    let user_config = UserConfigX {
+    let user_config = UserConfig {
       template_dir: TemplateDir::new(&template_dir_path),
       target_dir: TargetDir::new(&target_dir_path),
       filters: Filters::default(),
@@ -112,7 +112,7 @@ mod tests {
 
     let template_config_provider = DefaultTemplateVariableProvider::new();
 
-    let user_config = UserConfigX {
+    let user_config = UserConfig {
       template_dir: TemplateDir::new(&template_dir_path),
       target_dir: TargetDir::new(&target_dir_path),
       filters: Filters::default(),
@@ -151,7 +151,7 @@ mod tests {
 
     let template_config_provider = DefaultTemplateVariableProvider::new();
 
-    let user_config = UserConfigX {
+    let user_config = UserConfig {
       template_dir: TemplateDir::new(&template_dir_path),
       target_dir: TargetDir::new(&target_dir_path),
       filters: Filters::default(),

@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 
-use crate::config::UserConfigX;
+use crate::config::UserConfig;
 use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables}; // Should this be moved into a shared models?
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValidConfig {
   pub user_variables: HashMap<UserVariableKey, UserVariableValue>,
-  pub user_config: UserConfigX
+  pub user_config: UserConfig
 }
 
 impl ValidConfig {
-  pub fn new(user_variables: HashMap<UserVariableKey, UserVariableValue>, user_config: UserConfigX) -> Self {
+  pub fn new(user_variables: HashMap<UserVariableKey, UserVariableValue>, user_config: UserConfig) -> Self {
     Self {
       user_variables,
       user_config
@@ -26,5 +26,5 @@ pub enum TemplateVariableReview {
 }
 
 pub trait TemplateConfigValidator {
-  fn validate(&self, user_config: UserConfigX, template_variables: TemplateVariables) -> TemplateVariableReview;
+  fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> TemplateVariableReview;
 }

@@ -1,4 +1,4 @@
-use crate::filter_applicator::FilterApplicator;
+use super::filter_applicator::FilterApplicator;
 use crate::variables::FilterType;
 use convert_case::{Case, Casing};
 

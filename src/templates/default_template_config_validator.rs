@@ -3,7 +3,7 @@ use std::io::BufRead;
 
 use crate::templates::template_config_validator::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
 use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
-use crate::config::UserConfigX;
+use crate::config::UserConfig;
 
 // This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
 trait UserInputProvider {
@@ -11,7 +11,7 @@ trait UserInputProvider {
 }
 
 trait UserTemplateVariableValidator {
-  fn review_user_template_variables(&self, user_config: UserConfigX, variables: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview;
+  fn review_user_template_variables(&self, user_config: UserConfig, variables: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview;
 }
 
 enum UserVariablesValidity {
@@ -47,7 +47,7 @@ impl UserInputProvider for Cli {
 }
 
 impl UserTemplateVariableValidator for Cli {
-    fn review_user_template_variables(&self, user_config: UserConfigX, user_variables: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
+    fn review_user_template_variables(&self, user_config: UserConfig, user_variables: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
         Cli::print_user_input(&user_variables);
         match  Cli::check_user_input() {
           UserVariablesValidity::Valid => {
@@ -110,7 +110,7 @@ impl DefaultTemplateConfigValidator {
 
 impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 
-  fn validate(&self, user_config: UserConfigX, template_variables: TemplateVariables) -> TemplateVariableReview {
+  fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> TemplateVariableReview {
       let user_variables = self.user_input_provider.get_user_input(template_variables);
       self.user_template_variable_validator.review_user_template_variables(user_config, user_variables)
   }
@@ -148,7 +148,7 @@ mod tests {
   struct RejectedUserTemplateVariables;
 
   struct AcceptedUserTemplateVariables {
-    user_config: UserConfigX,
+    user_config: UserConfig,
     user_variables: HashMap<UserVariableKey, UserVariableValue>
   }
 
@@ -165,13 +165,13 @@ mod tests {
 
 
   impl UserTemplateVariableValidator for RejectedUserTemplateVariables {
-    fn review_user_template_variables(&self, _user_config_: UserConfigX, _variables_: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
+    fn review_user_template_variables(&self, _user_config_: UserConfig, _variables_: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
         TemplateVariableReview::Rejected
     }
   }
 
   impl UserTemplateVariableValidator for AcceptedUserTemplateVariables {
-    fn review_user_template_variables(&self, _user_config_: UserConfigX, _variables_: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
+    fn review_user_template_variables(&self, _user_config_: UserConfig, _variables_: HashMap<UserVariableKey, UserVariableValue>) -> TemplateVariableReview {
       let valid_config: ValidConfig = ValidConfig::from(self);
       TemplateVariableReview::Accepted(valid_config)
     }
@@ -230,7 +230,7 @@ mod tests {
 
 
     let user_config =
-      UserConfigX {
+      UserConfig {
         template_dir: TemplateDir::new("template_dir"),
         target_dir: TargetDir::new("target_idr"),
         filters: Filters::default(),
@@ -269,7 +269,7 @@ mod tests {
     let template_variables = TemplateVariables::default();
 
     let user_config =
-      UserConfigX {
+      UserConfig {
         template_dir: TemplateDir::new("template_dir"),
         target_dir: TargetDir::new("target_idr"),
         filters: Filters::default(),

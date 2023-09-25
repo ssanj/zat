@@ -2,7 +2,7 @@ use crate::cli::Args;
 use crate::shared_models::*;
 use crate::args::user_config_provider::*;
 use crate::cli;
-use crate::config::{UserConfigX, IgnoredFiles, VariableFile, Filters};
+use crate::config::{UserConfig, IgnoredFiles, VariableFile, Filters};
 use super::target_directory::TargetDir;
 use super::template_directory::TemplateDir;
 
@@ -38,7 +38,7 @@ impl DefaultUserConfigProvider {
 }
 
 impl UserConfigProvider for DefaultUserConfigProvider {
-  fn get_config(&self) -> ZatResultX<UserConfigX> {
+  fn get_config(&self) -> ZatResultX<UserConfig> {
     let args = self.arg_supplier.get_args();
 
     let template_dir = TemplateDir::new(&args.template_dir);
@@ -61,7 +61,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
       let filters = Filters::default(); // TODO: Get this from the user
 
       Ok(
-        UserConfigX {
+        UserConfig {
           // user_tokens,
           template_dir,
           target_dir,

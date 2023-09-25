@@ -86,14 +86,14 @@ impl Default for Filters {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct UserConfigX {
+pub struct UserConfig {
   pub template_dir: TemplateDir,
   pub target_dir: TargetDir,
   pub filters: Filters,
   pub ignores: IgnoredFiles
 }
 
-impl UserConfigX {
+impl UserConfig {
   pub fn new(source_dir: &str, destination_dir: &str) -> Self {
     Self {
       template_dir: TemplateDir::new(source_dir),

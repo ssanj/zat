@@ -3,16 +3,16 @@ use crate::destination_file::DestinationFile;
 use super::file_traverser::TemplateFile;
 use crate::shared_models::ZatResultX;
 use crate::source_file::SourceFile;
-use crate::config::UserConfigX;
+use crate::config::UserConfig;
 use super::template_enricher::TemplateEnricher;
 use super::enriched_template_file_processor::EnrichedTemplateFile;
 
 pub struct DefaultTemplateEnricher {
-  config: UserConfigX
+  config: UserConfig
 }
 
 impl DefaultTemplateEnricher {
-  pub fn new(config: UserConfigX) -> Self {
+  pub fn new(config: UserConfig) -> Self {
     Self {
       config
     }
@@ -71,8 +71,8 @@ mod tests {
 
       let file_template = TemplateFile::new_file(&source_file_path.to_str().unwrap());
 
-      let config: UserConfigX =
-        UserConfigX::new(& source_dir.path().to_str().unwrap(), &destination_dir);
+      let config: UserConfig =
+        UserConfig::new(& source_dir.path().to_str().unwrap(), &destination_dir);
 
 
       let enricher = DefaultTemplateEnricher::new(config);
@@ -97,8 +97,8 @@ mod tests {
 
       let file_template = TemplateFile::new_dir(&source_file_path.to_str().unwrap());
 
-      let config: UserConfigX =
-        UserConfigX::new(& source_dir.path().to_str().unwrap(), &destination_dir);
+      let config: UserConfig =
+        UserConfig::new(& source_dir.path().to_str().unwrap(), &destination_dir);
 
 
       let enricher = DefaultTemplateEnricher::new(config);

@@ -1,5 +1,4 @@
 mod args;
-mod models;
 mod variables;
 mod cli;
 mod templates;
@@ -8,7 +7,6 @@ mod shared_models;
 mod config;
 mod token_expander;
 mod processor;
-mod filter_applicator;
 
 mod source_file;
 mod destination_file;

@@ -1,5 +1,6 @@
 pub mod key_tokenizer;
 pub mod template_variable_expander;
+pub mod filter_applicator;
 pub mod expand_filters;
 pub mod default_expand_filters;
 

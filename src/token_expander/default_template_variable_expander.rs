@@ -1,7 +1,7 @@
 use crate::token_expander::template_variable_expander::{ExpandedVariables, TemplateVariableExpander, ExpandedKey, ExpandedValue, DEFAULT_FILTER};
 use crate::variables::{UserVariableKey, UserVariableValue, FilterType};
 use std::collections::HashMap;
-use crate::filter_applicator::FilterApplicator;
+use super::filter_applicator::FilterApplicator;
 
 pub struct DefaultTemplateVariableExpander {
   filter_applicator: Box<dyn FilterApplicator>
