@@ -1,5 +1,5 @@
 use crate::shared_models::ZatResultX;
-use crate::config::UserConfig;
+use crate::config::user_config::UserConfig;
 use super::variables::TemplateVariables;
 
 /// Behaviour to return tokens defined in a template

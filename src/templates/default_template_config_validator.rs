@@ -3,7 +3,7 @@ use std::io::BufRead;
 
 use crate::templates::template_config_validator::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
 use super::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
-use crate::config::UserConfig;
+use crate::config::user_config::UserConfig;
 
 // This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
 trait UserInputProvider {
@@ -119,13 +119,14 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 #[cfg(test)]
 mod tests {
 
-  use crate::config::{Filters, IgnoredFiles};
   use super::super::variables::TemplateVariable;
-  use crate::args::template_directory::TemplateDir;
-  use crate::args::target_directory::TargetDir;
   use super::*;
   use pretty_assertions::assert_eq;
-
+  use crate::config::user_config::UserConfig;
+  use crate::config::ignored_files::IgnoredFiles;
+  use crate::config::filters::Filters;
+  use crate::config::target_directory::TargetDir;
+  use crate::config::template_directory::TemplateDir;
 
   impl UserInputProvider for HashMap<String, String> {
     fn get_user_input(&self, variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {

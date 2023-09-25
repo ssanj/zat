@@ -1,4 +1,4 @@
-use crate::args::template_directory::TemplateDir;
+use crate::config::template_directory::TemplateDir;
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum TemplateFile {

@@ -1,5 +1,5 @@
 use crate::shared_models::ZatResultX;
-use crate::config::UserConfig;
+use crate::config::user_config::UserConfig;
 
 
 /// Behaviour to return configuration provided by the "user"

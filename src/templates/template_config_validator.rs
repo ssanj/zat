@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::config::UserConfig;
+use crate::config::user_config::UserConfig;
 use super::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
 
 #[derive(Debug, Clone, PartialEq)]

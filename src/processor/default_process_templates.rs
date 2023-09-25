@@ -9,12 +9,12 @@ use super::enriched_template_file_processor::{EnrichedTemplateFileProcessor, Enr
 use super::enriched_default_template_file_processor::DefaultEnrichedTemplateFileProcessor;
 use super::aho_corasick_token_replacer::AhoCorasickTokenReplacer;
 use super::file_traverser::FileTraverser;
-
+use crate::config::user_config::UserConfig;
 
 pub struct DefaultProcessTemplates;
 
 impl ProcessTemplates for DefaultProcessTemplates {
-    fn process_templates(&self, user_config: crate::config::UserConfig, tokenized_key_expanded_variables: crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables) -> crate::shared_models::ZatActionX {
+    fn process_templates(&self, user_config: UserConfig, tokenized_key_expanded_variables: crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables) -> crate::shared_models::ZatActionX {
       let ignores: Vec<&str> =
         user_config
           .ignores.ignores

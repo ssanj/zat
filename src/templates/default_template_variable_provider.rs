@@ -1,6 +1,7 @@
 use crate::shared_models::*;
 use crate::templates::template_variable_provider::TemplateVariableProvider;
-use crate::config::{UserConfig, VariableFile};
+use crate::config::user_config::UserConfig;
+use crate::config::variable_file::VariableFile;
 use super::variables::{TemplateVariable, TemplateVariables};
 use std::fs::File;
 use std::io::{Read, Write};
@@ -44,9 +45,10 @@ mod tests {
 
   use super::*;
   use tempfile::TempDir;
-  use crate::config::{Filters, IgnoredFiles};
-  use crate::args::template_directory::TemplateDir;
-  use crate::args::target_directory::TargetDir;
+  use crate::config::ignored_files::IgnoredFiles;
+  use crate::config::filters::Filters;
+  use crate::config::target_directory::TargetDir;
+  use crate::config::template_directory::TemplateDir;
 
   #[test]
   fn tokens_are_empty_if_variable_file_does_not_exist() {
