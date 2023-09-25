@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
+use crate::templates::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
 
 pub const DEFAULT_FILTER: &str = "__default__";
 

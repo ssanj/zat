@@ -1,5 +1,6 @@
-use crate::token_expander::template_variable_expander::{ExpandedVariables, TemplateVariableExpander, ExpandedKey, ExpandedValue, DEFAULT_FILTER};
-use crate::variables::{UserVariableKey, UserVariableValue, FilterType};
+use crate::token_expander::template_variable_expander::{ExpandedVariables, TemplateVariableExpander, ExpandedKey, ExpandedValue, DEFAULT_FILTER,};
+use crate::templates::variables::TemplateVariables;
+use crate::templates::variables::{UserVariableKey, UserVariableValue, FilterType};
 use std::collections::HashMap;
 use super::filter_applicator::FilterApplicator;
 
@@ -19,7 +20,7 @@ impl DefaultTemplateVariableExpander {
 
 
 impl TemplateVariableExpander for DefaultTemplateVariableExpander {
-    fn expand_filters(&self, variables: crate::variables::TemplateVariables, user_inputs: HashMap<UserVariableKey, UserVariableValue>) -> ExpandedVariables {
+    fn expand_filters(&self, variables: TemplateVariables, user_inputs: HashMap<UserVariableKey, UserVariableValue>) -> ExpandedVariables {
 
       let expanded_variables: HashMap<ExpandedKey, ExpandedValue> =
         variables
@@ -76,7 +77,7 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
 mod tests {
 
   use super::*;
-  use crate::{variables::TemplateVariables, token_expander::default_template_variable_expander::DefaultTemplateVariableExpander};
+  use crate::{templates::variables::TemplateVariables, token_expander::default_template_variable_expander::DefaultTemplateVariableExpander};
 
   struct FilterNameFilterApplicator;
 

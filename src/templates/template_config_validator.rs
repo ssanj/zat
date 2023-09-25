@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::config::UserConfig;
-use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables}; // Should this be moved into a shared models?
+use super::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValidConfig {

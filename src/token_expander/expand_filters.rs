@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::variables::{UserVariableKey, UserVariableValue, TemplateVariables};
+use crate::templates::variables::{UserVariableKey, UserVariableValue, TemplateVariables};
 use super::key_tokenizer::TokenizedKeysExpandedVariables;
 
 pub trait ExpandFilters {

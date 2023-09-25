@@ -1,5 +1,5 @@
 use super::filter_applicator::FilterApplicator;
-use crate::variables::FilterType;
+use crate::templates::variables::FilterType;
 use convert_case::{Case, Casing};
 
 pub struct ConvertCaseFilterApplicator;

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::io::BufRead;
 
 use crate::templates::template_config_validator::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
-use crate::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
+use super::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
 use crate::config::UserConfig;
 
 // This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
@@ -119,7 +119,8 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 #[cfg(test)]
 mod tests {
 
-  use crate::{config::{Filters, IgnoredFiles}, variables::TemplateVariable};
+  use crate::config::{Filters, IgnoredFiles};
+  use super::super::variables::TemplateVariable;
   use crate::args::template_directory::TemplateDir;
   use crate::args::target_directory::TargetDir;
   use super::*;

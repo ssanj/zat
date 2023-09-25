@@ -1,5 +1,6 @@
-use crate::{shared_models::ZatResultX, variables::TemplateVariables};
+use crate::shared_models::ZatResultX;
 use crate::config::UserConfig;
+use super::variables::TemplateVariables;
 
 /// Behaviour to return tokens defined in a template
 pub trait TemplateVariableProvider {
