@@ -1,7 +1,7 @@
 use crate::error::*;
 use crate::templates::template_variable_provider::TemplateVariableProvider;
-use crate::config::user_config::UserConfig;
-use crate::config::variable_file::VariableFile;
+use crate::config::UserConfig;
+use crate::config::VariableFile;
 use super::variables::{TemplateVariable, TemplateVariables};
 use std::fs::File;
 use std::io::{Read, Write};
@@ -45,10 +45,10 @@ mod tests {
 
   use super::*;
   use tempfile::TempDir;
-  use crate::config::ignored_files::IgnoredFiles;
-  use crate::config::filters::Filters;
-  use crate::config::target_directory::TargetDir;
-  use crate::config::template_directory::TemplateDir;
+  use crate::config::IgnoredFiles;
+  use crate::config::Filters;
+  use crate::config::TargetDir;
+  use crate::config::TemplateDir;
 
   #[test]
   fn tokens_are_empty_if_variable_file_does_not_exist() {

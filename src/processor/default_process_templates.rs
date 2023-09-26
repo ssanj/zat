@@ -9,7 +9,7 @@ use super::enriched_template_file_processor::{EnrichedTemplateFileProcessor, Enr
 use super::enriched_default_template_file_processor::DefaultEnrichedTemplateFileProcessor;
 use super::aho_corasick_token_replacer::AhoCorasickTokenReplacer;
 use super::file_traverser::FileTraverser;
-use crate::config::user_config::UserConfig;
+use crate::config::UserConfig;
 
 pub struct DefaultProcessTemplates;
 

@@ -5,8 +5,8 @@ mod config;
 mod token_expander;
 mod processor;
 
-use args::default_user_config_provider::DefaultUserConfigProvider;
-use args::user_config_provider::UserConfigProvider;
+use args::UserConfigProvider;
+use args::DefaultUserConfigProvider;
 
 use error::ZatActionX;
 

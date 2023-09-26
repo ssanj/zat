@@ -1,5 +1,5 @@
 use crate::error::ZatResultX;
-use crate::config::user_config::UserConfig;
+use crate::config::UserConfig;
 
 
 /// Behaviour to return configuration provided by the "user"

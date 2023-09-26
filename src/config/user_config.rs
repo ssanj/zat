@@ -1,7 +1,7 @@
-use super::target_directory::TargetDir;
-use super::template_directory::TemplateDir;
-use super::filters::Filters;
-use super::ignored_files::IgnoredFiles;
+use super::TargetDir;
+use super::TemplateDir;
+use super::Filters;
+use super::IgnoredFiles;
 
 
 #[derive(Debug, Clone, PartialEq)]

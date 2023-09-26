@@ -3,7 +3,7 @@ use std::io::BufRead;
 
 use crate::templates::template_config_validator::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
 use super::variables::{UserVariableValue, UserVariableKey, TemplateVariables};
-use crate::config::user_config::UserConfig;
+use crate::config::UserConfig;
 
 // This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
 trait UserInputProvider {

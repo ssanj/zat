@@ -1,5 +1,5 @@
 use std::path::Path;
-use super::template_directory::TemplateDir;
+use super::TemplateDir;
 
 #[derive(Debug, Clone)]
 pub struct VariableFile {
@@ -28,19 +28,5 @@ impl AsRef<Path> for VariableFile {
   fn as_ref(&self) -> &Path {
       &Path::new(&self.path)
   }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Filters {
-  pub values: Vec<String>,
-}
-
-
-impl Default for Filters {
-    fn default() -> Self {
-        Self {
-          values: vec![]
-        }
-    }
 }
 

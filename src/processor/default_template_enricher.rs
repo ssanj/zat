@@ -3,7 +3,7 @@ use super::destination_file::DestinationFile;
 use super::file_traverser::TemplateFile;
 use crate::error::ZatResultX;
 use super::source_file::SourceFile;
-use crate::config::user_config::UserConfig;
+use crate::config::UserConfig;
 use super::template_enricher::TemplateEnricher;
 use super::enriched_template_file_processor::EnrichedTemplateFile;
 

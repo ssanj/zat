@@ -2,7 +2,7 @@ use std::path::Path;
 
 use super::file_chooser::FileChooser;
 use super::file_traverser::{FileTraverser, TemplateFile};
-use crate::config::template_directory::TemplateDir;
+use crate::config::TemplateDir;
 use walkdir::{WalkDir, DirEntry};
 
 pub struct WalkDirFileTraverser {

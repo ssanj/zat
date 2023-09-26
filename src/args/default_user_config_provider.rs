@@ -1,13 +1,13 @@
 use crate::error::*;
-use crate::args::user_config_provider::*;
+use super::UserConfigProvider;
 use super::cli::Args;
 use super::cli;
-use crate::config::user_config::UserConfig;
-use crate::config::ignored_files::IgnoredFiles;
-use crate::config::variable_file::VariableFile;
-use crate::config::filters::Filters;
-use crate::config::target_directory::TargetDir;
-use crate::config::template_directory::TemplateDir;
+use crate::config::UserConfig;
+use crate::config::IgnoredFiles;
+use crate::config::VariableFile;
+use crate::config::Filters;
+use crate::config::TargetDir;
+use crate::config::TemplateDir;
 
 pub trait ArgSupplier {
   fn get_args(&self) -> Args;
