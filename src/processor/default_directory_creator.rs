@@ -1,6 +1,6 @@
 use super::DirectoryCreator;
 use super::DestinationFile;
-use crate::error::{ZatErrorX, ZatResultX};
+use crate::error::{ZatError, ZatResultX};
 use super::StringTokenReplacer;
 use std::fs;
 
@@ -13,7 +13,7 @@ impl DirectoryCreator for DefaultDirectoryCreator {
 
     fs::create_dir(&directory_path_with_tokens_replaced)
       .map_err(|e| {
-        ZatErrorX::WritingFileError(
+        ZatError::WritingFileError(
           format!("Could not created destination directory: {}\nCause:{}",
             &directory_path_with_tokens_replaced,
             e.to_string()

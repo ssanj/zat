@@ -74,10 +74,10 @@ impl UserConfigProvider for DefaultUserConfigProvider {
       )
     } else if !template_dir_exists {
       let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path);
-      Err(ZatErrorX::UserConfigError(error))
+      Err(ZatError::UserConfigError(error))
     } else {
       let error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", &target_dir.path);
-      Err(ZatErrorX::UserConfigError(error))
+      Err(ZatError::UserConfigError(error))
     }
   }
 }
@@ -220,7 +220,7 @@ use super::*;
       Ok(_) => assert!(false, "get_config should fail if the template directory does not exist"),
       Err(error) => {
         let expected_error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", template_dir_path);
-        assert_eq!(error, ZatErrorX::UserConfigError(expected_error))
+        assert_eq!(error, ZatError::UserConfigError(expected_error))
       }
     }
   }
@@ -246,7 +246,7 @@ use super::*;
       Ok(_) => assert!(false, "get_config should fail if the target directory does exist"),
       Err(error) => {
         let expected_error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", target_dir_path);
-        assert_eq!(error, ZatErrorX::UserConfigError(expected_error))
+        assert_eq!(error, ZatError::UserConfigError(expected_error))
       }
     }
   }

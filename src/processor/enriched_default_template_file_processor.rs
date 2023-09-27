@@ -1,5 +1,5 @@
 // TODO: rename file to: default_enriched_template_file_processor
-use crate::error::{ZatResultX, ZatErrorX};
+use crate::error::{ZatResultX, ZatError};
 use super::{EnrichedTemplateFileProcessor, EnrichedTemplateFile, FileWriter, DirectoryCreator, DefaultFileWriter, DefaultDirectoryCreator, StringTokenReplacer};
 
 pub struct DefaultEnrichedTemplateFileProcessor<'a> {
@@ -27,7 +27,7 @@ impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> 
 
   fn process_enriched_template_files(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
 
-    let results: Vec<Result<(), ZatErrorX>> =
+    let results: Vec<Result<(), ZatError>> =
       template_files
         .iter()
         .map(|f|{
@@ -38,14 +38,14 @@ impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> 
         })
         .collect();
 
-     let errors: Vec<ZatErrorX> =
+     let errors: Vec<ZatError> =
        results
         .into_iter()
         .filter_map(|r| r.err())
         .collect();
 
      if !errors.is_empty() {
-      Err(ZatErrorX::ProcessingErrors(errors))
+      Err(ZatError::ProcessingErrors(errors))
      } else {
       Ok(())
      }
@@ -109,7 +109,7 @@ mod tests {
     impl <'a> FileWriter for Failing<'a> {
       fn write_source_to_destination(&self, source_file: &SourceFile, _destination_file: &DestinationFile, _token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
         if self.source_files.contains(&source_file) {
-          Err(ZatErrorX::WritingFileError(format!("Could not write file: {}", source_file)))
+          Err(ZatError::WritingFileError(format!("Could not write file: {}", source_file)))
         } else {
           Ok(())
         }
@@ -119,7 +119,7 @@ mod tests {
     impl <'a> DirectoryCreator for Failing<'a> {
       fn create_directory(&self, destination_directory: &DestinationFile, _replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
         if self.destination_files.contains(&destination_directory) {
-          Err(ZatErrorX::WritingFileError(format!("Could not write file: {}", destination_directory)))
+          Err(ZatError::WritingFileError(format!("Could not write file: {}", destination_directory)))
         } else {
           Ok(())
         }
@@ -192,12 +192,12 @@ mod tests {
       let result = template_processor.process_enriched_template_files(&enriched_templates, &token_replacer);
 
       let expected_errors =
-        ZatErrorX::ProcessingErrors(
+        ZatError::ProcessingErrors(
           vec![
-            ZatErrorX::WritingFileError("Could not write file: some/destination/dir2".to_owned()),
-            ZatErrorX::WritingFileError("Could not write file: some/source/file2".to_owned()),
-            ZatErrorX::WritingFileError("Could not write file: some/source/file3".to_owned()),
-            ZatErrorX::WritingFileError("Could not write file: some/destination/dir4".to_owned()),
+            ZatError::WritingFileError("Could not write file: some/destination/dir2".to_owned()),
+            ZatError::WritingFileError("Could not write file: some/source/file2".to_owned()),
+            ZatError::WritingFileError("Could not write file: some/source/file3".to_owned()),
+            ZatError::WritingFileError("Could not write file: some/destination/dir4".to_owned()),
           ]
         );
 

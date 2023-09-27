@@ -22,12 +22,12 @@ impl TemplateVariableProvider for DefaultTemplateVariableProvider {
 
     let tokens: Vec<TemplateVariable> =
       if variables_file.does_exist() {
-        let mut f = File::open(variables_file).map_err(|e| ZatErrorX::VariableOpenError(e.to_string()))?;
+        let mut f = File::open(variables_file).map_err(|e| ZatError::VariableOpenError(e.to_string()))?;
         let mut variables_json = String::new();
 
-        f.read_to_string(&mut variables_json).map_err(|e| ZatErrorX::VariableReadError(e.to_string()))?;
+        f.read_to_string(&mut variables_json).map_err(|e| ZatError::VariableReadError(e.to_string()))?;
 
-        serde_json::from_str(&variables_json).map_err(|e| ZatErrorX::VariableDecodeError(e.to_string()))?
+        serde_json::from_str(&variables_json).map_err(|e| ZatError::VariableDecodeError(e.to_string()))?
       } else {
         vec![]
       };
@@ -161,9 +161,9 @@ mod tests {
     };
 
     match template_config_provider.get_tokens(user_config) {
-      Err(ZatErrorX::VariableDecodeError(_)) => assert!(true),
-      Err(other_error) => assert!(false, "Expected ZatErrorX::VariableDecodeError but got different error : {}", other_error.to_string()),
-      Ok(value) => assert!(false, "Expected ZatErrorX::VariableDecodeError but got success with: {:?}", value)
+      Err(ZatError::VariableDecodeError(_)) => assert!(true),
+      Err(other_error) => assert!(false, "Expected ZatError::VariableDecodeError but got different error : {}", other_error.to_string()),
+      Ok(value) => assert!(false, "Expected ZatError::VariableDecodeError but got success with: {:?}", value)
     }
 
     drop(variable_file);

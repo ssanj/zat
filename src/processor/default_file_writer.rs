@@ -1,7 +1,7 @@
 use super::FileWriter;
 use super::SourceFile;
 use super::DestinationFile;
-use crate::error::{ZatErrorX, ZatResultX};
+use crate::error::{ZatError, ZatResultX};
 use super::StringTokenReplacer;
 use std::{fs, path::Path, fmt::Display};
 
@@ -31,7 +31,7 @@ impl DefaultFileWriter {
     C: AsRef<[u8]>
   {
     fs::write(&target_file_with_tokens_replaced, content)
-      .map_err(|e| ZatErrorX::WritingFileError(format!("Could not write target file: {}\nCause:{}", &target_file_with_tokens_replaced, e)))
+      .map_err(|e| ZatError::WritingFileError(format!("Could not write target file: {}\nCause:{}", &target_file_with_tokens_replaced, e)))
   }
 }
 
