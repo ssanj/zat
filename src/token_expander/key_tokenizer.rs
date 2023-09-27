@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::token_expander::template_variable_expander::{ExpandedKey, ExpandedValue, ExpandedVariables};
+use super::{ExpandedValue, ExpandedVariables};
 
 
 #[derive(Debug, Clone)]

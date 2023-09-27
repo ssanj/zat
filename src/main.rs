@@ -17,8 +17,8 @@ use templates::DefaultTemplateConfigValidator;
 use templates::TemplateVariableReview;
 use templates::ValidConfig;
 
-use token_expander::expand_filters::ExpandFilters;
-use token_expander::default_expand_filters::DefaultExpandFilters;
+use token_expander::ExpandFilters;
+use token_expander::DefaultExpandFilters;
 
 use crate::processor::ProcessTemplates;
 use crate::processor::DefaultProcessTemplates;
