@@ -1,8 +1,8 @@
-use super::file_writer::FileWriter;
-use super::source_file::SourceFile;
-use super::destination_file::DestinationFile;
+use super::FileWriter;
+use super::SourceFile;
+use super::DestinationFile;
 use crate::error::{ZatErrorX, ZatResultX};
-use super::string_token_replacer::StringTokenReplacer;
+use super::StringTokenReplacer;
 use std::{fs, path::Path, fmt::Display};
 
 pub struct DefaultFileWriter;
@@ -40,7 +40,7 @@ impl DefaultFileWriter {
 mod tests {
     use std::{io::Read, fs::OpenOptions};
 
-    use super::super::string_token_replacer::{EchoingStringTokenReplacer, ReplacingStringTokenReplacer};
+    use super::super::{EchoingStringTokenReplacer, ReplacingStringTokenReplacer};
 
     use super::*;
     use tempfile::{tempdir, NamedTempFile};

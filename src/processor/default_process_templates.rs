@@ -1,14 +1,14 @@
 use crate::error::{ZatResultX, ZatActionX};
 
-use super::process_templates::ProcessTemplates;
-use super::regex_file_chooser::RegExFileChooser;
-use super::walk_dir_file_traverser::WalkDirFileTraverser;
-use super::template_enricher::TemplateEnricher;
-use super::default_template_enricher::DefaultTemplateEnricher;
-use super::enriched_template_file_processor::{EnrichedTemplateFileProcessor, EnrichedTemplateFile};
-use super::enriched_default_template_file_processor::DefaultEnrichedTemplateFileProcessor;
-use super::aho_corasick_token_replacer::AhoCorasickTokenReplacer;
-use super::file_traverser::FileTraverser;
+use super::ProcessTemplates;
+use super::RegExFileChooser;
+use super::WalkDirFileTraverser;
+use super::TemplateEnricher;
+use super::DefaultTemplateEnricher;
+use super::{EnrichedTemplateFileProcessor, EnrichedTemplateFile};
+use super::DefaultEnrichedTemplateFileProcessor;
+use super::AhoCorasickTokenReplacer;
+use super::FileTraverser;
 use crate::config::UserConfig;
 
 pub struct DefaultProcessTemplates;

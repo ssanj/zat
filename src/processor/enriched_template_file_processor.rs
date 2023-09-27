@@ -1,7 +1,7 @@
-use super::destination_file::DestinationFile;
-use super::source_file::SourceFile;
+use super::DestinationFile;
+use super::SourceFile;
 use crate::error::ZatResultX;
-use super::string_token_replacer::StringTokenReplacer;
+use super::StringTokenReplacer;
 
 #[derive(PartialEq, Debug)]
 pub enum EnrichedTemplateFile {

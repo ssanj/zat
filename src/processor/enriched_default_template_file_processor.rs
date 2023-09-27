@@ -1,6 +1,6 @@
 // TODO: rename file to: default_enriched_template_file_processor
 use crate::error::{ZatResultX, ZatErrorX};
-use super::{enriched_template_file_processor::{EnrichedTemplateFileProcessor, EnrichedTemplateFile}, file_writer::FileWriter, directory_creator::DirectoryCreator, default_file_writer::DefaultFileWriter, default_directory_creator::DefaultDirectoryCreator, string_token_replacer::StringTokenReplacer};
+use super::{EnrichedTemplateFileProcessor, EnrichedTemplateFile, FileWriter, DirectoryCreator, DefaultFileWriter, DefaultDirectoryCreator, StringTokenReplacer};
 
 pub struct DefaultEnrichedTemplateFileProcessor<'a> {
   file_writer: &'a dyn FileWriter,
@@ -57,8 +57,8 @@ mod tests {
     use std::{vec, unimplemented};
 
     use super::*;
-    use super::super::source_file::SourceFile;
-    use super::super::destination_file::DestinationFile;
+    use super::super::SourceFile;
+    use super::super::DestinationFile;
     use pretty_assertions::assert_eq;
 
     struct Succeeding;

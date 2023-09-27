@@ -1,5 +1,5 @@
-use super::file_chooser::FileChooser;
-use super::file_traverser::TemplateFile;
+use super::FileChooser;
+use super::TemplateFile;
 use regex::Regex;
 
 pub struct RegExFileChooser {

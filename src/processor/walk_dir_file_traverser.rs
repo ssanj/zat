@@ -1,7 +1,6 @@
 use std::path::Path;
 
-use super::file_chooser::FileChooser;
-use super::file_traverser::{FileTraverser, TemplateFile};
+use super::{FileChooser, FileTraverser, TemplateFile};
 use crate::config::TemplateDir;
 use walkdir::{WalkDir, DirEntry};
 

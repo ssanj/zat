@@ -1,6 +1,6 @@
-use super::destination_file::DestinationFile;
+use super::DestinationFile;
 use crate::error::ZatResultX;
-use super::string_token_replacer::StringTokenReplacer;
+use super::StringTokenReplacer;
 
 /// Creates the directory specified after replacing any tokens in its name
 pub trait DirectoryCreator {

@@ -21,8 +21,8 @@ use templates::template_config_validator::ValidConfig;
 use token_expander::expand_filters::ExpandFilters;
 use token_expander::default_expand_filters::DefaultExpandFilters;
 
-use crate::processor::process_templates::ProcessTemplates;
-use crate::processor::default_process_templates::DefaultProcessTemplates;
+use crate::processor::ProcessTemplates;
+use crate::processor::DefaultProcessTemplates;
 
 fn main() {
   match run_zat() {

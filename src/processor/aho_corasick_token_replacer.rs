@@ -1,6 +1,6 @@
 use crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables;
-use super::string_token_replacer::StringTokenReplacer;
-use super::token_replacer::{ContentWithTokens, TokenReplacer, ContentTokensReplaced};
+use super::StringTokenReplacer;
+use super::{ContentWithTokens, TokenReplacer, ContentTokensReplaced};
 
 use aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
 

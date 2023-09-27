@@ -1,7 +1,7 @@
-use super::directory_creator::DirectoryCreator;
-use super::destination_file::DestinationFile;
+use super::DirectoryCreator;
+use super::DestinationFile;
 use crate::error::{ZatErrorX, ZatResultX};
-use super::string_token_replacer::StringTokenReplacer;
+use super::StringTokenReplacer;
 use std::fs;
 
 pub struct DefaultDirectoryCreator;
@@ -26,7 +26,7 @@ impl DirectoryCreator for DefaultDirectoryCreator {
 mod tests {
     use super::*;
     use tempfile::TempDir;
-    use super::super::string_token_replacer::{EchoingStringTokenReplacer, ReplacingStringTokenReplacer};
+    use super::super::{EchoingStringTokenReplacer, ReplacingStringTokenReplacer};
 
     #[test]
     fn creates_supplied_directory() {
