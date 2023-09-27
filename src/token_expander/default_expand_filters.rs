@@ -1,4 +1,4 @@
-use crate::templates::variables::{TemplateVariables, UserVariableKey, UserVariableValue};
+use crate::templates::{TemplateVariables, UserVariableKey, UserVariableValue};
 
 use super::expand_filters::ExpandFilters;
 use super::convert_case_filter_applicator::ConvertCaseFilterApplicator;

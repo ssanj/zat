@@ -69,65 +69,67 @@ pub enum FilterType {
 }
 
 #[cfg(test)]
-use pretty_assertions::assert_eq;
+mod test {
+  use pretty_assertions::assert_eq;
+  use super::*;
 
-#[test]
-
-fn load_json_config() {
-  let variables_config = r#"
-    [
-      {
-        "variable_name": "project",
-        "description": "Name of project",
-        "prompt": "Please enter your project name",
-            "filters": [
-              {
-                "name":"python",
-                "filter": "Snake"
-              },
-              { "name": "Command",
-                "filter": "Pascal"
-              }
-            ]
-      },
-      {
-        "variable_name": "plugin_description",
-        "description": "Explain what your plugin is about",
-        "prompt": "Please enter your plugin description"
-      }
-    ]
-  "#;
-
-   let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_config).unwrap();
-   assert_eq!(variables.len(), 2);
-
-   let first = &variables[0];
-   let expected_first = TemplateVariable {
-      variable_name: "project".to_owned(),
-      description: "Name of project".to_owned(),
-      prompt: "Please enter your project name".to_owned(),
-      filters: vec![
-        VariableFilter {
-          name: "python".to_owned(),
-          filter: FilterType::Snake
+  #[test]
+  fn load_json_config() {
+    let variables_config = r#"
+      [
+        {
+          "variable_name": "project",
+          "description": "Name of project",
+          "prompt": "Please enter your project name",
+              "filters": [
+                {
+                  "name":"python",
+                  "filter": "Snake"
+                },
+                { "name": "Command",
+                  "filter": "Pascal"
+                }
+              ]
         },
-        VariableFilter {
-          name: "Command".to_owned(),
-          filter: FilterType::Pascal
-        },
+        {
+          "variable_name": "plugin_description",
+          "description": "Explain what your plugin is about",
+          "prompt": "Please enter your plugin description"
+        }
       ]
-   };
+    "#;
 
-   assert_eq!(first, &expected_first);
+     let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_config).unwrap();
+     assert_eq!(variables.len(), 2);
 
-   let second = &variables[1];
+     let first = &variables[0];
+     let expected_first = TemplateVariable {
+        variable_name: "project".to_owned(),
+        description: "Name of project".to_owned(),
+        prompt: "Please enter your project name".to_owned(),
+        filters: vec![
+          VariableFilter {
+            name: "python".to_owned(),
+            filter: FilterType::Snake
+          },
+          VariableFilter {
+            name: "Command".to_owned(),
+            filter: FilterType::Pascal
+          },
+        ]
+     };
 
-   let expected_second = TemplateVariable {
-      variable_name: "plugin_description".to_owned(),
-      description: "Explain what your plugin is about".to_owned(),
-      prompt: "Please enter your plugin description".to_owned(),
-      filters: vec![]
-   };
+     assert_eq!(first, &expected_first);
 
-   assert_eq!(second, &expected_second)
+     let second = &variables[1];
+
+     let expected_second = TemplateVariable {
+        variable_name: "plugin_description".to_owned(),
+        description: "Explain what your plugin is about".to_owned(),
+        prompt: "Please enter your plugin description".to_owned(),
+        filters: vec![]
+     };
+
+     assert_eq!(second, &expected_second)
+  }
 }

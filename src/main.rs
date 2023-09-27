@@ -10,13 +10,12 @@ use args::DefaultUserConfigProvider;
 
 use error::ZatActionX;
 
-use templates::template_variable_provider::TemplateVariableProvider;
-use templates::default_template_variable_provider::DefaultTemplateVariableProvider;
-
-use templates::template_config_validator::TemplateConfigValidator;
-use templates::default_template_config_validator::DefaultTemplateConfigValidator;
-use templates::template_config_validator::TemplateVariableReview;
-use templates::template_config_validator::ValidConfig;
+use templates::TemplateVariableProvider;
+use templates::DefaultTemplateVariableProvider;
+use templates::TemplateConfigValidator;
+use templates::DefaultTemplateConfigValidator;
+use templates::TemplateVariableReview;
+use templates::ValidConfig;
 
 use token_expander::expand_filters::ExpandFilters;
 use token_expander::default_expand_filters::DefaultExpandFilters;

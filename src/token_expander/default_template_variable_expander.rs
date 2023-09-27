@@ -1,6 +1,5 @@
 use crate::token_expander::template_variable_expander::{ExpandedVariables, TemplateVariableExpander, ExpandedKey, ExpandedValue, DEFAULT_FILTER,};
-use crate::templates::variables::TemplateVariables;
-use crate::templates::variables::{UserVariableKey, UserVariableValue, FilterType};
+use crate::templates::{TemplateVariables, UserVariableKey, UserVariableValue, FilterType};
 use std::collections::HashMap;
 use super::filter_applicator::FilterApplicator;
 
@@ -77,7 +76,7 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
 mod tests {
 
   use super::*;
-  use crate::{templates::variables::TemplateVariables, token_expander::default_template_variable_expander::DefaultTemplateVariableExpander};
+  use crate::{templates::TemplateVariables, token_expander::default_template_variable_expander::DefaultTemplateVariableExpander};
 
   struct FilterNameFilterApplicator;
 

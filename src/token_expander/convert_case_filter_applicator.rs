@@ -1,10 +1,10 @@
 use super::filter_applicator::FilterApplicator;
-use crate::templates::variables::FilterType;
+use crate::templates::FilterType;
 use convert_case::{Case, Casing};
 
 pub struct ConvertCaseFilterApplicator;
 
-  // See: https://docs.rs/convert_case/latest/convert_case/enum.Case.html
+// See: https://docs.rs/convert_case/latest/convert_case/enum.Case.html
 impl FilterApplicator for ConvertCaseFilterApplicator {
   fn apply_filter(&self, filter_type: &FilterType, value: &str) -> String {
     match filter_type {

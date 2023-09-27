@@ -1,6 +1,6 @@
 use crate::error::ZatResultX;
 use crate::config::UserConfig;
-use super::variables::TemplateVariables;
+use super::TemplateVariables;
 
 /// Behaviour to return tokens defined in a template
 pub trait TemplateVariableProvider {

@@ -1,8 +1,8 @@
 use crate::error::*;
-use crate::templates::template_variable_provider::TemplateVariableProvider;
+use crate::TemplateVariableProvider;
 use crate::config::UserConfig;
 use crate::config::VariableFile;
-use super::variables::{TemplateVariable, TemplateVariables};
+use super::{TemplateVariable, TemplateVariables};
 use std::fs::File;
 use std::io::{Read, Write};
 
