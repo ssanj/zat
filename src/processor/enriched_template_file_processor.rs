@@ -1,6 +1,6 @@
 use super::DestinationFile;
 use super::SourceFile;
-use crate::error::ZatResultX;
+use crate::error::ZatResult;
 use super::StringTokenReplacer;
 
 #[derive(PartialEq, Debug)]
@@ -10,5 +10,5 @@ pub enum EnrichedTemplateFile {
 }
 
 pub trait EnrichedTemplateFileProcessor {
-  fn process_enriched_template_files(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResultX<()>;
+  fn process_enriched_template_files(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResult<()>;
   }

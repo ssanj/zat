@@ -1,4 +1,4 @@
-use crate::error::ZatResultX;
+use crate::error::ZatResult;
 use super::SourceFile;
 use super::DestinationFile;
 use super::StringTokenReplacer;
@@ -12,5 +12,5 @@ use super::StringTokenReplacer;
 ///   Given: README.md.tmpl -> README.md (any tokens in README.md.tmpl will be replaced, before it is written out)
 ///   Given: README.md -> README.md (any tokens in README.md will NOT be replaced)
 pub trait FileWriter  {
-  fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()>;
+  fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResult<()>;
 }

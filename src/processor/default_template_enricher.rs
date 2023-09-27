@@ -1,7 +1,7 @@
 use std::path::Path;
 use super::destination_file::DestinationFile;
 use super::file_traverser::TemplateFile;
-use crate::error::ZatResultX;
+use crate::error::ZatResult;
 use super::source_file::SourceFile;
 use crate::config::UserConfig;
 use super::template_enricher::TemplateEnricher;
@@ -18,7 +18,7 @@ impl DefaultTemplateEnricher {
     }
   }
 
-  fn get_destination_file<P1, P2>(source_file: &SourceFile, source_root_path: P1, destination_root_path: P2) -> ZatResultX<DestinationFile>
+  fn get_destination_file<P1, P2>(source_file: &SourceFile, source_root_path: P1, destination_root_path: P2) -> ZatResult<DestinationFile>
     where P1: AsRef<Path>,
           P2: AsRef<Path>
   {
@@ -32,7 +32,7 @@ impl DefaultTemplateEnricher {
 }
 
 impl TemplateEnricher for DefaultTemplateEnricher {
-  fn enrich(&self, template_file: TemplateFile) ->  ZatResultX<EnrichedTemplateFile>  {
+  fn enrich(&self, template_file: TemplateFile) ->  ZatResult<EnrichedTemplateFile>  {
 
     let template_dir_path = &self.config.template_dir;
     let destination_dir_path = &self.config.target_dir;

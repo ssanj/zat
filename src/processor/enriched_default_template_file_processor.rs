@@ -1,5 +1,5 @@
 // TODO: rename file to: default_enriched_template_file_processor
-use crate::error::{ZatResultX, ZatError};
+use crate::error::{ZatResult, ZatError};
 use super::{EnrichedTemplateFileProcessor, EnrichedTemplateFile, FileWriter, DirectoryCreator, DefaultFileWriter, DefaultDirectoryCreator, StringTokenReplacer};
 
 pub struct DefaultEnrichedTemplateFileProcessor<'a> {
@@ -25,7 +25,7 @@ impl <'a> DefaultEnrichedTemplateFileProcessor<'a> {
 
 impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> {
 
-  fn process_enriched_template_files(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+  fn process_enriched_template_files(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
 
     let results: Vec<Result<(), ZatError>> =
       template_files
@@ -72,14 +72,14 @@ mod tests {
 
     impl FileWriter for Succeeding {
 
-      fn write_source_to_destination(&self, _source_file: &SourceFile, _destination_file: &DestinationFile, _token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+      fn write_source_to_destination(&self, _source_file: &SourceFile, _destination_file: &DestinationFile, _token_replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
         Ok(())
       }
     }
 
     impl DirectoryCreator for Succeeding {
 
-      fn create_directory(&self, _destination_directory: &DestinationFile, _replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+      fn create_directory(&self, _destination_directory: &DestinationFile, _replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
         Ok(())
       }
     }
@@ -107,7 +107,7 @@ mod tests {
     }
 
     impl <'a> FileWriter for Failing<'a> {
-      fn write_source_to_destination(&self, source_file: &SourceFile, _destination_file: &DestinationFile, _token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+      fn write_source_to_destination(&self, source_file: &SourceFile, _destination_file: &DestinationFile, _token_replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
         if self.source_files.contains(&source_file) {
           Err(ZatError::WritingFileError(format!("Could not write file: {}", source_file)))
         } else {
@@ -117,7 +117,7 @@ mod tests {
     }
 
     impl <'a> DirectoryCreator for Failing<'a> {
-      fn create_directory(&self, destination_directory: &DestinationFile, _replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+      fn create_directory(&self, destination_directory: &DestinationFile, _replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
         if self.destination_files.contains(&destination_directory) {
           Err(ZatError::WritingFileError(format!("Could not write file: {}", destination_directory)))
         } else {

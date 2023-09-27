@@ -2,4 +2,4 @@ pub mod error;
 
 pub use error::ZatActionX;
 pub use error::ZatError;
-pub use error::ZatResultX;
+pub use error::ZatResult;

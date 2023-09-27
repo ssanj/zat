@@ -41,7 +41,7 @@ impl DefaultUserConfigProvider {
 }
 
 impl UserConfigProvider for DefaultUserConfigProvider {
-  fn get_config(&self) -> ZatResultX<UserConfig> {
+  fn get_config(&self) -> ZatResult<UserConfig> {
     let args = self.arg_supplier.get_args();
 
     let template_dir = TemplateDir::new(&args.template_dir);

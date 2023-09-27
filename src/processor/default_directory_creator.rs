@@ -1,13 +1,13 @@
 use super::DirectoryCreator;
 use super::DestinationFile;
-use crate::error::{ZatError, ZatResultX};
+use crate::error::{ZatError, ZatResult};
 use super::StringTokenReplacer;
 use std::fs;
 
 pub struct DefaultDirectoryCreator;
 
 impl DirectoryCreator for DefaultDirectoryCreator {
-    fn create_directory(&self, destination_directory: &DestinationFile, replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+    fn create_directory(&self, destination_directory: &DestinationFile, replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
 
     let directory_path_with_tokens_replaced = destination_directory.map(|dd| replacer.replace(dd));
 

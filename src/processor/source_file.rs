@@ -1,6 +1,6 @@
 use std::{fmt, path::Path};
 use std::fs;
-use crate::error::{ZatResultX, ZatError};
+use crate::error::{ZatResult, ZatError};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SourceFile(pub String);
@@ -13,7 +13,7 @@ impl SourceFile {
     Self(file.to_owned())
   }
 
-  pub fn read(&self) -> ZatResultX<String> {
+  pub fn read(&self) -> ZatResult<String> {
     fs::read(&self.0)
       .map_err(|e|{
         ZatError::ReadingFileError(format!("Could not read source file: {}\nCause: {}", self.0.as_str(), e.to_string()))
@@ -31,7 +31,7 @@ impl SourceFile {
       })
   }
 
-  pub fn strip_prefix<P>(&self, prefix: P)  -> ZatResultX<String>
+  pub fn strip_prefix<P>(&self, prefix: P)  -> ZatResult<String>
     where P: AsRef<Path>
   {
     Path::new(&self.0)

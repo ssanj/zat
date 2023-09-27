@@ -1,7 +1,7 @@
 use super::FileWriter;
 use super::SourceFile;
 use super::DestinationFile;
-use crate::error::{ZatError, ZatResultX};
+use crate::error::{ZatError, ZatResult};
 use super::StringTokenReplacer;
 use std::{fs, path::Path, fmt::Display};
 
@@ -9,7 +9,7 @@ pub struct DefaultFileWriter;
 
 impl FileWriter for DefaultFileWriter {
 
-  fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResultX<()> {
+  fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
     let content = source_file.read()?;
 
     let target_file_name_tokens_applied = destination_file.map(|df| token_replacer.replace(df));
@@ -26,7 +26,7 @@ impl FileWriter for DefaultFileWriter {
 }
 
 impl DefaultFileWriter {
-  fn write_file<C, T>(target_file_with_tokens_replaced: T, content: C) -> ZatResultX<()> where
+  fn write_file<C, T>(target_file_with_tokens_replaced: T, content: C) -> ZatResult<()> where
     T: AsRef<Path> + Display,
     C: AsRef<[u8]>
   {

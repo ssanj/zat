@@ -1,4 +1,4 @@
-pub type ZatResultX<A> = Result<A, ZatError>;
+pub type ZatResult<A> = Result<A, ZatError>;
 pub type ZatActionX = Result<(), ZatError>;
 
 

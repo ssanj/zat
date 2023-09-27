@@ -1,4 +1,4 @@
-use crate::error::{ZatResultX, ZatActionX};
+use crate::error::{ZatResult, ZatActionX};
 
 use super::ProcessTemplates;
 use super::RegExFileChooser;
@@ -36,7 +36,7 @@ impl ProcessTemplates for DefaultProcessTemplates {
       files_to_process
         .into_iter()
         .map(|tf| template_enricher.enrich(tf)) // adds relative target file directory paths for each template
-        .collect::<ZatResultX<Vec<EnrichedTemplateFile>>>()
+        .collect::<ZatResult<Vec<EnrichedTemplateFile>>>()
         .and_then(|enriched_templates|{
           // Writes out files and directories for each enriched template files while
           // replacing any tokens in the file names and content

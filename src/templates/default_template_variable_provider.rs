@@ -17,7 +17,7 @@ impl DefaultTemplateVariableProvider {
 // TODO: Should we move the file checks to a fake file system?
 // That would make it easier to test and lead to more reuse of code
 impl TemplateVariableProvider for DefaultTemplateVariableProvider {
-  fn get_tokens(&self, user_config: UserConfig) -> ZatResultX<TemplateVariables> {
+  fn get_tokens(&self, user_config: UserConfig) -> ZatResult<TemplateVariables> {
     let variables_file: VariableFile = VariableFile::from(user_config.template_dir);
 
     let tokens: Vec<TemplateVariable> =
