@@ -1,5 +1,5 @@
 pub mod error;
 
-pub use error::ZatActionX;
+pub use error::ZatAction;
 pub use error::ZatError;
 pub use error::ZatResult;

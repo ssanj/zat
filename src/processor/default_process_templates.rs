@@ -1,4 +1,4 @@
-use crate::error::{ZatResult, ZatActionX};
+use crate::error::{ZatResult, ZatAction};
 
 use super::ProcessTemplates;
 use super::RegExFileChooser;
@@ -14,7 +14,7 @@ use crate::config::UserConfig;
 pub struct DefaultProcessTemplates;
 
 impl ProcessTemplates for DefaultProcessTemplates {
-    fn process_templates(&self, user_config: UserConfig, tokenized_key_expanded_variables: crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables) -> ZatActionX {
+    fn process_templates(&self, user_config: UserConfig, tokenized_key_expanded_variables: crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables) -> ZatAction {
       let ignores: Vec<&str> =
         user_config
           .ignores.ignores

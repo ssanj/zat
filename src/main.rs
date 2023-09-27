@@ -8,7 +8,7 @@ mod processor;
 use args::UserConfigProvider;
 use args::DefaultUserConfigProvider;
 
-use error::ZatActionX;
+use error::ZatAction;
 
 use templates::TemplateVariableProvider;
 use templates::DefaultTemplateVariableProvider;
@@ -30,7 +30,7 @@ fn main() {
   }
 }
 
-fn run_zat() -> ZatActionX {
+fn run_zat() -> ZatAction {
   // Verifies that the source dir exists, and the destination does not and handles ignores (defaults and supplied).
   // Basically everything from the cli config.
   let config_provider = DefaultUserConfigProvider::new();
