@@ -59,7 +59,7 @@ mod tests {
     fn includes_all_without_filters() {
       let filters = vec![];
       let file_chooser = RegExFileChooser::new(&filters).unwrap();
-      assert!(file_chooser.is_included(TemplateFile::new_file(".variables.prompt")));
+      assert!(file_chooser.is_included(TemplateFile::new_file(".variables.zat-prompt")));
       assert!(file_chooser.is_included(TemplateFile::new_dir("/some/path/included")));
     }
 
@@ -67,7 +67,7 @@ mod tests {
     fn ignores_nothing_without_filters() {
       let filters = vec![];
       let file_chooser = RegExFileChooser::new(&filters).unwrap();
-      assert!(!file_chooser.is_ignored(TemplateFile::new_file(".variables.prompt")));
+      assert!(!file_chooser.is_ignored(TemplateFile::new_file(".variables.zat-prompt")));
       assert!(!file_chooser.is_ignored(TemplateFile::new_dir("/some/path/included")));
     }
 
@@ -76,14 +76,14 @@ mod tests {
       let filters =
         vec!
           [
-            ".variables.prompt",
+            ".variables.zat-prompt",
             r"/some/path/excluded/.+\.txt", // matches nested folders as well
           ];
 
       let file_chooser = RegExFileChooser::new(&filters).unwrap();
 
       // Should be ignored
-      assert!(file_chooser.is_ignored(TemplateFile::new_file(".variables.prompt")));
+      assert!(file_chooser.is_ignored(TemplateFile::new_file(".variables.zat-prompt")));
       assert!(file_chooser.is_ignored(TemplateFile::new_file("/some/path/excluded/some_file.txt")));
       assert!(file_chooser.is_ignored(TemplateFile::new_file("/some/path/excluded/nested/some_other_file.txt")));
       assert!(file_chooser.is_ignored(TemplateFile::new_file("/some/path/excluded/nested1/nested2/nested.txt")));

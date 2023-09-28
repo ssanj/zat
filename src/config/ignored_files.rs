@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-
+use super::DOT_VARIABLES_PROMPT;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IgnoredFiles {
@@ -7,9 +7,8 @@ pub struct IgnoredFiles {
 }
 
 impl IgnoredFiles {
-  pub const DOT_VARIABLES_DOT_PROMPT: &'static str  = ".variables.prompt";
   pub const DOT_GIT: &'static str  = ".git";
-  pub const DEFAULT_IGNORES: [&str; 2] = [Self::DOT_VARIABLES_DOT_PROMPT, Self::DOT_GIT];
+  pub const DEFAULT_IGNORES: [&str; 2] = [DOT_VARIABLES_PROMPT, Self::DOT_GIT];
 
   pub fn default_ignores() -> Vec<String> {
     Self::DEFAULT_IGNORES

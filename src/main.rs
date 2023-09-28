@@ -36,7 +36,7 @@ fn run_zat() -> ZatAction {
   let config_provider = DefaultUserConfigProvider::new();
   let user_config = config_provider.get_config()?;
 
-  // Reads the .variables.prompt file into TemplateVariables
+  // Reads the .variables.zat-prompt file into TemplateVariables
   let template_variable_provider = DefaultTemplateVariableProvider::new();
   let template_variables = template_variable_provider.get_tokens(user_config.clone())?;
 

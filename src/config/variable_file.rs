@@ -6,9 +6,9 @@ pub struct VariableFile {
   path: String
 }
 
-impl VariableFile {
+pub const DOT_VARIABLES_PROMPT: &'static str  = ".variables.zat-prompt";
 
-  pub const PATH: &'static str  = ".variables.prompt";
+impl VariableFile {
 
   pub fn does_exist(&self) -> bool {
     Path::new(&self.path).exists()
@@ -17,7 +17,7 @@ impl VariableFile {
 
 impl From<TemplateDir> for VariableFile {
   fn from(template_dir: TemplateDir) -> Self {
-      let variables_file = template_dir.join(VariableFile::PATH);
+      let variables_file = template_dir.join(DOT_VARIABLES_PROMPT);
       VariableFile {
         path: variables_file.display().to_string()
       }

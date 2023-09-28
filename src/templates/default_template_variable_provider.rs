@@ -49,6 +49,7 @@ mod tests {
   use crate::config::Filters;
   use crate::config::TargetDir;
   use crate::config::TemplateDir;
+  use crate::config::DOT_VARIABLES_PROMPT;
 
   #[test]
   fn tokens_are_empty_if_variable_file_does_not_exist() {
@@ -80,7 +81,7 @@ mod tests {
 
     let template_dir_path = template_dir.path().display().to_string();
     let target_dir_path = target_dir.path().display().to_string();
-    let variable_file_path = template_dir.path().join(VariableFile::PATH);
+    let variable_file_path = template_dir.path().join(DOT_VARIABLES_PROMPT);
 
     let mut variable_file = File::create(variable_file_path).unwrap();
 
@@ -134,7 +135,7 @@ mod tests {
 
     let template_dir_path = template_dir.path().display().to_string();
     let target_dir_path = target_dir.path().display().to_string();
-    let variable_file_path = template_dir.path().join(VariableFile::PATH);
+    let variable_file_path = template_dir.path().join(DOT_VARIABLES_PROMPT);
 
     let mut variable_file = File::create(variable_file_path).unwrap();
 

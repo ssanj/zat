@@ -4,7 +4,7 @@ use super::cli::Args;
 use super::cli;
 use crate::config::UserConfig;
 use crate::config::IgnoredFiles;
-use crate::config::VariableFile;
+use crate::config::DOT_VARIABLES_PROMPT;
 use crate::config::Filters;
 use crate::config::TargetDir;
 use crate::config::TemplateDir;
@@ -50,7 +50,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
     let template_dir_exists = &template_dir.does_exist();
     let target_dir_exists = &target_dir.does_exist();
 
-    let default_ignores = vec![VariableFile::PATH.to_owned(), ".git".to_owned()];
+    let default_ignores = vec![DOT_VARIABLES_PROMPT.to_owned(), ".git".to_owned()];
 
     let ignores_with_defaults =
       default_ignores

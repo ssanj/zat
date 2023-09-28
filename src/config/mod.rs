@@ -8,6 +8,7 @@ pub mod target_directory;
 
 pub use ignored_files::IgnoredFiles;
 pub use variable_file::VariableFile;
+pub use variable_file::DOT_VARIABLES_PROMPT;
 pub use user_config::UserConfig;
 pub use filters::Filters;
 pub use template_directory::TemplateDir;
