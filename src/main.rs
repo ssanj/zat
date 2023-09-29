@@ -1,74 +1,64 @@
-use std::ffi::OsStr;
-use std::io::{stdin, BufRead};
-use std::{fs::create_dir, collections::HashMap, path::Path};
+mod args;
+mod templates;
+mod error;
+mod config;
+mod token_expander;
+mod processor;
 
-use tokens::UserSelection;
-use walkdir::{WalkDir, DirEntry};
-use std::fs::{self, File};
-use std::io::Read;
-use crate::models::*;
-use crate::variables::*;
-use crate::cli::Args;
-use aho_corasick::AhoCorasick;
-use crate::variable_extractor::VariableExtractor;
-use crate::behaviours::VariableValidationResponse;
+use args::UserConfigProvider;
+use args::DefaultUserConfigProvider;
 
-mod models;
-mod variables;
-mod tokens;
-mod cli;
-mod template_processor;
-mod behaviours;
-mod prod;
-mod variable_extractor;
+use error::ZatAction;
+
+use templates::TemplateVariableProvider;
+use templates::DefaultTemplateVariableProvider;
+use templates::TemplateConfigValidator;
+use templates::DefaultTemplateConfigValidator;
+use templates::TemplateVariableReview;
+use templates::ValidConfig;
+
+use token_expander::ExpandFilters;
+use token_expander::DefaultExpandFilters;
+
+use crate::processor::ProcessTemplates;
+use crate::processor::DefaultProcessTemplates;
 
 fn main() {
-  run_zat()
-}
-
-fn run_zat() {
-  let instance = prod::Prod;
-
-  let extractor = VariableExtractor {
-    value: instance
-  };
-
-  let cli_args = cli::get_cli_args();
-
-  let template_dir = TemplateDir::new(&cli_args.template);
-  let target_dir = TargetDir::new(&cli_args.destination);
-
-  let template_path_exists = does_path_exist(&template_dir); // Move this to a behaviour
-  let target_path_exists = does_path_exist(&target_dir); // Move this to a behaviour
-
-  if template_path_exists && !target_path_exists {
-    let variables_file = Path::new(&template_dir.path).join(".variables.prompt"); // Move this to a behaviour
-
-    match extractor.extract_variables(&variables_file) {
-     Ok(VariableValidationResponse::UserQuit) => println!("~ Goodbye"),
-     Ok(VariableValidationResponse::Continue(user_tokens_supplied)) => {
-        match template_processor::process_template(&template_dir, &target_dir, user_tokens_supplied.0) {
-          Ok(_) => {},
-          Err(e) => eprintln!("Could not generate template: {}", e.inner_error())
-        }
-      },
-      Err(_) => eprintln!("got an error!") // TODO: Fix
-      // Err(ZatError::SerdeError(e)) => eprintln!("Could not decode variables.prompt file: {}", e),
-      // Err(ZatError::IOError(e)) => eprintln!("Error read variables.prompt file: {}", e),
-      // Err(ZatError::OtherError(e)) => eprintln!("An error occurred processing the variables.prompt file: {}", e)
-    }
-  } else if !template_path_exists {
-    eprintln!("Template path does not exist: {}", &template_dir.path)
-  } else {
-    eprintln!("Target path already exists: {}. Please supply an empty directory for the target", &target_dir.path)
+  match run_zat() {
+    Ok(_) => println!("Zat completed successfully."),
+    Err(error) => eprintln!("Zat failed with the following error: \n  {}", error),
   }
 }
 
-fn does_path_exist<A>(path: A) -> bool where
-  A: AsRef<OsStr>
-{
-  Path::new(&path).exists()
+fn run_zat() -> ZatAction {
+  // Verifies that the source dir exists, and the destination does not and handles ignores (defaults and supplied).
+  // Basically everything from the cli config.
+  let config_provider = DefaultUserConfigProvider::new();
+  let user_config = config_provider.get_config()?;
+
+  // Reads the .variables.zat-prompt file into TemplateVariables
+  let template_variable_provider = DefaultTemplateVariableProvider::new();
+  let template_variables = template_variable_provider.get_tokens(user_config.clone())?;
+
+  // Ask for the user for the value of each variable
+  // Then verify all the variables supplied are correct
+  let template_config_validator = DefaultTemplateConfigValidator::new();
+  let template_variable_review = template_config_validator.validate(user_config.clone(), template_variables.clone());
+
+  println!("config: {:?}", user_config);
+  println!("variables: {:?}", template_variables);
+  println!("variable review: {:?}", template_variable_review);
+
+  match template_variable_review {
+    TemplateVariableReview::Accepted(ValidConfig { user_variables, user_config: _ }) => {
+      let expand_filters = DefaultExpandFilters::new();
+      let tokenized_key_expanded_variables = expand_filters.expand_filers(template_variables, user_variables);
+      println!("tokenized variables: {:?}", &tokenized_key_expanded_variables);
+
+      DefaultProcessTemplates.process_templates(user_config, tokenized_key_expanded_variables)?;
+    },
+    TemplateVariableReview::Rejected => println!("The user rejected the variables.")
+  }
+
+  Ok(())
 }
-
-
-

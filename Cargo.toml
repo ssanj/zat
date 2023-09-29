@@ -1,6 +1,6 @@
 [package]
 name = "zat"
-version = "0.1.5"
+version = "0.2.0"
 edition = "2021"
 authors = ["Sanj Sahayam"]
 
@@ -13,6 +13,12 @@ serde = { version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 convert_case = "0.5"
 clap = { version = "3.2.20", features = ["derive"] }
+regex = "1.7"
+ansi_term = "0.12"
 
 [dev-dependencies]
 pretty_assertions = "1.0"
+tempfile = "3.3"
+assert_cmd = "2.0"
+dir-diff="0.3"
+similar="2.2"

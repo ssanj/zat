@@ -36,9 +36,9 @@ OPTIONS:
 
 ## Defining a template
 
-### variables.prompt
+### variables prompt
 
-Define a file named `variables.prompt` in the root of your template folder. This file will determine the variables that can be used within the project, either as variable substitutions for file and directory names or file content with a files with the `.tmpl` suffix.
+Define a file named `.variables.zat-prompt` in the root of your template folder. This file will determine the variables that can be used within the project, either as variable substitutions for file and directory names or file content with a files with the `.tmpl` suffix.
 
 When you run use template you will be prompted to enter the values of the defined variables.
 
