@@ -34,7 +34,7 @@ fn runs_a_simple_template() -> Result<(), Box<dyn std::error::Error>> {
     .arg("./tests/examples/simple/template")
     .arg("--target-dir")
     .arg(&target_directory)
-    .write_stdin("YouOnlyLiveOnce\ny\n")
+    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
     .assert()
     .success();
 
@@ -59,7 +59,7 @@ fn runs_a_sublime_plugin_template() -> Result<(), Box<dyn std::error::Error>> {
     .arg(&template_directory)
     .arg("--target-dir")
     .arg(&target_directory)
-    .write_stdin("HelloWorld\nSays Hello\ny\n")
+    .write_stdin(stdin(&["HelloWorld", "Says Hello", "y"]))
     .assert()
     .success();
 
@@ -68,4 +68,12 @@ fn runs_a_sublime_plugin_template() -> Result<(), Box<dyn std::error::Error>> {
   assert!(!dir_diff::is_different(&target_directory, expected_target_directory).unwrap());
 
   Ok(())
+}
+
+fn stdin(responses: &[&str]) -> String {
+  let delimited =
+    responses
+      .join("\n");
+
+  format!("{}\n", delimited) // add the extra newline for complete the final answer
 }
