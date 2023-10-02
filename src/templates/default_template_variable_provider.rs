@@ -50,6 +50,9 @@ mod tests {
   use crate::config::TargetDir;
   use crate::config::TemplateDir;
   use crate::config::DOT_VARIABLES_PROMPT;
+  use super::super::FilterType;
+  use super::super::VariableFilter;
+  use pretty_assertions::assert_eq;
 
   #[test]
   fn tokens_are_empty_if_variable_file_does_not_exist() {
@@ -93,20 +96,21 @@ mod tests {
           "variable_name": "project",
           "description": "Name of project",
           "prompt": "Please enter your project name",
-              "filters": [
-                {
-                  "name":"python",
-                  "filter": "Snake"
-                },
-                { "name": "Command",
-                  "filter": "Pascal"
-                }
-              ]
+          "filters": [
+            {
+              "name":"python",
+              "filter": "Snake"
+            },
+            { "name": "Command",
+              "filter": "Pascal"
+            }
+          ]
         },
         {
           "variable_name": "plugin_description",
           "description": "Explain what your plugin is about",
-          "prompt": "Please enter your plugin description"
+          "prompt": "Please enter your plugin description",
+          "default_value": "Some plugin description"
         }
       ]
     "#;
@@ -122,8 +126,36 @@ mod tests {
       ignores: IgnoredFiles::default()
     };
 
+
+    let expected_tokens =
+      TemplateVariables {
+        tokens:
+          vec![
+            TemplateVariable::new(
+              "project",
+              "Name of project",
+              "Please enter your project name",
+              VariableFilter::from_pairs(
+                &[
+                  ("python", &FilterType::Snake),
+                  ("Command", &FilterType::Pascal)
+                ]
+              ).as_ref(),
+              None
+            ),
+            TemplateVariable::new (
+              "plugin_description",
+              "Explain what your plugin is about",
+              "Please enter your plugin description",
+              &[],
+              Some("Some plugin description")
+            ),
+          ]
+      };
+
     let tokens = template_config_provider.get_tokens(user_config).expect("Expected to get tokens");
-    assert_eq!(tokens.tokens.len(), 2);
+
+    assert_eq!(tokens, expected_tokens);
 
     drop(variable_file);
   }

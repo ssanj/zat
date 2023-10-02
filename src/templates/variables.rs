@@ -5,6 +5,14 @@ pub struct TemplateVariables {
   pub tokens: Vec<TemplateVariable>
 }
 
+impl TemplateVariables {
+  pub fn new(tokens: &[TemplateVariable]) -> Self {
+    Self {
+      tokens: Vec::from_iter(tokens.iter().map(|v| v.clone()))
+    }
+  }
+}
+
 impl Default for TemplateVariables {
   fn default() -> Self {
     TemplateVariables {
@@ -13,13 +21,29 @@ impl Default for TemplateVariables {
   }
 }
 
+
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct TemplateVariable {
   pub variable_name: String,
   pub description: String,
   pub prompt: String,
   #[serde(default)] // use default value if not found in the input
-  pub filters: Vec<VariableFilter>
+  pub filters: Vec<VariableFilter>,
+
+  #[serde(default)] // use default value if not found in the input
+  pub default_value: Option<String>
+}
+
+impl TemplateVariable {
+  pub fn new(variable_name: &str, description: &str, prompt: &str, filters: &[VariableFilter], default_value: Option<&str>) -> Self {
+    Self {
+      variable_name: variable_name.to_owned(),
+      description:description.to_owned(),
+      prompt: prompt.to_owned(),
+      filters: Vec::from_iter(filters.iter().map(|v| v.clone())),
+      default_value: default_value.map(|v| v.to_owned())
+    }
+  }
 }
 
 #[derive(Hash, Debug, Clone, PartialEq, Eq)]
@@ -54,6 +78,24 @@ pub struct VariableFilter {
   pub filter: FilterType // make this an ADT
 }
 
+impl VariableFilter {
+  pub fn new(name: &str, filter: &FilterType) -> Self {
+    Self {
+      name: name.to_owned(),
+      filter: filter.clone()
+    }
+  }
+
+  pub fn from_pairs(values: &[(&str, &FilterType)]) -> Vec<VariableFilter> {
+    Vec::from_iter(
+      values
+        .iter()
+        .map(|(n, f)| VariableFilter::new(n, f))
+    )
+  }
+}
+
+
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub enum FilterType {
   Camel,
@@ -81,15 +123,16 @@ mod test {
           "variable_name": "project",
           "description": "Name of project",
           "prompt": "Please enter your project name",
-              "filters": [
-                {
-                  "name":"python",
-                  "filter": "Snake"
-                },
-                { "name": "Command",
-                  "filter": "Pascal"
-                }
-              ]
+          "default_value": "Some Project",
+          "filters": [
+            {
+              "name":"python",
+              "filter": "Snake"
+            },
+            { "name": "Command",
+              "filter": "Pascal"
+            }
+          ]
         },
         {
           "variable_name": "plugin_description",
@@ -107,6 +150,7 @@ mod test {
         variable_name: "project".to_owned(),
         description: "Name of project".to_owned(),
         prompt: "Please enter your project name".to_owned(),
+        default_value: Some("Some Project".to_owned()),
         filters: vec![
           VariableFilter {
             name: "python".to_owned(),
@@ -127,6 +171,7 @@ mod test {
         variable_name: "plugin_description".to_owned(),
         description: "Explain what your plugin is about".to_owned(),
         prompt: "Please enter your plugin description".to_owned(),
+        default_value: None,
         filters: vec![]
      };
 

@@ -191,6 +191,7 @@ mod tests {
       variable_name: name.to_owned(),
       description: String::default(),
       prompt: String::default(),
+      default_value: None,
       filters: Vec::default(),
     }
   }
