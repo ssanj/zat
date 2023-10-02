@@ -1,5 +1,5 @@
 # YouOnlyLiveOnce
 
-Enter the description of your project here.
+Some project description
 
 Folders will be like: you_only_live_once

@@ -34,7 +34,7 @@ fn runs_a_simple_template() -> Result<(), Box<dyn std::error::Error>> {
     .arg("./tests/examples/simple/template")
     .arg("--target-dir")
     .arg(&target_directory)
-    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
+    .write_stdin(stdin(&["YouOnlyLiveOnce", "", "y"]))
     .assert()
     .success();
 

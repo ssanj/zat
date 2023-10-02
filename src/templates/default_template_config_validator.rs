@@ -1,9 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, format};
 use std::io::BufRead;
 
 use crate::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
 use super::{UserVariableValue, UserVariableKey, TemplateVariables};
 use crate::config::UserConfig;
+use ansi_term::Colour::{Yellow, Green, Blue};
+use ansi_term::Style;
 
 // This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
 trait UserInputProvider {
@@ -19,7 +21,6 @@ enum UserVariablesValidity {
   Invalid
 }
 
-//TODO: Should we move this into a common models package?
 struct Cli;
 
 
@@ -30,13 +31,32 @@ impl UserInputProvider for Cli {
       println!("");
 
       for v in template_variables.tokens {
-        println!("{}. {}", v.description, v.prompt);
+        let default_value = {
+          match v.default_value {
+            Some(default_value) => default_value,
+            None  => "".to_owned()
+          }
+        };
+
+        let default_string =
+          if default_value.is_empty() {
+            "".to_owned()
+          } else {
+            format!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(&default_value))
+          };
+
+        println!("{}{}", Yellow.paint(v.prompt), default_string);
         let mut variable_value = String::new();
         if let Ok(read_count) = stdin.read_line(&mut variable_value) {
           if read_count > 0 { //read at least one character
             let _ = variable_value.pop(); // remove newline
             if !variable_value.is_empty() {
               token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(variable_value));
+            } else {
+              // check for default value
+              if !default_value.is_empty() {
+                token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(default_value));
+              }
             }
           }
         }
@@ -61,16 +81,16 @@ impl UserTemplateVariableValidator for Cli {
 
 impl Cli {
   fn print_user_input(user_variables: &HashMap<UserVariableKey, UserVariableValue>) {
-    println!("\nSupplied Values\n---------------\n");
+    println!("\n{}\n", Yellow.paint("Please confirm the variable mappings below are correct."));
 
     for t in user_variables.iter() {
-      println!("{} -> {}", &t.0.value, &t.1.value)
+      println!("{} -> {}", Blue.paint(&t.0.value), Green.paint(&t.1.value))
     }
   }
 
   fn check_user_input() -> UserVariablesValidity {
     // Check if variables are ok
-    println!("Please confirm that the variable mappings are correct. Press [y]es if correct, and any other key if not.");
+    println!("\nPress [y]es if correct, and any other key if not.");
     let mut user_response = String::new();
     let stdin = std::io::stdin();
     let mut handle = stdin.lock();
