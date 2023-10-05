@@ -44,6 +44,7 @@ impl WalkDirFileTraverser {
   }
 }
 
+// TODO: This test is hard to understand. Refactor.
 #[cfg(test)]
 mod tests {
     use super::super::regex_file_chooser::RegExFileChooser;
