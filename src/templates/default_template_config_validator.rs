@@ -253,12 +253,7 @@ mod tests {
 
 
     let user_config =
-      UserConfig {
-        template_dir: TemplateDir::new("template_dir"),
-        target_dir: TargetDir::new("target_idr"),
-        filters: Filters::default(),
-        ignores: IgnoredFiles::default()
-    };
+      UserConfig::new("template_dir", "target_idr");
 
     let user_template_variables =
       AcceptedUserTemplateVariables {
@@ -292,12 +287,7 @@ mod tests {
     let template_variables = TemplateVariables::default();
 
     let user_config =
-      UserConfig {
-        template_dir: TemplateDir::new("template_dir"),
-        target_dir: TargetDir::new("target_idr"),
-        filters: Filters::default(),
-        ignores: IgnoredFiles::default()
-    };
+      UserConfig::new("template_dir", "target_idr");
 
     let validation_result = config_validator.validate(user_config, template_variables);
 

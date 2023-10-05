@@ -68,6 +68,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
       Ok(
         UserConfig {
           template_dir,
+          template_files_dir: template_files_dir.clone(),
           target_dir,
           filters,
           ignores

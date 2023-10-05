@@ -96,13 +96,7 @@ mod tests {
 
     let template_config_provider = DefaultTemplateVariableProvider::new();
 
-    let user_config = UserConfig {
-      template_dir: TemplateDir::new(&template_dir_path),
-      target_dir: TargetDir::new(&target_dir_path),
-      filters: Filters::default(),
-      ignores: IgnoredFiles::default()
-    };
-
+    let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
 
     let expected_tokens =
       TemplateVariables {
@@ -163,12 +157,7 @@ mod tests {
 
     let template_config_provider = DefaultTemplateVariableProvider::new();
 
-    let user_config = UserConfig {
-      template_dir: TemplateDir::new(&template_dir_path),
-      target_dir: TargetDir::new(&target_dir_path),
-      filters: Filters::default(),
-      ignores: IgnoredFiles::default()
-    };
+    let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
 
     match template_config_provider.get_tokens(user_config) {
       Err(ZatError::VariableDecodeError(_)) => assert!(true),
@@ -190,12 +179,7 @@ mod tests {
 
     let template_config_provider = DefaultTemplateVariableProvider::new();
 
-    let user_config = UserConfig {
-      template_dir: TemplateDir::new(&template_dir_path),
-      target_dir: TargetDir::new(&target_dir_path),
-      filters: Filters::default(),
-      ignores: IgnoredFiles::default()
-    };
+    let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
 
     match template_config_provider.get_tokens(user_config) {
       Err(ZatError::VariableFileNotFound(_)) => assert!(true),

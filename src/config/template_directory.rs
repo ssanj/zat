@@ -55,6 +55,7 @@ impl AsRef<OsStr> for TemplateDir {
   }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct TemplateFilesDir {
   path: String
 }
