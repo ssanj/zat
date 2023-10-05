@@ -150,12 +150,11 @@ mod tests {
       };
 
       let expected_files =
-        |template_dir_path: TemplateDirectory, input_dir_path: InputDirectory, output_dir_path: OutputDirectory, working_dir_path: WorkingDirectory| {
+        |template_dir_path: TemplateDirectory, input_dir_path: InputDirectory, output_dir_path: OutputDirectory, _: WorkingDirectory| {
 
           let template_dir_path_string = template_dir_path.0;
           let input_dir_path_string = input_dir_path.0;
           let output_dir_path_string = output_dir_path.0;
-          let working_dir_path_string = working_dir_path.0;
 
         vec![
           TemplateFile::Dir(format!("{}", template_dir_path_string)),
@@ -180,26 +179,29 @@ mod tests {
       let template_files_dir = TemplateFilesDir::from(&TemplateDir::from(temp_dir.path())); // template files directory
 
       std::fs::create_dir(template_files_dir.as_ref()).expect("Could not create temporary template directory"); // create template files directory
+
       let template_files_dir_path = template_files_dir.as_ref();
 
+      // template_files_dir_path/random input dir
       let input_dir = tempdir_in(template_files_dir_path)?;
 
+      // template_files_dir_path/random output dir
       let output_dir = tempdir_in(template_files_dir_path)?;
+
+      // template_files_dir_path/random working dir
       let working_dir = tempdir_in(template_files_dir_path)?;
 
       let input_dir_path = input_dir.path();
       let output_dir_path = output_dir.path();
-
       let working_dir_path = working_dir.path();
 
-      // Create all source files requested
-      // Creates files under random folders under template_files_dir_path
+      // Create all source files requested under the specified sub directories
       for f in source_files {
         match f {
             InputFileType::TemplateDirFile(filename, content) =>  write_file(template_files_dir_path, filename, content)?,
-            InputFileType::InputDirFile(filename, content) =>  write_file(input_dir_path, filename, content)?,
-            InputFileType::OutputDirFile(filename, content) =>  write_file(output_dir_path, filename, content)?,
-            InputFileType::WorkingDirFile(filename, content) =>  write_file(working_dir_path, filename, content)?,
+            InputFileType::InputDirFile(filename, content)    =>  write_file(input_dir_path, filename, content)?,
+            InputFileType::OutputDirFile(filename, content)   =>  write_file(output_dir_path, filename, content)?,
+            InputFileType::WorkingDirFile(filename, content)  =>  write_file(working_dir_path, filename, content)?,
         }
       }
 
