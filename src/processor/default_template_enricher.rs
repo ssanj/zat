@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::println;
 use super::destination_file::DestinationFile;
 use super::file_traverser::TemplateFile;
 use crate::error::ZatResult;
@@ -34,18 +35,20 @@ impl DefaultTemplateEnricher {
 impl TemplateEnricher for DefaultTemplateEnricher {
   fn enrich(&self, template_file: TemplateFile) ->  ZatResult<EnrichedTemplateFile>  {
 
-    let template_dir_path = &self.config.template_dir;
+    let template_files_dir_path = &self.config.template_dir.template_files_path();
     let destination_dir_path = &self.config.target_dir;
+
+    println!("Enriching Template file: {:?}", &template_file);
 
     match template_file {
       TemplateFile::File(file) => {
         let source_file = SourceFile(file);
-        let destination_file = Self::get_destination_file(&source_file, &template_dir_path, &destination_dir_path)?;
+        let destination_file = Self::get_destination_file(&source_file, &template_files_dir_path, &destination_dir_path)?;
         Ok(EnrichedTemplateFile::File(source_file, destination_file))
       },
       TemplateFile::Dir(dir) => {
         let source_file = SourceFile(dir);
-        let destination_file = Self::get_destination_file(&source_file, &template_dir_path, &destination_dir_path)?;
+        let destination_file = Self::get_destination_file(&source_file, &template_files_dir_path, &destination_dir_path)?;
         Ok(EnrichedTemplateFile::Dir(destination_file))
       }
     }

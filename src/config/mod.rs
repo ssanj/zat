@@ -12,4 +12,5 @@ pub use variable_file::DOT_VARIABLES_PROMPT;
 pub use user_config::UserConfig;
 pub use filters::Filters;
 pub use template_directory::TemplateDir;
+pub use template_directory::TemplateFilesDir;
 pub use target_directory::TargetDir;

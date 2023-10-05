@@ -11,6 +11,7 @@ pub enum ZatError {
   VariableDecodeError(String),
   ReadingFileError(String),
   WritingFileError(String),
+  NoFilesToProcessError(String),
   ProcessingErrors(Vec<ZatError>),
 }
 
@@ -24,6 +25,7 @@ impl std::fmt::Display for ZatError {
         ZatError::VariableDecodeError(error)    => format!("Got an error decoding variable file:\n    {}", error),
         ZatError::ReadingFileError(error)       => format!("Could not read template file:\n    {}", error),
         ZatError::WritingFileError(error)       => format!("Could not write destination file:\n    {}", error),
+        ZatError::NoFilesToProcessError(path)   => format!("Could not find any files to process at {}.", path),
         ZatError::ProcessingErrors(errors)      => {
           let error_str =
             errors

@@ -1,4 +1,4 @@
-use crate::config::TemplateDir;
+use crate::config::TemplateFilesDir;
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum TemplateFile {
@@ -8,7 +8,7 @@ pub enum TemplateFile {
 
 pub trait FileTraverser {
   /// Template directory to traverse
-  fn traverse_files(&self, template_dir: &TemplateDir) -> Vec<TemplateFile>;
+  fn traverse_files(&self, template_dir: &TemplateFilesDir) -> Vec<TemplateFile>;
 }
 
 

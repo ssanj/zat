@@ -73,7 +73,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
         }
       )
     } else if !template_dir_exists {
-      let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path);
+      let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path());
       Err(ZatError::UserConfigError(error))
     } else {
       let error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", &target_dir.path);
@@ -83,10 +83,6 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 }
 
 
-// TODO: How can I separate the tests for each module into their on mods?
-// At the moment since Prod implements it all we need to keep it in the same
-// file as Prod.
-// Maybe we use types like FakeXYZ and RealXYZ. Then they can live in different files
 #[cfg(test)]
 mod tests {
 

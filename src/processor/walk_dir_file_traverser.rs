@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use super::{FileChooser, FileTraverser, TemplateFile};
-use crate::config::TemplateDir;
+use crate::config::TemplateFilesDir;
 use walkdir::{WalkDir, DirEntry};
 
 pub struct WalkDirFileTraverser {
@@ -9,8 +9,9 @@ pub struct WalkDirFileTraverser {
 }
 
 impl FileTraverser for WalkDirFileTraverser {
-    fn traverse_files(&self, template_dir: &TemplateDir) -> Vec<TemplateFile> {
-      WalkDir::new(template_dir)
+    fn traverse_files(&self, template_files_dir: &TemplateFilesDir) -> Vec<TemplateFile> {
+      println!("walking: {}", template_files_dir.as_ref().to_string_lossy().to_string());
+      WalkDir::new(template_files_dir)
           .into_iter()
           .filter_map(|re| re.ok())
           .map(|dir_entry|{
@@ -51,6 +52,7 @@ mod tests {
     use std::collections::HashSet;
     use std::fs::File;
     use std::io::{self, Write};
+    use crate::config::TemplateDir;
 
     use super::*;
     use pretty_assertions::assert_eq;
@@ -120,7 +122,6 @@ mod tests {
        assert_ignores(&source_files, ignores, expected_files)
     }
 
-
     #[test]
     fn should_respect_ignores() -> io::Result<()> {
       let source_files =
@@ -173,29 +174,36 @@ mod tests {
       G: FnOnce(TemplateDirectory, InputDirectory, OutputDirectory, WorkingDirectory) -> Vec<String>,
       F: FnOnce(TemplateDirectory, InputDirectory, OutputDirectory, WorkingDirectory) -> Vec<TemplateFile>
     {
-      let temp_dir = tempdir()?;
-      let template_dir = TemplateDir::new(&temp_dir.path().to_string_lossy().to_string());
-      let template_dir_path = temp_dir.path();
+      println!("-------------> 1");
 
-      let input_dir = tempdir_in(template_dir_path)?;
-      let output_dir = tempdir_in(template_dir_path)?;
-      let working_dir = tempdir_in(template_dir_path)?;
+      let temp_dir = tempdir()?; // create a temporary working directory
+      let template_files_dir = TemplateDir::from(temp_dir.path()).template_files_path(); // template files directory
+
+      std::fs::create_dir(template_files_dir.as_ref()).expect("Could not create temporary template directory"); // create template files directory
+      let template_files_dir_path = template_files_dir.as_ref();
+
+      let input_dir = tempdir_in(template_files_dir_path)?;
+
+      let output_dir = tempdir_in(template_files_dir_path)?;
+      let working_dir = tempdir_in(template_files_dir_path)?;
 
       let input_dir_path = input_dir.path();
       let output_dir_path = output_dir.path();
 
       let working_dir_path = working_dir.path();
 
+      // Create all source files requested
+      // Creates files under random folders under template_files_dir_path
       for f in source_files {
         match f {
-            InputFileType::TemplateDirFile(filename, content) =>  write_file(template_dir_path, filename, content)?,
+            InputFileType::TemplateDirFile(filename, content) =>  write_file(template_files_dir_path, filename, content)?,
             InputFileType::InputDirFile(filename, content) =>  write_file(input_dir_path, filename, content)?,
             InputFileType::OutputDirFile(filename, content) =>  write_file(output_dir_path, filename, content)?,
             InputFileType::WorkingDirFile(filename, content) =>  write_file(working_dir_path, filename, content)?,
         }
       }
 
-      let templat_dir_path_string = template_dir_path.to_string_lossy().to_string();
+      let templat_dir_path_string = template_files_dir_path.to_string_lossy().to_string();
       let input_dir_path_string = input_dir_path.to_string_lossy().to_string();
       let output_dir_path_string = output_dir_path.to_string_lossy().to_string();
       let working_dir_path_string = working_dir_path.to_string_lossy().to_string();
@@ -219,8 +227,7 @@ mod tests {
       let file_chooser = Box::new(regex_patterns);
       let traverser = WalkDirFileTraverser::new(file_chooser);
 
-      let matches = traverser.traverse_files(&template_dir);
-
+      let matches = traverser.traverse_files(&template_files_dir);
 
       println!("templat_dir_path_string: {}", &templat_dir_path_string);
       println!("input_dir_path: {}", &input_dir_path_string);
@@ -234,7 +241,6 @@ mod tests {
           OutputDirectory(output_dir_path_string.to_owned()),
           WorkingDirectory(working_dir_path_string.to_owned())
         );
-
 
       temp_dir.close()?;
 
@@ -250,6 +256,7 @@ mod tests {
     }
 
     fn write_file(dir: &Path, file_name: &str, content: &str) -> io::Result<()> {
+      println!("writing path: {}, filename: {}", dir.to_string_lossy().to_string(), file_name);
       let file_path = dir.join(file_name);
       let mut file = File::create(file_path)?;
       writeln!(file, "{}", content)?;

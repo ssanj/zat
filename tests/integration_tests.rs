@@ -31,12 +31,14 @@ fn runs_a_simple_template() -> Result<(), Box<dyn std::error::Error>> {
 
   cmd
     .arg("--template-dir")
-    .arg("./tests/examples/simple/template")
+    .arg("./tests/examples/simple/source")
     .arg("--target-dir")
     .arg(&target_directory)
     .write_stdin(stdin(&["YouOnlyLiveOnce", "", "y"]))
     .assert()
     .success();
+
+  assert!(std::path::Path::new(&target_directory).exists());
 
   print_changes(&expected_target_directory, &target_directory);
 

@@ -38,7 +38,7 @@ pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: 
   let changes = diff(&expected_target_directory, &target_directory);
 
   if !changes.only_in_source.is_empty() {
-    println!("Files only in example render");
+    println!("Files only in expected render");
     for source in changes.only_in_source {
       println!("{}", source.0)
     }
