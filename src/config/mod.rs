@@ -13,4 +13,5 @@ pub use user_config::UserConfig;
 pub use filters::Filters;
 pub use template_directory::TemplateDir;
 pub use template_directory::TemplateFilesDir;
+pub use template_directory::TEMPLATE_FILES_DIR;
 pub use target_directory::TargetDir;

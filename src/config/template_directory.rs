@@ -7,7 +7,7 @@ pub struct TemplateDir {
   path: String
 }
 
-static TEMPLATE_FILES_DIR: &str = "template";
+pub static TEMPLATE_FILES_DIR: &str = "template";
 
 impl TemplateDir {
   pub fn new(path: &str) -> Self {
@@ -21,7 +21,6 @@ impl TemplateDir {
   {
     Path::new(&self.path).join(other)
   }
-
 
   pub fn does_exist(&self) -> bool {
     Path::new(&self.path).exists()
@@ -70,6 +69,10 @@ impl TemplateFilesDir {
 
   pub fn path(&self) -> &str {
     self.path.as_str()
+  }
+
+  pub fn does_exist(&self) -> bool {
+    Path::new(&self.path).exists()
   }
 }
 

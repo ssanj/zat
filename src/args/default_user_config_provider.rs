@@ -46,26 +46,27 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
     let template_dir = TemplateDir::new(&args.template_dir);
     let target_dir = TargetDir::new(&args.target_dir);
+    let template_files_dir = &template_dir.template_files_path();
 
     let template_dir_exists = &template_dir.does_exist();
     let target_dir_exists = &target_dir.does_exist();
+    let template_files_dir_exists = template_files_dir.does_exist();
 
     let default_ignores = vec![DOT_VARIABLES_PROMPT.to_owned(), ".git".to_owned()];
 
     let ignores_with_defaults =
       default_ignores
         .into_iter()
-        .chain(args.ignores.into_iter());
+        .chain(args.ignores.into_iter()); // use default ignores with user-supplied ignores
 
     let ignores = IgnoredFiles::from(ignores_with_defaults);
 
-    if *template_dir_exists && !(*target_dir_exists) {
+    if *template_dir_exists && template_files_dir_exists && !(*target_dir_exists) {
 
-      let filters = Filters::default(); // TODO: Get this from the user
+      let filters = Filters::default();
 
       Ok(
         UserConfig {
-          // user_tokens,
           template_dir,
           target_dir,
           filters,
@@ -74,6 +75,9 @@ impl UserConfigProvider for DefaultUserConfigProvider {
       )
     } else if !template_dir_exists {
       let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path());
+      Err(ZatError::UserConfigError(error))
+    } else if !template_files_dir_exists {
+      let error = format!("Template directory does not have a 'template' subfolder. Expected this path to exist: {}. This is where we read the templates from.", &template_files_dir.path());
       Err(ZatError::UserConfigError(error))
     } else {
       let error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", &target_dir.path);
@@ -85,11 +89,12 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
 #[cfg(test)]
 mod tests {
-
   use std::{vec, collections::HashSet};
 
-use super::*;
+  use crate::config::TEMPLATE_FILES_DIR;
+  use super::*;
   use tempfile::TempDir;
+  use super::super::test_util::temp_dir_with;
 
   struct TestArgs{
     args: Args
@@ -105,7 +110,7 @@ use super::*;
   #[test]
   fn config_is_loaded() {
     let target_dir = TempDir::new().unwrap();
-    let template_dir = TempDir::new().unwrap();
+    let template_dir = temp_dir_with(TEMPLATE_FILES_DIR);
 
     let template_dir_path = template_dir.path().display().to_string();
     let target_dir_path = target_dir.path().display().to_string();
@@ -156,7 +161,7 @@ use super::*;
   #[test]
   fn config_uses_default_ignores_if_not_supplied() {
     let target_dir = TempDir::new().unwrap();
-    let template_dir = TempDir::new().unwrap();
+    let template_dir = temp_dir_with(TEMPLATE_FILES_DIR);
 
     let template_dir_path = template_dir.path().display().to_string();
     let target_dir_path = target_dir.path().display().to_string();
@@ -221,10 +226,41 @@ use super::*;
     }
   }
 
+
+  #[test]
+  fn config_fails_to_load_if_template_files_dir_does_not_exist() {
+    let target_dir = TempDir::new().unwrap();
+    let template_dir = TempDir::new().unwrap();
+
+
+    let template_dir_path = template_dir.path().display().to_string();
+    let target_dir_path = target_dir.path().display().to_string();
+
+    let args = TestArgs {
+      args: Args {
+        template_dir: template_dir_path.clone(),
+        target_dir: target_dir_path.clone(),
+        ignores: vec![]
+      }
+    };
+
+    let user_config_provider = DefaultUserConfigProvider::with_args_supplier(Box::new(args));
+    match user_config_provider.get_config() {
+      Ok(_) => assert!(false, "get_config should fail if the template files directory does not exist"),
+      Err(error) => {
+        let expected_error = format!("Template directory does not have a 'template' subfolder. Expected this path to exist: {}/template. This is where we read the templates from.", template_dir_path);
+        assert_eq!(error, ZatError::UserConfigError(expected_error))
+      }
+    }
+
+    drop(target_dir);
+    drop(template_dir);
+  }
+
   #[test]
   fn config_fails_to_load_if_target_dir_exists() {
     let target_dir = TempDir::new().unwrap();
-    let template_dir = TempDir::new().unwrap();
+    let template_dir = temp_dir_with(TEMPLATE_FILES_DIR);
 
     let template_dir_path = template_dir.path().display().to_string();
     let target_dir_path = target_dir.path().display().to_string();
