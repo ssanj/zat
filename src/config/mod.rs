@@ -3,6 +3,7 @@ pub mod variable_file;
 pub mod user_config;
 pub mod filters;
 pub mod template_directory;
+pub mod template_files_directory;
 pub mod target_directory;
 
 
@@ -12,6 +13,6 @@ pub use variable_file::DOT_VARIABLES_PROMPT;
 pub use user_config::UserConfig;
 pub use filters::Filters;
 pub use template_directory::TemplateDir;
-pub use template_directory::TemplateFilesDir;
-pub use template_directory::TEMPLATE_FILES_DIR;
+pub use template_files_directory::TemplateFilesDir;
+pub use template_files_directory::TEMPLATE_FILES_DIR;
 pub use target_directory::TargetDir;

@@ -10,7 +10,6 @@ pub struct WalkDirFileTraverser {
 
 impl FileTraverser for WalkDirFileTraverser {
     fn traverse_files(&self, template_files_dir: &TemplateFilesDir) -> Vec<TemplateFile> {
-      println!("walking: {}", template_files_dir.as_ref().to_string_lossy().to_string());
       WalkDir::new(template_files_dir)
           .into_iter()
           .filter_map(|re| re.ok())
@@ -57,6 +56,8 @@ mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
 
+    /// Models files in the multiple folders, template, input, output, working dirs
+    /// The code that interprets this enum will create the appropriate folders and the specified directories
     enum InputFileType {
       TemplateDirFile(String, String),
       InputDirFile(String, String),
@@ -174,10 +175,8 @@ mod tests {
       G: FnOnce(TemplateDirectory, InputDirectory, OutputDirectory, WorkingDirectory) -> Vec<String>,
       F: FnOnce(TemplateDirectory, InputDirectory, OutputDirectory, WorkingDirectory) -> Vec<TemplateFile>
     {
-      println!("-------------> 1");
-
       let temp_dir = tempdir()?; // create a temporary working directory
-      let template_files_dir = TemplateDir::from(temp_dir.path()).template_files_path(); // template files directory
+      let template_files_dir = TemplateFilesDir::from(&TemplateDir::from(temp_dir.path())); // template files directory
 
       std::fs::create_dir(template_files_dir.as_ref()).expect("Could not create temporary template directory"); // create template files directory
       let template_files_dir_path = template_files_dir.as_ref();

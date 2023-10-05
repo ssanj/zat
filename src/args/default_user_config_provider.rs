@@ -8,6 +8,7 @@ use crate::config::DOT_VARIABLES_PROMPT;
 use crate::config::Filters;
 use crate::config::TargetDir;
 use crate::config::TemplateDir;
+use crate::config::TemplateFilesDir;
 
 pub trait ArgSupplier {
   fn get_args(&self) -> Args;
@@ -46,7 +47,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
     let template_dir = TemplateDir::new(&args.template_dir);
     let target_dir = TargetDir::new(&args.target_dir);
-    let template_files_dir = &template_dir.template_files_path();
+    let template_files_dir = TemplateFilesDir::from(&template_dir);
 
     let template_dir_exists = &template_dir.does_exist();
     let target_dir_exists = &target_dir.does_exist();
@@ -139,6 +140,7 @@ mod tests {
     let config = user_config_provider.get_config().expect("Could not get config");
 
     let expected_template_dir = TemplateDir::new(&template_dir_path);
+    let expected_template_files_dir = TemplateFilesDir::from(&expected_template_dir);
     let expected_filters = Filters::default();
     let mut expected_ignores =
       vec![
@@ -150,6 +152,7 @@ mod tests {
     expected_ignores.append(&mut IgnoredFiles::default_ignores());
 
     assert_eq!(config.template_dir, expected_template_dir);
+    assert_eq!(config.template_files_dir, expected_template_files_dir);
     assert_eq!(&config.target_dir.path, &target_dir_path);
     assert_eq!(config.filters, expected_filters);
 
@@ -185,10 +188,12 @@ mod tests {
     let config = user_config_provider.get_config().expect("Could not get config");
 
     let expected_template_dir = TemplateDir::new(&template_dir_path);
+    let expected_template_files_dir = TemplateFilesDir::from(&expected_template_dir);
     let expected_filters = Filters::default();
     let expected_ignores = IgnoredFiles::default_ignores();
 
     assert_eq!(config.template_dir, expected_template_dir);
+    assert_eq!(config.template_files_dir, expected_template_files_dir);
     assert_eq!(&config.target_dir.path, &target_dir_path);
     assert_eq!(config.filters, expected_filters);
 

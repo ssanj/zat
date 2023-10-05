@@ -4,7 +4,7 @@ use super::destination_file::DestinationFile;
 use super::file_traverser::TemplateFile;
 use crate::error::ZatResult;
 use super::source_file::SourceFile;
-use crate::config::UserConfig;
+use crate::config::{UserConfig, TemplateFilesDir};
 use super::template_enricher::TemplateEnricher;
 use super::enriched_template_file_processor::EnrichedTemplateFile;
 
@@ -19,12 +19,11 @@ impl DefaultTemplateEnricher {
     }
   }
 
-  fn get_destination_file<P1, P2>(source_file: &SourceFile, source_root_path: P1, destination_root_path: P2) -> ZatResult<DestinationFile>
-    where P1: AsRef<Path>,
-          P2: AsRef<Path>
+  fn get_destination_file<D>(source_file: &SourceFile, source_root_path: &TemplateFilesDir, destination_root_path: D) -> ZatResult<DestinationFile>
+    where D: AsRef<Path>
   {
     source_file
-      .strip_prefix(&source_root_path)
+      .strip_prefix(source_root_path.as_ref())
       .map(|relative_source_path|{
         let destination_file_path = destination_root_path.as_ref().join(&relative_source_path);
         DestinationFile::new(&destination_file_path.to_string_lossy().to_string())
@@ -35,7 +34,7 @@ impl DefaultTemplateEnricher {
 impl TemplateEnricher for DefaultTemplateEnricher {
   fn enrich(&self, template_file: TemplateFile) ->  ZatResult<EnrichedTemplateFile>  {
 
-    let template_files_dir_path = &self.config.template_dir.template_files_path();
+    let template_files_dir_path = &self.config.template_files_dir;
     let destination_dir_path = &self.config.target_dir;
 
     println!("Enriching Template file: {:?}", &template_file);
@@ -63,7 +62,6 @@ mod tests {
     use super::super::destination_file::DestinationFile;
 
     use super::*;
-    use tempfile::tempdir;
     use crate::args::test_util::temp_dir_with_parent_child_pair;
     use crate::config::TEMPLATE_FILES_DIR;
 
