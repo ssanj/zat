@@ -13,6 +13,10 @@ impl VariableFile {
   pub fn does_exist(&self) -> bool {
     Path::new(&self.path).exists()
   }
+
+  pub fn get_path(&self) -> &str {
+    &self.path.as_str()
+  }
 }
 
 impl From<TemplateDir> for VariableFile {
