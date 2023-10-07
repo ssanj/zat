@@ -53,8 +53,7 @@ fn runs_a_sublime_plugin_template() -> Result<(), Box<dyn std::error::Error>> {
   let working_directory = tempdir()?;
   let target_directory = working_directory.into_path().join("sublime-plugin-template").to_string_lossy().to_string();
   let expected_target_directory = "./tests/examples/sublime-plugin/destination";
-  let template_directory = "./tests/examples/sublime-plugin/s
-  ource";
+  let template_directory = "./tests/examples/sublime-plugin/source";
   println!("target directory: {}", &target_directory);
 
   cmd
