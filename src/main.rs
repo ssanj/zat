@@ -4,6 +4,7 @@ mod error;
 mod config;
 mod token_expander;
 mod processor;
+mod post_processor;
 
 use args::UserConfigProvider;
 use args::DefaultUserConfigProvider;
@@ -22,6 +23,9 @@ use token_expander::DefaultExpandFilters;
 
 use crate::processor::ProcessTemplates;
 use crate::processor::DefaultProcessTemplates;
+
+use crate::post_processor::PostProcessingHook;
+use crate::post_processor::ShellHook;
 
 fn main() {
   match run_zat() {
@@ -55,7 +59,10 @@ fn run_zat() -> ZatAction {
       let tokenized_key_expanded_variables = expand_filters.expand_filers(template_variables, user_variables);
       println!("tokenized variables: {:?}", &tokenized_key_expanded_variables);
 
-      DefaultProcessTemplates.process_templates(user_config, tokenized_key_expanded_variables)?;
+      DefaultProcessTemplates.process_templates(user_config.clone(), tokenized_key_expanded_variables)?;
+
+      // Run post-processor if one exists
+      ShellHook.run(user_config.target_dir)?
     },
     TemplateVariableReview::Rejected => println!("The user rejected the variables.")
   }
