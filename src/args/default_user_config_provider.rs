@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::todo;
 
 use crate::error::*;
@@ -41,6 +42,31 @@ impl DefaultUserConfigProvider {
       arg_supplier
     }
   }
+
+  fn get_shell_hook_status(&self, target_dir: &TargetDir) -> ShellHookStatus {
+    use std::os::unix::fs::PermissionsExt;
+    let shell_hook = target_dir.join("shell-hook.zat-exec");
+    let shell_hook_exists = shell_hook.exists();
+
+   match std::fs::metadata::<&Path>(shell_hook.as_ref()) {
+      Err(_) => {
+        if shell_hook_exists {
+          ShellHookStatus::ExistsNoPermissions // The file exists but we still get an error, possibly due to a permissions issue
+        } else {
+          ShellHookStatus::DoesNotExist
+        }
+
+      },
+      Ok(file) => {
+        let mode = file.permissions().mode();
+        if mode == 0o744 { // TODO: Figure out how to work with octets; Valid value are 7xx, 77x, 777
+          ShellHookStatus::ExistsExecutable
+        } else {
+          ShellHookStatus::ExistsNotExecutable
+        }
+      }
+    }
+  }
 }
 
 enum TemplateDirStatus {
@@ -61,7 +87,8 @@ enum TargetDirStatus {
 enum ShellHookStatus {
   ExistsNotExecutable,
   ExistsExecutable,
-  DoesNotExist
+  DoesNotExist,
+  ExistsNoPermissions
 }
 
 
