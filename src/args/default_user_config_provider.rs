@@ -1,3 +1,5 @@
+use std::todo;
+
 use crate::error::*;
 use super::UserConfigProvider;
 use super::cli::Args;
@@ -41,6 +43,28 @@ impl DefaultUserConfigProvider {
   }
 }
 
+enum TemplateDirStatus {
+  Exists,
+  DoesNotExist
+}
+
+enum TemplateDirTemplateFileStatus {
+  Exists,
+  DoesNotExist
+}
+
+enum TargetDirStatus {
+  Exists,
+  DoesNotExist
+}
+
+enum ShellHookStatus {
+  ExistsNotExecutable,
+  ExistsExecutable,
+  DoesNotExist
+}
+
+
 impl UserConfigProvider for DefaultUserConfigProvider {
   fn get_config(&self) -> ZatResult<UserConfig> {
     let args = self.arg_supplier.get_args();
@@ -49,9 +73,27 @@ impl UserConfigProvider for DefaultUserConfigProvider {
     let target_dir = TargetDir::new(&args.target_dir);
     let template_files_dir = TemplateFilesDir::from(&template_dir);
 
-    let template_dir_exists = &template_dir.does_exist();
-    let target_dir_exists = &target_dir.does_exist();
-    let template_files_dir_exists = template_files_dir.does_exist();
+    let template_dir_exists =
+      if template_dir.does_exist() {
+        TemplateDirStatus::Exists
+      } else {
+        TemplateDirStatus::DoesNotExist
+      };
+
+    let target_dir_exists =
+      if target_dir.does_exist() {
+        TargetDirStatus::Exists
+      } else {
+        TargetDirStatus::DoesNotExist
+      };
+
+    let template_files_dir_exists =
+      if template_files_dir.does_exist() {
+        TemplateDirTemplateFileStatus::Exists
+      } else {
+        TemplateDirTemplateFileStatus::DoesNotExist
+      };
+
 
     let default_ignores = vec![DOT_VARIABLES_PROMPT.to_owned(), ".git".to_owned()];
 
@@ -62,28 +104,32 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
     let ignores = IgnoredFiles::from(ignores_with_defaults);
 
-    if *template_dir_exists && template_files_dir_exists && !(*target_dir_exists) {
+    match (template_dir_exists, template_files_dir_exists, target_dir_exists) {
+      (TemplateDirStatus::DoesNotExist, _, _) => {
+        let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path());
+        Err(ZatError::UserConfigError(error))
+      },
+      (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::DoesNotExist, _) => {
+        let error = format!("Template directory does not have a 'template' subfolder. Expected this path to exist: {}. This is where we read the templates from.", &template_files_dir.path());
+        Err(ZatError::UserConfigError(error))
+      },
+      (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::Exists, TargetDirStatus::Exists) => {
+        let error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", &target_dir.path);
+        Err(ZatError::UserConfigError(error))
+      },
+      (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::Exists, TargetDirStatus::DoesNotExist) => {
+        let filters = Filters::default();
 
-      let filters = Filters::default();
-
-      Ok(
-        UserConfig {
-          template_dir,
-          template_files_dir: template_files_dir.clone(),
-          target_dir,
-          filters,
-          ignores
-        }
-      )
-    } else if !template_dir_exists {
-      let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path());
-      Err(ZatError::UserConfigError(error))
-    } else if !template_files_dir_exists {
-      let error = format!("Template directory does not have a 'template' subfolder. Expected this path to exist: {}. This is where we read the templates from.", &template_files_dir.path());
-      Err(ZatError::UserConfigError(error))
-    } else {
-      let error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", &target_dir.path);
-      Err(ZatError::UserConfigError(error))
+        Ok(
+          UserConfig {
+            template_dir,
+            template_files_dir: template_files_dir.clone(),
+            target_dir,
+            filters,
+            ignores
+          }
+        )
+      },
     }
   }
 }
