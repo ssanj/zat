@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::todo;
 
+use crate::config::SHELL_HOOK_FILE;
 use crate::error::*;
 use super::UserConfigProvider;
 use super::cli::Args;
@@ -25,6 +26,31 @@ impl ArgSupplier for Cli {
   }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+enum TemplateDirStatus {
+  Exists,
+  DoesNotExist
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum TemplateDirTemplateFileStatus {
+  Exists,
+  DoesNotExist
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum TargetDirStatus {
+  Exists,
+  DoesNotExist
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum ShellHookStatus {
+  ExistsNotExecutable(u32),
+  ExistsExecutable,
+  DoesNotExist,
+  ExistsNoPermissions
+}
 
 pub struct DefaultUserConfigProvider {
   arg_supplier: Box<dyn ArgSupplier>
@@ -45,7 +71,7 @@ impl DefaultUserConfigProvider {
 
   fn get_shell_hook_status(&self, target_dir: &TargetDir) -> ShellHookStatus {
     use std::os::unix::fs::PermissionsExt;
-    let shell_hook = target_dir.join("shell-hook.zat-exec");
+    let shell_hook = target_dir.join(SHELL_HOOK_FILE);
     let shell_hook_exists = shell_hook.exists();
 
    match std::fs::metadata::<&Path>(shell_hook.as_ref()) {
@@ -59,38 +85,15 @@ impl DefaultUserConfigProvider {
       },
       Ok(file) => {
         let mode = file.permissions().mode();
-        if mode == 0o744 { // TODO: Figure out how to work with octets; Valid value are 7xx, 77x, 777
+        if mode >= 0o100755 { // 755 is the default privilege level of `chmod +x`. Not sure what the 100 prefix is for
           ShellHookStatus::ExistsExecutable
         } else {
-          ShellHookStatus::ExistsNotExecutable
+          ShellHookStatus::ExistsNotExecutable(mode)
         }
       }
     }
   }
 }
-
-enum TemplateDirStatus {
-  Exists,
-  DoesNotExist
-}
-
-enum TemplateDirTemplateFileStatus {
-  Exists,
-  DoesNotExist
-}
-
-enum TargetDirStatus {
-  Exists,
-  DoesNotExist
-}
-
-enum ShellHookStatus {
-  ExistsNotExecutable,
-  ExistsExecutable,
-  DoesNotExist,
-  ExistsNoPermissions
-}
-
 
 impl UserConfigProvider for DefaultUserConfigProvider {
   fn get_config(&self) -> ZatResult<UserConfig> {
@@ -169,7 +172,7 @@ mod tests {
   use crate::config::TEMPLATE_FILES_DIR;
   use super::*;
   use tempfile::TempDir;
-  use super::super::test_util::temp_dir_with;
+  use super::super::test_util::{temp_dir_with, temp_dir_with_file_pair};
 
   struct TestArgs{
     args: Args
@@ -360,6 +363,49 @@ mod tests {
         assert_eq!(error, ZatError::UserConfigError(expected_error))
       }
     }
+  }
+
+
+  mod shell_hook {
+      use std::os::unix::prelude::PermissionsExt;
+
+    use super::*;
+      use crate::config::SHELL_HOOK_FILE;
+
+      #[test]
+      fn shell_hook_not_found() {
+        let temp_dir = TempDir::new().unwrap();
+        let target_dir = TargetDir::new(temp_dir.path().to_str().unwrap());
+
+        let provider = DefaultUserConfigProvider::new();
+        let result = provider.get_shell_hook_status(&target_dir);
+
+        assert_eq!(result, ShellHookStatus::DoesNotExist);
+      }
+
+      #[test]
+      fn shell_hook_found_not_executable() {
+        let content = b"testing";
+        let (temp_dir, shell_hook_file) = temp_dir_with_file_pair(SHELL_HOOK_FILE, content, Some(0o644));
+        let target_dir = TargetDir::new(&temp_dir.path().to_string_lossy().to_string());
+
+        let provider = DefaultUserConfigProvider::new();
+        let result = provider.get_shell_hook_status(&target_dir);
+
+        assert_eq!(result, ShellHookStatus::ExistsNotExecutable(0o100644));
+      }
+
+      #[test]
+      fn shell_hook_found_and_executable() {
+        let content = b"testing";
+        let (temp_dir, shell_hook_file) = temp_dir_with_file_pair(SHELL_HOOK_FILE, content, Some(0o755));
+        let target_dir = TargetDir::new(&temp_dir.path().to_string_lossy().to_string());
+
+        let provider = DefaultUserConfigProvider::new();
+        let result = provider.get_shell_hook_status(&target_dir);
+
+        assert_eq!(result, ShellHookStatus::ExistsExecutable);
+      }
   }
 
 }

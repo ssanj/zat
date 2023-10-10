@@ -6,6 +6,9 @@ pub mod template_directory;
 pub mod template_files_directory;
 pub mod target_directory;
 
+// Private Module
+mod shell_hook_file;
+
 
 pub use ignored_files::IgnoredFiles;
 pub use variable_file::VariableFile;
@@ -16,3 +19,4 @@ pub use template_directory::TemplateDir;
 pub use template_files_directory::TemplateFilesDir;
 pub use template_files_directory::TEMPLATE_FILES_DIR;
 pub use target_directory::TargetDir;
+pub use shell_hook_file::SHELL_HOOK_FILE;
