@@ -69,7 +69,7 @@ impl DefaultUserConfigProvider {
     }
   }
 
-  fn get_shell_hook_status(&self, target_dir: &TargetDir) -> ShellHookStatus {
+  fn get_shell_hook_status(target_dir: &TargetDir) -> ShellHookStatus {
     use std::os::unix::fs::PermissionsExt;
     let shell_hook = target_dir.join(SHELL_HOOK_FILE);
     let shell_hook_exists = shell_hook.exists();
@@ -125,6 +125,10 @@ impl UserConfigProvider for DefaultUserConfigProvider {
       };
 
 
+    let shell_hook_file_status =
+      DefaultUserConfigProvider::get_shell_hook_status(&target_dir);
+
+
     let default_ignores = vec![DOT_VARIABLES_PROMPT.to_owned(), ".git".to_owned()];
 
     let ignores_with_defaults =
@@ -148,17 +152,32 @@ impl UserConfigProvider for DefaultUserConfigProvider {
         Err(ZatError::UserConfigError(error))
       },
       (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::Exists, TargetDirStatus::DoesNotExist) => {
-        let filters = Filters::default();
 
-        Ok(
-          UserConfig {
-            template_dir,
-            template_files_dir: template_files_dir.clone(),
-            target_dir,
-            filters,
-            ignores
-          }
-        )
+        // TODO: Move shell hook file path to TargetDir
+        match shell_hook_file_status {
+          ShellHookStatus::ExistsNotExecutable(permissions) => {
+            let error = format!("Shell hook {} exists but is not executable. It has the following permissions: {:o}. Expected permissions of at least 755", &target_dir.join(SHELL_HOOK_FILE).to_string_lossy().to_string(), permissions);
+            Err(ZatError::UserConfigError(error))
+          },
+          ShellHookStatus::ExistsNoPermissions => {
+            let error = format!("Shell hook {} exists but it doesn't Zat doesn't have permissions to access it.", &target_dir.join(SHELL_HOOK_FILE).to_string_lossy().to_string());
+            Err(ZatError::UserConfigError(error))
+          },
+          ShellHookStatus::DoesNotExist | ShellHookStatus::ExistsExecutable => {
+            let filters = Filters::default();
+
+            // TODO: Add executable status to the UserConfig - parse don't validate
+            Ok(
+              UserConfig {
+                template_dir,
+                template_files_dir: template_files_dir.clone(),
+                target_dir,
+                filters,
+                ignores
+              }
+            )
+          },
+        }
       },
     }
   }
@@ -367,8 +386,6 @@ mod tests {
 
 
   mod shell_hook {
-      use std::os::unix::prelude::PermissionsExt;
-
     use super::*;
       use crate::config::SHELL_HOOK_FILE;
 
@@ -377,8 +394,7 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let target_dir = TargetDir::new(temp_dir.path().to_str().unwrap());
 
-        let provider = DefaultUserConfigProvider::new();
-        let result = provider.get_shell_hook_status(&target_dir);
+        let result = DefaultUserConfigProvider::get_shell_hook_status(&target_dir);
 
         assert_eq!(result, ShellHookStatus::DoesNotExist);
       }
@@ -389,8 +405,7 @@ mod tests {
         let (temp_dir, shell_hook_file) = temp_dir_with_file_pair(SHELL_HOOK_FILE, content, Some(0o644));
         let target_dir = TargetDir::new(&temp_dir.path().to_string_lossy().to_string());
 
-        let provider = DefaultUserConfigProvider::new();
-        let result = provider.get_shell_hook_status(&target_dir);
+        let result = DefaultUserConfigProvider::get_shell_hook_status(&target_dir);
 
         assert_eq!(result, ShellHookStatus::ExistsNotExecutable(0o100644));
       }
@@ -401,8 +416,7 @@ mod tests {
         let (temp_dir, shell_hook_file) = temp_dir_with_file_pair(SHELL_HOOK_FILE, content, Some(0o755));
         let target_dir = TargetDir::new(&temp_dir.path().to_string_lossy().to_string());
 
-        let provider = DefaultUserConfigProvider::new();
-        let result = provider.get_shell_hook_status(&target_dir);
+        let result = DefaultUserConfigProvider::get_shell_hook_status(&target_dir);
 
         assert_eq!(result, ShellHookStatus::ExistsExecutable);
       }
