@@ -1,7 +1,5 @@
 use std::path::Path;
 use std::todo;
-
-use crate::config::SHELL_HOOK_FILE;
 use crate::error::*;
 use super::UserConfigProvider;
 use super::cli::Args;
@@ -71,7 +69,7 @@ impl DefaultUserConfigProvider {
 
   fn get_shell_hook_status(target_dir: &TargetDir) -> ShellHookStatus {
     use std::os::unix::fs::PermissionsExt;
-    let shell_hook = target_dir.join(SHELL_HOOK_FILE);
+    let shell_hook = target_dir.shell_hook_file();
     let shell_hook_exists = shell_hook.exists();
 
    match std::fs::metadata::<&Path>(shell_hook.as_ref()) {
@@ -85,7 +83,18 @@ impl DefaultUserConfigProvider {
       },
       Ok(file) => {
         let mode = file.permissions().mode();
-        if mode >= 0o100755 { // 755 is the default privilege level of `chmod +x`. Not sure what the 100 prefix is for
+        // https://unix.stackexchange.com/questions/450480/file-permission-with-six-octal-digits-in-git-what-does-it-mean
+        //32-bit mode, split into (high to low bits)
+        //
+        //4-bit object type
+        //  valid values in binary are 1000 (regular file), 1010 (symbolic link)
+        //  and 1110 (gitlink)
+        //
+        //3-bit unused
+        //
+        //9-bit unix permission. Only 0755 and 0644 are valid for regular files.
+        // Symbolic links and gitlinks have value 0 in this field.
+        if mode >= 0o100755 { // 755 is the default privilege level of `chmod +x`.
           ShellHookStatus::ExistsExecutable
         } else {
           ShellHookStatus::ExistsNotExecutable(mode)
@@ -152,18 +161,16 @@ impl UserConfigProvider for DefaultUserConfigProvider {
         Err(ZatError::UserConfigError(error))
       },
       (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::Exists, TargetDirStatus::DoesNotExist) => {
-
-        // TODO: Move shell hook file path to TargetDir
         match shell_hook_file_status {
           ShellHookStatus::ExistsNotExecutable(permissions) => {
-            let error = format!("Shell hook {} exists but is not executable. It has the following permissions: {:o}. Expected permissions of at least 755", &target_dir.join(SHELL_HOOK_FILE).to_string_lossy().to_string(), permissions);
+            let error = format!("Shell hook {} exists but is not executable. It has the following permissions: {:o}. Expected permissions of at least 755", &target_dir.shell_hook_file().to_string_lossy().to_string(), permissions);
             Err(ZatError::UserConfigError(error))
           },
           ShellHookStatus::ExistsNoPermissions => {
-            let error = format!("Shell hook {} exists but it doesn't Zat doesn't have permissions to access it.", &target_dir.join(SHELL_HOOK_FILE).to_string_lossy().to_string());
+            let error = format!("Shell hook {} exists but it doesn't Zat doesn't have permissions to access it.", &target_dir.shell_hook_file().to_string_lossy().to_string());
             Err(ZatError::UserConfigError(error))
           },
-          ShellHookStatus::DoesNotExist | ShellHookStatus::ExistsExecutable => {
+          ShellHookStatus::DoesNotExist | ShellHookStatus::ExistsExecutable => { // A shell hook is optional, if it does exist it needs to be executable
             let filters = Filters::default();
 
             // TODO: Add executable status to the UserConfig - parse don't validate
@@ -402,7 +409,7 @@ mod tests {
       #[test]
       fn shell_hook_found_not_executable() {
         let content = b"testing";
-        let (temp_dir, shell_hook_file) = temp_dir_with_file_pair(SHELL_HOOK_FILE, content, Some(0o644));
+        let (temp_dir, _) = temp_dir_with_file_pair(SHELL_HOOK_FILE, content, Some(0o644));
         let target_dir = TargetDir::new(&temp_dir.path().to_string_lossy().to_string());
 
         let result = DefaultUserConfigProvider::get_shell_hook_status(&target_dir);
@@ -413,7 +420,7 @@ mod tests {
       #[test]
       fn shell_hook_found_and_executable() {
         let content = b"testing";
-        let (temp_dir, shell_hook_file) = temp_dir_with_file_pair(SHELL_HOOK_FILE, content, Some(0o755));
+        let (temp_dir, _) = temp_dir_with_file_pair(SHELL_HOOK_FILE, content, Some(0o755));
         let target_dir = TargetDir::new(&temp_dir.path().to_string_lossy().to_string());
 
         let result = DefaultUserConfigProvider::get_shell_hook_status(&target_dir);
