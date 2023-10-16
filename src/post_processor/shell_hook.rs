@@ -2,6 +2,7 @@ use crate::{config::{UserConfig, ConfigShellHookStatus}, error::ZatAction};
 
 use super::PostProcessingHook;
 
+
 pub struct ShellHook;
 
 impl PostProcessingHook for ShellHook {
@@ -11,6 +12,8 @@ impl PostProcessingHook for ShellHook {
       ConfigShellHookStatus::NoShellHook => "No shell hook found.".to_owned(),
       ConfigShellHookStatus::RunShellHook(shell_hook) => format!("Shell hook found: {}, executing", shell_hook)
     };
+
+    // Run shell hook
 
     println!("{}", outcome);
 

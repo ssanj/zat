@@ -13,6 +13,7 @@ pub enum ZatError {
   WritingFileError(String),
   NoFilesToProcessError(String),
   ProcessingErrors(Vec<ZatError>),
+  PostProcessingError(String),
 }
 
 impl std::fmt::Display for ZatError {
@@ -26,6 +27,7 @@ impl std::fmt::Display for ZatError {
         ZatError::ReadingFileError(error)       => format!("Could not read template file:\n    {}", error),
         ZatError::WritingFileError(error)       => format!("Could not write destination file:\n    {}", error),
         ZatError::NoFilesToProcessError(path)   => format!("Could not find any files to process at {}.", path),
+        ZatError::PostProcessingError(error)    => format!("There was an error running the post processor {}.", error),
         ZatError::ProcessingErrors(errors)      => {
           let error_str =
             errors
