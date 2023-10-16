@@ -1,3 +1,4 @@
+use crate::config::ConfigShellHookStatus;
 use crate::error::*;
 use super::UserConfigProvider;
 use super::cli::Args;
@@ -118,6 +119,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
     let ignores = IgnoredFiles::from(ignores_with_defaults);
 
+
     match (template_dir_exists, template_files_dir_exists, target_dir_exists) {
       (TemplateDirStatus::DoesNotExist, _, _) => {
         let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path());
@@ -134,6 +136,12 @@ impl UserConfigProvider for DefaultUserConfigProvider {
       (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::Exists, TargetDirStatus::DoesNotExist) => {
 
         let filters = Filters::default();
+
+        let shell_hook_status = match shell_hook_file_status {
+          ShellHookStatus::Exists => ConfigShellHookStatus::RunShellHook(template_dir.shell_hook_file().to_string_lossy().to_string()),
+          ShellHookStatus::DoesNotExist => ConfigShellHookStatus::NoShellHook
+        };
+
         // TODO: Add executable status to the UserConfig - parse don't validate
         Ok(
           UserConfig {
@@ -141,7 +149,8 @@ impl UserConfigProvider for DefaultUserConfigProvider {
             template_files_dir: template_files_dir.clone(),
             target_dir,
             filters,
-            ignores
+            ignores,
+            shell_hook_status
           }
         )
       },
@@ -157,7 +166,7 @@ mod tests {
   use crate::config::TEMPLATE_FILES_DIR;
   use super::*;
   use tempfile::TempDir;
-  use super::super::test_util::{temp_dir_with, temp_dir_with_file_pair};
+  use super::super::test_util::temp_dir_with;
 
   struct TestArgs{
     args: Args

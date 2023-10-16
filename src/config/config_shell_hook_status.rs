@@ -1,13 +1,13 @@
 #[derive(Debug, Clone, PartialEq)]
-pub enum ShellHookStatus {
+pub enum ConfigShellHookStatus {
   NoShellHook,
   RunShellHook(String)
 }
 
 
-impl Default for ShellHookStatus {
+impl Default for ConfigShellHookStatus {
     fn default() -> Self {
-        Self::NoShellHook
+      Self::NoShellHook
     }
 }
 

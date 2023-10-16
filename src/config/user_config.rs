@@ -1,3 +1,4 @@
+use super::ConfigShellHookStatus;
 use super::TargetDir;
 use super::TemplateDir;
 use super::TemplateFilesDir;
@@ -11,7 +12,8 @@ pub struct UserConfig {
   pub template_files_dir: TemplateFilesDir,
   pub target_dir: TargetDir,
   pub filters: Filters,
-  pub ignores: IgnoredFiles
+  pub ignores: IgnoredFiles,
+  pub shell_hook_status: ConfigShellHookStatus
 }
 
 impl UserConfig {
@@ -24,7 +26,8 @@ impl UserConfig {
       template_files_dir,
       target_dir: TargetDir::new(destination_dir),
       filters: Default::default(),
-      ignores: Default::default()
+      ignores: Default::default(),
+      shell_hook_status: Default::default(),
     }
   }
 }
