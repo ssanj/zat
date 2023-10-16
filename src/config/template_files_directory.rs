@@ -1,6 +1,5 @@
 use std::path::{Path, PathBuf};
 use super::TemplateDir;
-use crate::config::SHELL_HOOK_FILE;
 
 pub static TEMPLATE_FILES_DIR: &str = "template";
 

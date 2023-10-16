@@ -1,5 +1,3 @@
-use std::path::Path;
-use std::todo;
 use crate::error::*;
 use super::UserConfigProvider;
 use super::cli::Args;
