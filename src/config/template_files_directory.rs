@@ -1,5 +1,6 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use super::TemplateDir;
+use crate::config::SHELL_HOOK_FILE;
 
 pub static TEMPLATE_FILES_DIR: &str = "template";
 
@@ -22,6 +23,17 @@ impl TemplateFilesDir {
 
   pub fn does_exist(&self) -> bool {
     Path::new(&self.path).exists()
+  }
+
+
+  pub fn join<P>(&self, other: P) -> PathBuf where
+    P: AsRef<Path>
+  {
+    Path::new(&self.path).join(other)
+  }
+
+  pub fn shell_hook_file(&self) -> PathBuf {
+    self.join(SHELL_HOOK_FILE)
   }
 }
 

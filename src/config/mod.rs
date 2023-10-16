@@ -1,3 +1,4 @@
+
 pub mod ignored_files;
 pub mod variable_file;
 pub mod user_config;
@@ -8,6 +9,7 @@ pub mod target_directory;
 
 // Private Module
 mod shell_hook_file;
+mod shell_hook_status;
 
 
 pub use ignored_files::IgnoredFiles;
@@ -20,3 +22,4 @@ pub use template_files_directory::TemplateFilesDir;
 pub use template_files_directory::TEMPLATE_FILES_DIR;
 pub use target_directory::TargetDir;
 pub use shell_hook_file::SHELL_HOOK_FILE;
+pub use shell_hook_status::ShellHookStatus;

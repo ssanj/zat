@@ -1,8 +1,6 @@
 use std::path::PathBuf;
 use std::{path::Path, ffi::OsStr};
 
-use super::SHELL_HOOK_FILE;
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct TargetDir {
   pub path: String
@@ -24,11 +22,18 @@ impl TargetDir {
   pub fn does_exist(&self) -> bool {
     Path::new(&self.path).exists()
   }
+}
 
-  pub fn shell_hook_file(&self) -> PathBuf {
-    self.join(SHELL_HOOK_FILE)
+impl From<&Path> for TargetDir {
+  fn from(path: &Path) -> Self {
+      TargetDir::new(&path.to_string_lossy().to_string())
   }
+}
 
+impl From<&str> for TargetDir {
+  fn from(path: &str) -> Self {
+      TargetDir::new(path)
+  }
 }
 
 

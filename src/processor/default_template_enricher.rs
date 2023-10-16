@@ -75,7 +75,7 @@ mod tests {
       let file_template = TemplateFile::new_file(&template_file_path.to_str().unwrap());
 
       let config: UserConfig =
-        UserConfig::new(&template_directory.path().to_str().unwrap(), &destination_dir);
+        UserConfig::new(&template_directory.as_path().to_str().unwrap(), &destination_dir);
 
 
       let enricher = DefaultTemplateEnricher::new(config);
@@ -101,7 +101,7 @@ mod tests {
       let file_template = TemplateFile::new_dir(&template_file_path.to_str().unwrap());
 
       let config: UserConfig =
-        UserConfig::new(&template_directory.path().to_str().unwrap(), &destination_dir);
+        UserConfig::new(&template_directory.as_path().to_str().unwrap(), &destination_dir);
 
 
       let enricher = DefaultTemplateEnricher::new(config);
