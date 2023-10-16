@@ -73,9 +73,8 @@ pub fn temp_dir_with_file_pair(file: &str, content: &[u8], maybe_permissions: Op
   (temp_dir, Path::new(&file_path).to_owned())
 }
 
-/// Creates file supplied under the directory given and returns the
-/// parent directory and the path to the file respectively as a pair.
-pub fn dir_with_file_pair(parent_dir: &Path, file: &str, content: &[u8], maybe_permissions: Option<u32>) -> PathBuf {
+/// Creates file supplied under the directory given returns the path to the file.
+pub fn create_file_in(parent_dir: &Path, file: &str, content: &[u8], maybe_permissions: Option<u32>) -> PathBuf {
   use std::os::unix::fs::OpenOptionsExt;
   let file_path = parent_dir.join(file);
 

@@ -31,10 +31,6 @@ impl TemplateFilesDir {
   {
     Path::new(&self.path).join(other)
   }
-
-  pub fn shell_hook_file(&self) -> PathBuf {
-    self.join(SHELL_HOOK_FILE)
-  }
 }
 
 impl From<&TemplateDir> for TemplateFilesDir {

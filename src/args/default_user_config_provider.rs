@@ -44,10 +44,8 @@ enum TargetDirStatus {
 
 #[derive(Debug, Clone, PartialEq)]
 enum ShellHookStatus {
-  ExistsNotExecutable(u32),
-  ExistsExecutable,
+  Exists,
   DoesNotExist,
-  ExistsNoPermissions
 }
 
 pub struct DefaultUserConfigProvider {
@@ -67,39 +65,14 @@ impl DefaultUserConfigProvider {
     }
   }
 
-  fn get_shell_hook_status(template_files_dir: &TemplateFilesDir) -> ShellHookStatus {
-    use std::os::unix::fs::PermissionsExt;
-    let shell_hook = template_files_dir.shell_hook_file();
+  fn get_shell_hook_status(template_dir: &TemplateDir) -> ShellHookStatus {
+    let shell_hook = template_dir.shell_hook_file();
     let shell_hook_exists = shell_hook.exists();
 
-   match std::fs::metadata::<&Path>(shell_hook.as_ref()) {
-      Err(_) => {
-        if shell_hook_exists {
-          ShellHookStatus::ExistsNoPermissions // The file exists but we still get an error, possibly due to a permissions issue
-        } else {
-          ShellHookStatus::DoesNotExist
-        }
-
-      },
-      Ok(file) => {
-        let mode = file.permissions().mode();
-        // https://unix.stackexchange.com/questions/450480/file-permission-with-six-octal-digits-in-git-what-does-it-mean
-        //32-bit mode, split into (high to low bits)
-        //
-        //4-bit object type
-        //  valid values in binary are 1000 (regular file), 1010 (symbolic link)
-        //  and 1110 (gitlink)
-        //
-        //3-bit unused
-        //
-        //9-bit unix permission. Only 0755 and 0644 are valid for regular files.
-        // Symbolic links and gitlinks have value 0 in this field.
-        if mode >= 0o100755 { // 755 is the default privilege level of `chmod +x`.
-          ShellHookStatus::ExistsExecutable
-        } else {
-          ShellHookStatus::ExistsNotExecutable(mode)
-        }
-      }
+    if shell_hook_exists {
+      ShellHookStatus::Exists
+    } else {
+      ShellHookStatus::DoesNotExist
     }
   }
 }
@@ -135,7 +108,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
 
     let shell_hook_file_status =
-      DefaultUserConfigProvider::get_shell_hook_status(&template_files_dir);
+      DefaultUserConfigProvider::get_shell_hook_status(&template_dir);
 
 
     let default_ignores = vec![DOT_VARIABLES_PROMPT.to_owned(), ".git".to_owned()];
@@ -161,30 +134,18 @@ impl UserConfigProvider for DefaultUserConfigProvider {
         Err(ZatError::UserConfigError(error))
       },
       (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::Exists, TargetDirStatus::DoesNotExist) => {
-        match shell_hook_file_status {
-          ShellHookStatus::ExistsNotExecutable(permissions) => {
-            let error = format!("Shell hook {} exists but is not executable. It has the following permissions: {:o}. Expected permissions of at least 755", &template_files_dir.shell_hook_file().to_string_lossy().to_string(), permissions);
-            Err(ZatError::UserConfigError(error))
-          },
-          ShellHookStatus::ExistsNoPermissions => {
-            let error = format!("Shell hook {} exists but it doesn't Zat doesn't have permissions to access it.", &template_files_dir.shell_hook_file().to_string_lossy().to_string());
-            Err(ZatError::UserConfigError(error))
-          },
-          ShellHookStatus::DoesNotExist | ShellHookStatus::ExistsExecutable => { // A shell hook is optional, if it does exist it needs to be executable
-            let filters = Filters::default();
 
-            // TODO: Add executable status to the UserConfig - parse don't validate
-            Ok(
-              UserConfig {
-                template_dir,
-                template_files_dir: template_files_dir.clone(),
-                target_dir,
-                filters,
-                ignores
-              }
-            )
-          },
-        }
+        let filters = Filters::default();
+        // TODO: Add executable status to the UserConfig - parse don't validate
+        Ok(
+          UserConfig {
+            template_dir,
+            template_files_dir: template_files_dir.clone(),
+            target_dir,
+            filters,
+            ignores
+          }
+        )
       },
     }
   }
@@ -391,87 +352,34 @@ mod tests {
     }
   }
 
-  // #[test]
-  // fn config_fails_to_load_if_shell_hook_file_is_not_executable() {
-  //   let target_dir = TempDir::new().unwrap();
-  //   let template_dir = temp_dir_with(TEMPLATE_FILES_DIR);
-
-  //   let template_dir_path = template_dir.path().display().to_string();
-  //   let target_dir_path = target_dir.path().display().to_string();
-
-  //   let ignores =
-  //     vec![
-  //       "blah".to_owned(),
-  //       "blee/".to_owned(),
-  //       ".blue".to_owned()
-  //     ];
-
-  //   // Delete target_dir because it should not exist
-  //   // We only create it to get a random directory name
-  //   drop(target_dir);
-
-  //   let args = TestArgs {
-  //     args: Args {
-  //       template_dir: template_dir_path.clone(),
-  //       target_dir: target_dir_path.clone(),
-  //       ignores: ignores
-  //     }
-  //   };
-
-  //   let user_config_provider = DefaultUserConfigProvider::with_args_supplier(Box::new(args));
-  //   let shell_hook_file = <TemplateFilesDir as From<&TemplateDir>>::from(&TemplateDir::new(template_dir_path.as_str())).shell_hook_file();
-  //   let config = user_config_provider.get_config();
-
-  //   match config {
-  //     Ok(_) => assert!(false, "get_config should fail if the shell hook file is not executable"),
-  //     Err(error) => {
-  //       let expected_error = format!("Shell hook {} exists but is not executable. It has the following permissions: 100664. Expected permissions of at least 755.", shell_hook_file.to_string_lossy().to_string());
-  //       assert_eq!(error, ZatError::UserConfigError(expected_error))
-  //     }
-  //   }
-  // }
-
 
   mod shell_hook {
+    use crate::{config::SHELL_HOOK_FILE, args::test_util::create_file_in};
+
     use super::*;
-      use crate::{config::SHELL_HOOK_FILE, args::test_util::{temp_dir_with_parent_child_pair, dir_with_file_pair}};
 
-      #[test]
-      fn shell_hook_not_found() {
-        let temp_dir = TempDir::new().unwrap();
-        let template_files_dir = TemplateFilesDir::from(&TemplateDir::new(temp_dir.path().to_str().unwrap()));
+    #[test]
+    fn shell_hook_not_found() {
+      let temp_dir = TempDir::new().unwrap();
+      let template_dir = TemplateDir::new(temp_dir.path().to_str().unwrap());
 
-        let result = DefaultUserConfigProvider::get_shell_hook_status(&template_files_dir);
+      let result = DefaultUserConfigProvider::get_shell_hook_status(&template_dir);
 
-        assert_eq!(result, ShellHookStatus::DoesNotExist);
-      }
+      assert_eq!(result, ShellHookStatus::DoesNotExist);
+    }
 
-      // #[test]
-      // fn shell_hook_found_not_executable() {
-      //   let content = b"testing";
-      //   let (temp_dir, _) = temp_dir_with_file_pair(SHELL_HOOK_FILE, content, Some(0o644));
-      //   let template_files_dir = TemplateFilesDir::from(&TemplateDir::new(temp_dir.path().to_str().unwrap()));
+    #[test]
+    fn shell_hook_found() {
+      let temp_dir = TempDir::new().unwrap();
+      let template_dir = TemplateDir::new(temp_dir.path().to_str().unwrap());
 
-      //   let result = DefaultUserConfigProvider::get_shell_hook_status(&template_files_dir);
+      let content = b"testing";
+      let _ = create_file_in(template_dir.as_ref(), SHELL_HOOK_FILE, content, None);
 
-      //   assert_eq!(result, ShellHookStatus::ExistsNotExecutable(0o100644));
-      // }
+      let result = DefaultUserConfigProvider::get_shell_hook_status(&template_dir);
 
-      // #[test]
-      // fn shell_hook_found_and_executable() {
-      //   let content = b"testing";
-      //   // Creates a parent template directory and a template files child directory
-      //   let (_, template_files_dir) = temp_dir_with_file_pair(TEMPLATE_FILES_DIR);
-      //   println!("template_files_dir: {:?} {}", template_files_dir, template_files_dir.exists());
-
-      //   // create file under the template_files_dir
-      //   let _ = dir_with_file_pair(template_files_dir.as_path(), SHELL_HOOK_FILE, content, Some(0o755));
-      //   let template_files_dir = TemplateFilesDir::from(&TemplateDir::new(template_files_dir.to_str().unwrap()));
-
-      //   let result = DefaultUserConfigProvider::get_shell_hook_status(&template_files_dir);
-
-      //   assert_eq!(result, ShellHookStatus::ExistsExecutable);
-      // }
+      assert_eq!(result, ShellHookStatus::Exists);
+    }
   }
 
 }

@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use std::path::Path;
 
+use super::SHELL_HOOK_FILE;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct TemplateDir {
   path: String
@@ -25,6 +27,10 @@ impl TemplateDir {
 
   pub fn path(&self) -> &str {
     self.path.as_str()
+  }
+
+  pub fn shell_hook_file(&self) -> PathBuf {
+    self.join(SHELL_HOOK_FILE)
   }
 }
 
