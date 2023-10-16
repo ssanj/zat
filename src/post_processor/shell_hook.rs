@@ -1,12 +1,13 @@
-use crate::{config::TargetDir, error::ZatAction};
+use crate::{config::{TargetDir, UserConfig}, error::ZatAction};
 
 use super::PostProcessingHook;
 
 pub struct ShellHook;
 
 impl PostProcessingHook for ShellHook {
-  fn run(&self, destination: TargetDir) -> ZatAction {
-    println!("post processor called with: {}", destination.path);
+  fn run(&self, user_config: &UserConfig) -> ZatAction {
+    // if a shell hook is found run it
+    println!("post processor called");
 
     Ok(())
   }

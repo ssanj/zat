@@ -1,6 +1,6 @@
-use crate::{config::TargetDir, error::ZatAction};
+use crate::{config::{TargetDir, UserConfig}, error::ZatAction};
 
 
 pub trait PostProcessingHook {
-  fn run(&self, destination: TargetDir) -> ZatAction;
+  fn run(&self, user_config: &UserConfig) -> ZatAction;
 }

@@ -62,7 +62,7 @@ fn run_zat() -> ZatAction {
       DefaultProcessTemplates.process_templates(user_config.clone(), tokenized_key_expanded_variables)?;
 
       // Run post-processor if one exists
-      ShellHook.run(user_config.target_dir)?
+      ShellHook.run(&user_config)?
     },
     TemplateVariableReview::Rejected => println!("The user rejected the variables.")
   }
