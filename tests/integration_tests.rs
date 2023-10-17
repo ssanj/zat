@@ -77,6 +77,7 @@ fn runs_a_simple_template_with_shell_hook() -> Result<(), Box<dyn std::error::Er
     .stdout(std_out_contains("running shell hook"));
 
   assert!(std::path::Path::new(&target_directory).exists());
+  assert!(std::path::Path::new(&target_directory).join("created-by-shell-hook").exists());
 
   print_changes(&expected_target_directory, &target_directory);
 
