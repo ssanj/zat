@@ -52,17 +52,19 @@ fn runs_a_simple_template() -> Result<(), Box<dyn std::error::Error>> {
 fn runs_a_simple_template_with_shell_hook() -> Result<(), Box<dyn std::error::Error>> {
   let mut cmd = Command::cargo_bin("zat").unwrap();
   let working_directory = tempdir()?;
-  let target_directory = working_directory.into_path().join("simple-template").to_string_lossy().to_string();
+  let target_directory = working_directory.into_path().join("simple-with-shell-hook").to_string_lossy().to_string();
   let expected_target_directory = "./tests/examples/simple-with-shell-hook/destination";
   println!("target directory: {}", &target_directory);
 
-  let std_out_contains = |expected:&'static str| {
+  let std_out_contains = |expected:&str| {
+    let owned_expected = expected.to_owned();
     predicate::function(move |out: &[u8]| {
       let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
-      output.contains(expected)
+      output.contains(&owned_expected)
     })
   };
 
+  let args_string = format!("shell hook received args: {}", target_directory);
   cmd
     .arg("--template-dir")
     .arg("./tests/examples/simple-with-shell-hook/source")
@@ -71,7 +73,8 @@ fn runs_a_simple_template_with_shell_hook() -> Result<(), Box<dyn std::error::Er
     .write_stdin(stdin(&["Something Cool", "", "y"]))
     .assert()
     .success()
-    .stdout(std_out_contains("Shell hook found:"));
+    .stdout(std_out_contains(&args_string))
+    .stdout(std_out_contains("running shell hook"));
 
   assert!(std::path::Path::new(&target_directory).exists());
 
