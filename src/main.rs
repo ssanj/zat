@@ -5,6 +5,7 @@ mod config;
 mod token_expander;
 mod processor;
 mod post_processor;
+mod macros;
 
 use args::UserConfigProvider;
 use args::DefaultUserConfigProvider;

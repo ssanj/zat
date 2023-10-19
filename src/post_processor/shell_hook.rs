@@ -4,6 +4,8 @@ use super::PostProcessingHook;
 use std::process::Command;
 use std::path::Path;
 
+use crate::s;
+
 pub struct ShellHook;
 
 impl PostProcessingHook for ShellHook {
@@ -20,7 +22,7 @@ fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatE
     Command::new(shell_hook)
       .arg::<&Path>(<TargetDir as AsRef<Path>>::as_ref(&user_config.target_dir).as_ref())
       .status()
-      .map_err(|e| ZatError::PostProcessingError(format!("Shell hook `{}` did not complete as expected: {}", shell_hook, e)))
+      .map_err(|e| ZatError::PostProcessingError(s!("Shell hook `{}` did not complete as expected: {}", shell_hook, e)))
       .map(|exit|{
         println!("Shell hook exited with {}", exit);
         ()
@@ -29,9 +31,9 @@ fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatE
 
 #[cfg(test)]
 mod tests {
-    use crate::{args::test_util::create_file_in};
-
+    use crate::args::test_util::create_file_in;
     use super::*;
+    use crate::spath;
 
     #[test]
     fn should_do_nothing_when_there_is_no_shell_hook() {
@@ -64,7 +66,7 @@ mod tests {
 
         let shell_hook = source_dir.path().join("some-script.sh");
         let shell_hook_content = b"blee";
-        let _ = create_file_in(source_dir.path(),  &shell_hook.as_path().to_string_lossy().to_string(), shell_hook_content, None);
+        let _ = create_file_in(source_dir.path(),  spath!(&shell_hook), shell_hook_content, None);
 
         println!("shell hook file exists: {}", shell_hook.exists());
 
@@ -77,7 +79,7 @@ mod tests {
         match ShellHook.run(&config) {
           Err(ZatError::PostProcessingError(error)) => {
             println!("shell hook error: {}", &error);
-            let expected_error = format!("Shell hook `{}` did not complete as expected: Permission denied", shell_hook.to_string_lossy().to_string());
+            let expected_error = s!("Shell hook `{}` did not complete as expected: Permission denied", spath!(shell_hook));
             assert!(error.starts_with(expected_error.as_str()))
           },
           other => panic!("expected PostProcessingError but got: {:?}", other)
@@ -96,7 +98,7 @@ mod tests {
 
         let shell_hook = source_dir.path().join("some-script.sh");
         let shell_hook_content = b"#!/bin/bash\ntouch \"$1\"/testing.txt";
-        let _ = create_file_in(source_dir.path(),  &shell_hook.as_path().to_string_lossy().to_string(), shell_hook_content, Some(0o755));
+        let _ = create_file_in(source_dir.path(),  spath!(&shell_hook), shell_hook_content, Some(0o755));
 
         println!("shell hook file exists: {}", shell_hook.exists());
 
@@ -117,19 +119,12 @@ mod tests {
     }
 
     fn config_with_source_and_target(source_dir: &Path, target_dir: &Path) -> UserConfig {
-        UserConfig::new(&source_dir.to_string_lossy().to_string(), &target_dir.to_string_lossy().to_string())
-    }
-
-    fn config_with_target_dir(config: UserConfig, target_dir: &Path) -> UserConfig {
-      UserConfig {
-        target_dir: TargetDir::from(target_dir),
-        ..config
-      }
+        UserConfig::new(spath!(&source_dir), spath!(&target_dir))
     }
 
     fn config_with_shell_hook(config: UserConfig) -> UserConfig {
         UserConfig {
-          shell_hook_status: ConfigShellHookStatus::RunShellHook(format!("{}/{}", config.template_dir.path(), "some-script.sh")),
+          shell_hook_status: ConfigShellHookStatus::RunShellHook(s!("{}/{}", config.template_dir.path(), "some-script.sh")),
           ..config
         }
     }
