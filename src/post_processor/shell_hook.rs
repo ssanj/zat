@@ -4,7 +4,7 @@ use super::PostProcessingHook;
 use std::process::Command;
 use std::path::Path;
 
-use crate::s;
+use std::format as s;
 
 pub struct ShellHook;
 
@@ -33,7 +33,7 @@ fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatE
 mod tests {
     use crate::args::test_util::create_file_in;
     use super::*;
-    use crate::spath;
+    use crate::{spath, assert_error_with};
 
     #[test]
     fn should_do_nothing_when_there_is_no_shell_hook() {
@@ -45,13 +45,14 @@ mod tests {
     fn should_fail_when_the_shell_hook_should_exist_but_doesnt() {
         let config = config_with_shell_hook(default_config());
 
-        match ShellHook.run(&config) {
-          Err(ZatError::PostProcessingError(error)) => {
-            println!("shell hook error: {}", &error);
-            assert!(error.starts_with("Shell hook `/some-script.sh` did not complete as expected: No such file or directory"))
-          },
-          other => panic!("expected PostProcessingError but got: {:?}", other)
-        }
+        let assert_error_starts_with =
+          |error: String| assert!(error.starts_with("Shell hook `some-script.sh` did not complete as expected: No such file or directory"));
+
+        assert_error_with!(
+          ShellHook.run(&config),
+          Err(ZatError::PostProcessingError(error)) => error,
+          assert_error_starts_with
+        )
     }
 
     #[test]
@@ -76,13 +77,15 @@ mod tests {
 
         println!("config: {:?}", &config);
 
-        match ShellHook.run(&config) {
-          Err(ZatError::PostProcessingError(error)) => {
-            println!("shell hook error: {}", &error);
-            let expected_error = s!("Shell hook `{}` did not complete as expected: Permission denied", spath!(shell_hook));
-            assert!(error.starts_with(expected_error.as_str()))
-          },
-          other => panic!("expected PostProcessingError but got: {:?}", other)
+        let assert_error_starts_with = |error_message: String| {
+          let expected_error = s!("Shell hook `{}` did not complete as expected: Permission denied", spath!(shell_hook));
+          assert!(error_message.starts_with(expected_error.as_str()), "Assertion did not match. Error received: {}", error_message.as_str())
+        };
+
+       assert_error_with!{
+          ShellHook.run(&config),
+          Err(ZatError::PostProcessingError(error)) => error,
+          assert_error_starts_with
         }
     }
 
@@ -124,7 +127,7 @@ mod tests {
 
     fn config_with_shell_hook(config: UserConfig) -> UserConfig {
         UserConfig {
-          shell_hook_status: ConfigShellHookStatus::RunShellHook(s!("{}/{}", config.template_dir.path(), "some-script.sh")),
+          shell_hook_status: ConfigShellHookStatus::RunShellHook(spath!(config.template_dir.join("some-script.sh")).to_owned()),
           ..config
         }
     }

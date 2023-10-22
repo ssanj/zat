@@ -1,2 +1,4 @@
 pub mod path_macros;
-pub mod string_macros;
+
+#[cfg(test)]
+pub mod result_macros;
