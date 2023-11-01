@@ -5,7 +5,9 @@ things like making other scripts executable, invoking an API or any other post-r
 
 ## Chosen Option
 
-???
+`Option - 2`.
+
+While `Option 2 - In the templates folder`, would be less work for the user, it's a little clumsy to implement.
 
 ## Option 1 - In the templates file folder
 
@@ -66,4 +68,4 @@ This is the same as Option 2, except that the `shell-hook.zat-exec` file is made
 ## Questions
 
 - Should the template rendering fail if the shell hook isn't executable or it can't be run or it runs and leads to an error?
-> The shell hook can be seen as an optional component. If it fails we can display a warning and consider the rendering a success.
+> Yes, it should fail because a specific portion of it hasn't run.
