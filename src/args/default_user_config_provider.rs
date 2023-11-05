@@ -122,16 +122,13 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
     match (template_dir_exists, template_files_dir_exists, target_dir_exists) {
       (TemplateDirStatus::DoesNotExist, _, _) => {
-        let error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", &template_dir.path());
-        Err(ZatError::UserConfigError(error))
+        Err(ZatError::template_dir_does_not_exist(&template_dir.path()))
       },
       (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::DoesNotExist, _) => {
-        let error = format!("Template directory does not have a 'template' subfolder. Expected this path to exist: {}. This is where we read the templates from.", &template_files_dir.path());
-        Err(ZatError::UserConfigError(error))
+        Err(ZatError::template_files_dir_does_not_exist(&template_files_dir.path()))
       },
       (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::Exists, TargetDirStatus::Exists) => {
-        let error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", &target_dir.path);
-        Err(ZatError::UserConfigError(error))
+        Err(ZatError::target_dir_should_not_exist(&target_dir.path))
       },
       (TemplateDirStatus::Exists, TemplateDirTemplateFileStatus::Exists, TargetDirStatus::DoesNotExist) => {
 
@@ -142,7 +139,6 @@ impl UserConfigProvider for DefaultUserConfigProvider {
           ShellHookStatus::DoesNotExist => ConfigShellHookStatus::NoShellHook
         };
 
-        // TODO: Add executable status to the UserConfig - parse don't validate
         Ok(
           UserConfig {
             template_dir,
@@ -167,6 +163,7 @@ mod tests {
   use super::*;
   use tempfile::TempDir;
   use super::super::test_util::temp_dir_with;
+  use std::{format as s};
 
   struct TestArgs{
     args: Args
@@ -296,8 +293,10 @@ mod tests {
     match user_config_provider.get_config() {
       Ok(_) => assert!(false, "get_config should fail if the template directory does not exist"),
       Err(error) => {
-        let expected_error = format!("Template directory does not exist: {}. It should exist so we can read the templates.", template_dir_path);
-        assert_eq!(error, ZatError::UserConfigError(expected_error))
+
+        let expected_error = s!("The Zat template directory '{}' does not exist. It should exist so Zat can read the templates configuration.", template_dir_path);
+        let expected_fix = s!("Please create the Zat template directory '{}' with the Zat template folder structure. See `zat -h` for more.", template_dir_path);
+        assert_eq!(error, ZatError::UserConfigError(error::UserConfigErrorReason::TemplateDirDoesNotExist(expected_error, expected_fix)))
       }
     }
   }
@@ -324,8 +323,9 @@ mod tests {
     match user_config_provider.get_config() {
       Ok(_) => assert!(false, "get_config should fail if the template files directory does not exist"),
       Err(error) => {
-        let expected_error = format!("Template directory does not have a 'template' subfolder. Expected this path to exist: {}/template. This is where we read the templates from.", template_dir_path);
-        assert_eq!(error, ZatError::UserConfigError(expected_error))
+        let expected_error = s!("The Zat template files directory '{}/template' does not exist. It should exist so Zat can read the template files.", template_dir_path);
+        let expected_fix = s!("Please create the Zat template files directory '{}/template' with the necessary template files. See `zat -h` for more details.", template_dir_path);
+        assert_eq!(error, ZatError::UserConfigError(error::UserConfigErrorReason::TemplateFilesDirDoesNotExist(expected_error, expected_fix)))
       }
     }
 
@@ -353,8 +353,9 @@ mod tests {
     match user_config_provider.get_config() {
       Ok(_) => assert!(false, "get_config should fail if the target directory does exist"),
       Err(error) => {
-        let expected_error = format!("Target directory should not exist, as it will be created: {}. Please supply an empty directory for the target", target_dir_path);
-        assert_eq!(error, ZatError::UserConfigError(expected_error))
+        let expected_error = s!("The target directory '{}' should not exist. It will be created when Zat processes the template files.", target_dir_path);
+        let expected_fix = "Please supply an empty directory for the target.".to_owned();
+        assert_eq!(error, ZatError::UserConfigError(error::UserConfigErrorReason::TargetDirectoryShouldNotExist(expected_error, expected_fix)))
       }
     }
   }

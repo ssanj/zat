@@ -28,10 +28,12 @@ use crate::processor::DefaultProcessTemplates;
 use crate::post_processor::PostProcessingHook;
 use crate::post_processor::ShellHook;
 
+use ansi_term::Color::Red;
+
 fn main() {
   match run_zat() {
     Ok(_) => println!("Zat completed successfully."),
-    Err(error) => eprintln!("Zat failed with the following error: \n  {}", error),
+    Err(error) => eprintln!("{}{}", Red.paint("Zat failed an with error."), error),
   }
 }
 
