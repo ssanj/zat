@@ -1,4 +1,4 @@
-use std::{fmt::{self, write}, format as s};
+use std::{fmt::{self, write}, format as s, unimplemented};
 
 use ansi_term::Color::Yellow;
 
@@ -15,6 +15,7 @@ pub enum ZatError {
   DirectoryCreationError(String),
   NoFilesToProcessError(String),
   ProcessingErrors(Vec<ZatError>),
+  TemplateProcessingError(TemplateProcessingErrorReason),
   PostProcessingError(String),
 }
 
@@ -34,6 +35,22 @@ impl ZatError {
     s!("\n\n{}{}\n{}", indent, Yellow.paint(prefix), error)
   }
 }
+
+
+#[derive(Debug, PartialEq)]
+enum TemplateProcessingErrorReason {
+  NoFilesToProcessError(String, String),
+  SingleProcessError(TemplateItemErrorReason),
+  MultipleProcessingErrors(Vec<TemplateItemErrorReason>),
+}
+
+#[derive(Debug, PartialEq)]
+enum TemplateItemErrorReason {
+  ReadingFileError(String, String),
+  WritingFileError(String, String),
+  DirectoryCreationError(String, String),
+}
+
 
 #[derive(Debug, PartialEq)]
 pub enum UserConfigErrorReason {
@@ -126,24 +143,74 @@ impl ZatError {
   }
 
   pub fn variable_file_cant_be_read(path: &str, reason: &str) -> ZatError {
-    let variable_file_error = ZatError::VariableFileError(
+    ZatError::VariableFileError(
       VariableFileErrorReason::VariableReadError(
         s!("Variable file '{}' could not be read due to this error: {}. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path, reason),
         s!("Make sure Zat can open and read the variable file '{}' and has the required file permissions.", path)
       )
-    );
-    variable_file_error
+    )
   }
 
   pub fn variable_file_cant_be_decoded(path: &str, reason: &str) -> ZatError {
-    let variable_file_error = ZatError::VariableFileError(
+    ZatError::VariableFileError(
       VariableFileErrorReason::VariableDecodeError(
         s!("Variable file '{}' could not decoded. It failed decoding with this error: {}. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path, reason),
         s!("Make the variable file '{}' is a valid JSON file.", path)
       )
-    );
-    variable_file_error
+    )
   }
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // TemplateProcessingError
+  // -------------------------------------------------------------------------------------------------------------------
+
+  pub fn no_template_files_to_process(path: &str) -> ZatError {
+    ZatError::TemplateProcessingError(
+      TemplateProcessingErrorReason::NoFilesToProcessError(
+        s!("There are no template files to process in the template directory '{}'.", path),
+        s!("Create at least one file in the template directory '{}' for processing.", path))
+    )
+  }
+
+  pub fn multiple_template_processing_errors(path: &str) -> ZatError {
+    // ZatError::TemplateProcessingError(
+    //   TemplateProcessingErrorReason::MultipleProcessingErrors(
+    //     s!("There are no template files to process in the template directory '{}'.", path),
+    //     s!("Create at least one file in the template directory '{}' for processing.", path))
+    // )
+    !unimplemented!()
+  }
+
+  pub fn could_not_read_template_file(path: &str) -> ZatError {
+    ZatError::TemplateProcessingError(
+      TemplateProcessingErrorReason::SingleProcessError(
+        TemplateItemErrorReason::ReadingFileError(
+          s!("Could not read template file '{}'.", path),
+          s!("Ensure the template file '{}' exists and has the necessary permissions for reading.", path))
+        )
+    )
+  }
+
+  pub fn could_not_write_template_file(path: &str) -> ZatError {
+    ZatError::TemplateProcessingError(
+      TemplateProcessingErrorReason::SingleProcessError(
+        TemplateItemErrorReason::WritingFileError(
+          s!("Could not write output file '{}'.", path),
+          s!("Ensure the output file '{}' has the necessary permissions to be written.", path))
+        )
+    )
+  }
+
+  pub fn could_not_create_template_file_directory(path: &str) -> ZatError {
+    ZatError::TemplateProcessingError(
+      TemplateProcessingErrorReason::SingleProcessError(
+        TemplateItemErrorReason::DirectoryCreationError(
+          s!("Could not create output directory '{}'.", path),
+          s!("Ensure the output directory '{}' has the necessary permissions to be created.", path))
+        )
+    )
+  }
+
 }
 
 
@@ -156,6 +223,7 @@ impl std::fmt::Display for ZatError {
         ZatError::WritingFileError(error)       => s!("Could not write destination file:\n    {}", error),
         ZatError::DirectoryCreationError(error) => s!("Could not create directory:\n    {}", error),
         ZatError::NoFilesToProcessError(path)   => s!("Could not find any files to process at {}.", path),
+        ZatError::TemplateProcessingError(_)    => s!("There was an error running the template {}.", "TODO: Remove"),
         ZatError::PostProcessingError(error)    => s!("There was an error running the post processor {}.", error),
         ZatError::ProcessingErrors(errors)      => {
           let error_str =
