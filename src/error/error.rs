@@ -12,6 +12,7 @@ pub enum ZatError {
   VariableFileError(VariableFileErrorReason),
   ReadingFileError(String),
   WritingFileError(String),
+  DirectoryCreationError(String),
   NoFilesToProcessError(String),
   ProcessingErrors(Vec<ZatError>),
   PostProcessingError(String),
@@ -153,6 +154,7 @@ impl std::fmt::Display for ZatError {
         ZatError::VariableFileError(error)      => ZatError::print_error("Got a error processing variables:", error),
         ZatError::ReadingFileError(error)       => s!("Could not read template file:\n    {}", error),
         ZatError::WritingFileError(error)       => s!("Could not write destination file:\n    {}", error),
+        ZatError::DirectoryCreationError(error) => s!("Could not create directory:\n    {}", error),
         ZatError::NoFilesToProcessError(path)   => s!("Could not find any files to process at {}.", path),
         ZatError::PostProcessingError(error)    => s!("There was an error running the post processor {}.", error),
         ZatError::ProcessingErrors(errors)      => {

@@ -13,7 +13,7 @@ impl DirectoryCreator for DefaultDirectoryCreator {
 
     fs::create_dir(&directory_path_with_tokens_replaced)
       .map_err(|e| {
-        ZatError::WritingFileError(
+        ZatError::DirectoryCreationError(
           format!("Could not created destination directory: {}\nCause:{}",
             &directory_path_with_tokens_replaced,
             e.to_string()
