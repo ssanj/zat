@@ -9,10 +9,7 @@ pub type ZatAction = Result<(), ZatError>;
 #[derive(Debug, PartialEq)]
 pub enum ZatError {
   UserConfigError(UserConfigErrorReason),
-  VariableFileNotFound(String),
-  VariableOpenError(String),
-  VariableReadError(String),
-  VariableDecodeError(String),
+  VariableFileError(VariableFileErrorReason),
   ReadingFileError(String),
   WritingFileError(String),
   NoFilesToProcessError(String),
@@ -54,7 +51,30 @@ impl fmt::Display for UserConfigErrorReason {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub enum VariableFileErrorReason {
+  VariableFileNotFound(String, String),
+  VariableOpenError(String, String),
+  VariableReadError(String, String),
+  VariableDecodeError(String, String),
+}
+
+impl fmt::Display for VariableFileErrorReason {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      match self {
+        VariableFileErrorReason::VariableFileNotFound(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+        VariableFileErrorReason::VariableOpenError(error, fix) =>  write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+        VariableFileErrorReason::VariableReadError(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+        VariableFileErrorReason::VariableDecodeError(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+      }
+    }
+}
+
 impl ZatError {
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // UserConfigError
+  // -------------------------------------------------------------------------------------------------------------------
   pub fn template_dir_does_not_exist(path: &str) -> ZatError {
     ZatError::UserConfigError(
       UserConfigErrorReason::TemplateDirDoesNotExist(
@@ -81,6 +101,48 @@ impl ZatError {
       )
     )
   }
+
+//----------------------------------------------------------------------------------------------------------------------
+// VariableFileError
+//----------------------------------------------------------------------------------------------------------------------
+
+  pub fn variable_file_does_not_exist(path: &str) -> ZatError {
+    ZatError::VariableFileError(
+      VariableFileErrorReason::VariableFileNotFound(
+        s!("Variable file '{}' does not exist. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path),
+        s!("Please create the variable file '{}' with the required tokens. See `zat -h` for more details.", path)
+      )
+    )
+  }
+
+  pub fn variable_file_cant_be_opened(path: &str, reason: &str) -> ZatError {
+    ZatError::VariableFileError(
+      VariableFileErrorReason::VariableOpenError(
+        s!("Variable file '{}' could not be opened due to this error: {}. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path, reason),
+        s!("Make sure Zat can open and read the variable file '{}' and has the required file permissions.", path)
+      )
+    )
+  }
+
+  pub fn variable_file_cant_be_read(path: &str, reason: &str) -> ZatError {
+    let variable_file_error = ZatError::VariableFileError(
+      VariableFileErrorReason::VariableReadError(
+        s!("Variable file '{}' could not be read due to this error: {}. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path, reason),
+        s!("Make sure Zat can open and read the variable file '{}' and has the required file permissions.", path)
+      )
+    );
+    variable_file_error
+  }
+
+  pub fn variable_file_cant_be_decoded(path: &str, reason: &str) -> ZatError {
+    let variable_file_error = ZatError::VariableFileError(
+      VariableFileErrorReason::VariableDecodeError(
+        s!("Variable file '{}' could not decoded. It failed decoding with this error: {}. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path, reason),
+        s!("Make the variable file '{}' is a valid JSON file.", path)
+      )
+    );
+    variable_file_error
+  }
 }
 
 
@@ -88,10 +150,7 @@ impl std::fmt::Display for ZatError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
       let string_rep = match self {
         ZatError::UserConfigError(error)        => ZatError::print_error("Got a configuration error:", error),
-        ZatError::VariableFileNotFound(error)   => s!("Could not find variables file:\n    {}", error),
-        ZatError::VariableOpenError(error)      => s!("Got an error opening variable file:\n    {}", error),
-        ZatError::VariableReadError(error)      => s!("Got an error reading variable file:\n    {}", error),
-        ZatError::VariableDecodeError(error)    => s!("Got an error decoding variable file:\n    {}", error),
+        ZatError::VariableFileError(error)      => ZatError::print_error("Got a error processing variables:", error),
         ZatError::ReadingFileError(error)       => s!("Could not read template file:\n    {}", error),
         ZatError::WritingFileError(error)       => s!("Could not write destination file:\n    {}", error),
         ZatError::NoFilesToProcessError(path)   => s!("Could not find any files to process at {}.", path),
