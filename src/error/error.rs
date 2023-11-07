@@ -38,14 +38,14 @@ impl ZatError {
 
 
 #[derive(Debug, PartialEq)]
-enum TemplateProcessingErrorReason {
+pub enum TemplateProcessingErrorReason {
   NoFilesToProcessError(String, String),
   SingleProcessError(TemplateItemErrorReason),
   MultipleProcessingErrors(Vec<TemplateItemErrorReason>),
 }
 
-#[derive(Debug, PartialEq)]
-enum TemplateItemErrorReason {
+#[derive(Debug, PartialEq, Clone)]
+pub enum TemplateItemErrorReason {
   ReadingFileError(String, String),
   WritingFileError(String, String),
   DirectoryCreationError(String, String),
@@ -172,42 +172,62 @@ impl ZatError {
     )
   }
 
-  pub fn multiple_template_processing_errors(path: &str) -> ZatError {
-    // ZatError::TemplateProcessingError(
-    //   TemplateProcessingErrorReason::MultipleProcessingErrors(
-    //     s!("There are no template files to process in the template directory '{}'.", path),
-    //     s!("Create at least one file in the template directory '{}' for processing.", path))
-    // )
-    !unimplemented!()
+  // See TemplateItemErrorReason section for constructors
+  pub fn multiple_template_processing_errors(errors: &[TemplateItemErrorReason]) -> ZatError {
+    ZatError::TemplateProcessingError(
+      TemplateProcessingErrorReason::MultipleProcessingErrors(
+        Vec::from(errors)
+      )
+    )
   }
+
 
   pub fn could_not_read_template_file(path: &str) -> ZatError {
     ZatError::TemplateProcessingError(
       TemplateProcessingErrorReason::SingleProcessError(
-        TemplateItemErrorReason::ReadingFileError(
-          s!("Could not read template file '{}'.", path),
-          s!("Ensure the template file '{}' exists and has the necessary permissions for reading.", path))
-        )
+        ZatError::item_error_could_not_read_template_file(path)
+      )
     )
   }
 
-  pub fn could_not_write_template_file(path: &str) -> ZatError {
+  pub fn could_not_write_output_file(path: &str) -> ZatError {
     ZatError::TemplateProcessingError(
       TemplateProcessingErrorReason::SingleProcessError(
-        TemplateItemErrorReason::WritingFileError(
-          s!("Could not write output file '{}'.", path),
-          s!("Ensure the output file '{}' has the necessary permissions to be written.", path))
-        )
+        ZatError::item_error_could_not_write_output_file(path)
+      )
     )
   }
 
-  pub fn could_not_create_template_file_directory(path: &str) -> ZatError {
+  pub fn could_not_create_output_file_directory(path: &str) -> ZatError {
     ZatError::TemplateProcessingError(
       TemplateProcessingErrorReason::SingleProcessError(
-        TemplateItemErrorReason::DirectoryCreationError(
-          s!("Could not create output directory '{}'.", path),
-          s!("Ensure the output directory '{}' has the necessary permissions to be created.", path))
-        )
+        ZatError::item_error_could_not_create_output_file_directory(path)
+      )
+    )
+  }
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // TemplateItemErrorReason
+  // -------------------------------------------------------------------------------------------------------------------
+
+  pub fn item_error_could_not_read_template_file(path: &str) -> TemplateItemErrorReason {
+    TemplateItemErrorReason::ReadingFileError(
+      s!("Could not read template file '{}'.", path),
+      s!("Ensure the template file '{}' exists and has the necessary permissions for reading.", path)
+    )
+  }
+
+  pub fn item_error_could_not_write_output_file(path: &str) -> TemplateItemErrorReason {
+    TemplateItemErrorReason::WritingFileError(
+      s!("Could not write output file '{}'.", path),
+      s!("Ensure the output file '{}' has the necessary permissions to be written.", path)
+    )
+  }
+
+  pub fn item_error_could_not_create_output_file_directory(path: &str) -> TemplateItemErrorReason {
+    TemplateItemErrorReason::DirectoryCreationError(
+      s!("Could not create output directory '{}'.", path),
+      s!("Ensure the output directory '{}' has the necessary permissions to be created.", path)
     )
   }
 
