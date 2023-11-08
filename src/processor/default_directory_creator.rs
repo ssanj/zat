@@ -9,16 +9,12 @@ pub struct DefaultDirectoryCreator;
 impl DirectoryCreator for DefaultDirectoryCreator {
     fn create_directory(&self, destination_directory: &DestinationFile, replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
 
-    let directory_path_with_tokens_replaced = destination_directory.map(|dd| replacer.replace(dd));
+      let directory_path_with_tokens_replaced = destination_directory.map(|dd| replacer.replace(dd));
 
-    fs::create_dir(&directory_path_with_tokens_replaced)
-      .map_err(|e| {
-        ZatError::DirectoryCreationError(
-          format!("Could not created destination directory: {}\nCause:{}",
-            &directory_path_with_tokens_replaced,
-            e.to_string()
-          ))
-      })
+      fs::create_dir(&directory_path_with_tokens_replaced)
+        .map_err(|e| {
+          ZatError::could_not_create_output_file_directory(&directory_path_with_tokens_replaced.0.as_str(), e.to_string())
+        })
     }
 }
 

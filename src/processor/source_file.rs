@@ -1,6 +1,7 @@
 use std::{fmt, path::Path};
 use std::fs;
 use crate::error::{ZatResult, ZatError};
+use crate::spath;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SourceFile(pub String);
@@ -16,16 +17,12 @@ impl SourceFile {
   pub fn read(&self) -> ZatResult<String> {
     fs::read(&self.0)
       .map_err(|e|{
-        ZatError::ReadingFileError(format!("Could not read source file: {}\nCause: {}", self.0.as_str(), e.to_string()))
+        ZatError::could_not_read_template_file(self.0.as_str(), e.to_string())
       })
       .and_then(|content| {
         std::str::from_utf8(&content)
           .map_err(|e| {
-            ZatError::ReadingFileError(
-              format!("Could not convert content of {} from bytes to String:\n{}",
-                &self.0,
-                e.to_string())
-              )
+            ZatError::template_file_content_is_unsupported(&self.0, e.to_string())
           })
           .map(|c| c.to_owned())
       })
@@ -37,7 +34,7 @@ impl SourceFile {
     Path::new(&self.0)
       .strip_prefix(&prefix)
       .map_err(|e|{
-        ZatError::ReadingFileError(format!("Could remove path prefix: {} from directory: {}, because of: {}", prefix.as_ref().to_string_lossy().to_string(), &self.0, e))
+        ZatError::could_not_determine_base_path_of_template_file(spath!(prefix.as_ref()), &self.0, e.to_string())
       })
       .map(|p| p.to_string_lossy().to_string())
   }

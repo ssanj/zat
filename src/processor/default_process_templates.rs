@@ -36,7 +36,7 @@ impl ProcessTemplates for DefaultProcessTemplates {
       let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
 
       if files_to_process.is_empty() {
-        Err(ZatError::NoFilesToProcessError(template_files_dir.path().to_owned()))
+        Err(ZatError::no_template_files_to_process(template_files_dir.path()))
       } else {
         files_to_process
           .into_iter()

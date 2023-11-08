@@ -31,7 +31,7 @@ impl DefaultFileWriter {
     C: AsRef<[u8]>
   {
     fs::write(&target_file_with_tokens_replaced, content)
-      .map_err(|e| ZatError::WritingFileError(format!("Could not write target file: {}\nCause:{}", &target_file_with_tokens_replaced, e)))
+      .map_err(|e| ZatError::could_not_write_output_file(target_file_with_tokens_replaced.to_string().as_str(), e.to_string()))
   }
 }
 
