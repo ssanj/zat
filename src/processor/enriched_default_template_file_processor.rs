@@ -27,7 +27,7 @@ impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> 
 
   fn process_enriched_template_files(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
 
-    let results: Vec<Result<(), ZatError>> =
+    let results: ZatResult<()> =
       template_files
         .iter()
         .map(|f|{
@@ -38,17 +38,7 @@ impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> 
         })
         .collect();
 
-     let errors: Vec<ZatError> =
-       results
-        .into_iter()
-        .filter_map(|r| r.err())
-        .collect();
-
-     if !errors.is_empty() {
-      Err(ZatError::ProcessingErrors(errors))
-     } else {
-      Ok(())
-     }
+    results
   }
 }
 

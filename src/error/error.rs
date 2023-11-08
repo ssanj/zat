@@ -1,4 +1,4 @@
-use std::{fmt::{self, write}, format as s, unimplemented};
+use std::{fmt::{self, write}, format as s, unimplemented, todo};
 
 use ansi_term::Color::Yellow;
 
@@ -10,16 +10,66 @@ pub type ZatAction = Result<(), ZatError>;
 pub enum ZatError {
   UserConfigError(UserConfigErrorReason),
   VariableFileError(VariableFileErrorReason),
-  // ReadingFileError(String),
-  // WritingFileError(String),
-  // DirectoryCreationError(String),
-  // NoFilesToProcessError(String),
-  ProcessingErrors(Vec<ZatError>),
   TemplateProcessingError(TemplateProcessingErrorReason),
   PostProcessingError(String),
 }
 
+#[derive(Debug, PartialEq)]
+pub enum UserConfigErrorReason {
+  TemplateDirDoesNotExist(String, String),
+  TemplateFilesDirDoesNotExist(String, String),
+  TargetDirectoryShouldNotExist(String, String),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum VariableFileErrorReason {
+  VariableFileNotFound(String, String),
+  VariableOpenError(String, String),
+  VariableReadError(String, String),
+  VariableDecodeError(String, String),
+}
+
+
+#[derive(Debug, PartialEq)]
+pub enum TemplateProcessingErrorReason {
+  NoFilesToProcessError(String, String),
+  ReadingFileError(ReasonFileErrorReason),
+  WritingFileError(String, Option<String>, String),
+  DirectoryCreationError(String, Option<String>, String),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ReasonFileErrorReason {
+  ReadingError(String, Option<String>, String),
+  UnsupportedContentError(String, Option<String>, String),
+  PrefixError(String, Option<String>, String),
+}
+
+impl fmt::Display for UserConfigErrorReason {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      UserConfigErrorReason::TemplateDirDoesNotExist(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+      UserConfigErrorReason::TemplateFilesDirDoesNotExist(error, fix) =>  write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+      UserConfigErrorReason::TargetDirectoryShouldNotExist(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+    }
+  }
+}
+
+
+impl fmt::Display for VariableFileErrorReason {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      match self {
+        VariableFileErrorReason::VariableFileNotFound(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+        VariableFileErrorReason::VariableOpenError(error, fix) =>  write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+        VariableFileErrorReason::VariableReadError(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+        VariableFileErrorReason::VariableDecodeError(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
+      }
+    }
+}
+
+
 impl ZatError {
+
   fn print_error_fix(error: &str, fix: &str) -> String {
     let indent = "    ";
     let heading_indent = "  ";
@@ -34,68 +84,6 @@ impl ZatError {
     let indent = "  ";
     s!("\n\n{}{}\n{}", indent, Yellow.paint(prefix), error)
   }
-}
-
-
-#[derive(Debug, PartialEq)]
-pub enum TemplateProcessingErrorReason {
-  NoFilesToProcessError(String, String),
-  SingleProcessError(TemplateItemErrorReason),
-  MultipleProcessingErrors(Vec<TemplateItemErrorReason>),
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum TemplateItemErrorReason {
-  ReadingFileError(ReasonFileErrorReason),
-  WritingFileError(String, Option<String>, String),
-  DirectoryCreationError(String, Option<String>, String),
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum ReasonFileErrorReason {
-  ReadingError(String, Option<String>, String),
-  UnsupportedContentError(String, Option<String>, String),
-  PrefixError(String, Option<String>, String),
-}
-
-
-#[derive(Debug, PartialEq)]
-pub enum UserConfigErrorReason {
-  TemplateDirDoesNotExist(String, String),
-  TemplateFilesDirDoesNotExist(String, String),
-  TargetDirectoryShouldNotExist(String, String),
-}
-
-impl fmt::Display for UserConfigErrorReason {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-      match self {
-        UserConfigErrorReason::TemplateDirDoesNotExist(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-        UserConfigErrorReason::TemplateFilesDirDoesNotExist(error, fix) =>  write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-        UserConfigErrorReason::TargetDirectoryShouldNotExist(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-      }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum VariableFileErrorReason {
-  VariableFileNotFound(String, String),
-  VariableOpenError(String, String),
-  VariableReadError(String, String),
-  VariableDecodeError(String, String),
-}
-
-impl fmt::Display for VariableFileErrorReason {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-      match self {
-        VariableFileErrorReason::VariableFileNotFound(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-        VariableFileErrorReason::VariableOpenError(error, fix) =>  write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-        VariableFileErrorReason::VariableReadError(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-        VariableFileErrorReason::VariableDecodeError(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-      }
-    }
-}
-
-impl ZatError {
 
   // -------------------------------------------------------------------------------------------------------------------
   // UserConfigError
@@ -179,106 +167,62 @@ impl ZatError {
     )
   }
 
-  // See TemplateItemErrorReason section for constructors
-  pub fn multiple_template_processing_errors(errors: &[TemplateItemErrorReason]) -> ZatError {
-    ZatError::TemplateProcessingError(
-      TemplateProcessingErrorReason::MultipleProcessingErrors(
-        Vec::from(errors)
-      )
-    )
-  }
-
 
   pub fn could_not_read_template_file(path: &str, error: String) -> ZatError {
     ZatError::TemplateProcessingError(
-      TemplateProcessingErrorReason::SingleProcessError(
-        ZatError::item_error_could_not_read_template_file(path, error)
+      TemplateProcessingErrorReason::ReadingFileError(
+        ReasonFileErrorReason::ReadingError(
+          s!("Could not read template file '{}'.", path),
+          Some(error),
+          s!("Ensure the template file '{}' exists and has the necessary permissions for reading.", path)
+        )
       )
     )
   }
 
   pub fn template_file_content_is_unsupported(path: &str, error: String) -> ZatError {
     ZatError::TemplateProcessingError(
-      TemplateProcessingErrorReason::SingleProcessError(
-        ZatError::item_error_template_file_content_is_unsupported(path, error)
+      TemplateProcessingErrorReason::ReadingFileError(
+        ReasonFileErrorReason::UnsupportedContentError(
+          s!("Could not decode template file '{}' content to a string. Only text file templates are supported.", path),
+          Some(error),
+          s!("Ensure the template file '{}' is a text file and is not corrupted.", path)
+        )
       )
     )
   }
 
   pub fn could_not_determine_base_path_of_template_file(base_path: &str, path: &str, error: String) -> ZatError {
     ZatError::TemplateProcessingError(
-      TemplateProcessingErrorReason::SingleProcessError(
-        ZatError::item_error_could_not_determine_base_path_of_template_file(base_path, path, error)
+      TemplateProcessingErrorReason::ReadingFileError(
+        ReasonFileErrorReason::PrefixError(
+          s!("Could not find base path {} in template file '{}'. The base path is needed to find the relative path at the output.", base_path, path),
+          Some(error),
+          s!("Ensure the template file '{}' is a text file and is not corrupted.", path)
+        )
       )
     )
   }
 
   pub fn could_not_write_output_file(path: &str, error: String) -> ZatError {
     ZatError::TemplateProcessingError(
-      TemplateProcessingErrorReason::SingleProcessError(
-        ZatError::item_error_could_not_write_output_file(path, error)
+      TemplateProcessingErrorReason::WritingFileError(
+        s!("Could not write output file '{}'.", path),
+        Some(error),
+        s!("Ensure the output file '{}' has the necessary permissions to be written and is a valid file name.", path)
       )
     )
   }
 
   pub fn could_not_create_output_file_directory(path: &str, error: String) -> ZatError {
     ZatError::TemplateProcessingError(
-      TemplateProcessingErrorReason::SingleProcessError(
-        ZatError::item_error_could_not_create_output_file_directory(path, error)
-      )
-    )
-  }
-
-  // -------------------------------------------------------------------------------------------------------------------
-  // TemplateItemErrorReason
-  // -------------------------------------------------------------------------------------------------------------------
-
-  pub fn item_error_could_not_read_template_file(path: &str, error: String) -> TemplateItemErrorReason {
-    TemplateItemErrorReason::ReadingFileError(
-      ReasonFileErrorReason::ReadingError(
-        s!("Could not read template file '{}'.", path),
+      TemplateProcessingErrorReason::DirectoryCreationError(
+        s!("Could not create output directory '{}'.", path),
         Some(error),
-        s!("Ensure the template file '{}' exists and has the necessary permissions for reading.", path)
+        s!("Ensure the output directory '{}' has the necessary permissions to be created and has a valid directory name.", path)
       )
     )
   }
-
-  pub fn item_error_template_file_content_is_unsupported(path: &str, error: String) -> TemplateItemErrorReason {
-    TemplateItemErrorReason::ReadingFileError(
-      ReasonFileErrorReason::UnsupportedContentError(
-        s!("Could not decode template file '{}' content to a string. Only text file templates are supported.", path),
-        Some(error),
-        s!("Ensure the template file '{}' is a text file and is not corrupted.", path)
-      )
-    )
-  }
-
-  pub fn item_error_could_not_determine_base_path_of_template_file(base_path: &str, path: &str, error: String) -> TemplateItemErrorReason {
-    TemplateItemErrorReason::ReadingFileError(
-      ReasonFileErrorReason::PrefixError(
-        s!("Could not find base path {} in template file '{}'. The base path is needed to find the relative path at the output.", base_path, path),
-        Some(error),
-        s!("Ensure the template file '{}' is a text file and is not corrupted.", path)
-      )
-    )
-  }
-
-  pub fn item_error_could_not_write_output_file(path: &str, error: String) -> TemplateItemErrorReason {
-    TemplateItemErrorReason::WritingFileError(
-      s!("Could not write output file '{}'.", path),
-      Some(error),
-      s!("Ensure the output file '{}' has the necessary permissions to be written and is a valid file name.", path)
-    )
-  }
-
-  pub fn item_error_could_not_create_output_file_directory(path: &str, error: String) -> TemplateItemErrorReason {
-    TemplateItemErrorReason::DirectoryCreationError(
-      s!("Could not create output directory '{}'.", path),
-      Some(error),
-      s!("Ensure the output directory '{}' has the necessary permissions to be created and has a valid directory name.", path)
-    )
-  }
-
 }
 
 
@@ -287,22 +231,8 @@ impl std::fmt::Display for ZatError {
       let string_rep = match self {
         ZatError::UserConfigError(error)        => ZatError::print_error("Got a configuration error:", error),
         ZatError::VariableFileError(error)      => ZatError::print_error("Got a error processing variables:", error),
-        // ZatError::ReadingFileError(error)       => s!("Could not read template file:\n    {}", error),
-        // ZatError::WritingFileError(error)       => s!("Could not write destination file:\n    {}", error),
-        // ZatError::DirectoryCreationError(error) => s!("Could not create directory:\n    {}", error),
-        // ZatError::NoFilesToProcessError(path)   => s!("Could not find any files to process at {}.", path),
         ZatError::TemplateProcessingError(_)    => s!("There was an error running the template {}.", "TODO: Remove"),
         ZatError::PostProcessingError(error)    => s!("There was an error running the post processor {}.", error),
-        ZatError::ProcessingErrors(errors)      => {
-          let error_str =
-            errors
-              .into_iter()
-              .map(|e| format!("{}", e))
-              .collect::<Vec<_>>()
-              .join("\n    - ");
-
-          format!("Got an error processing template files: {}", error_str)
-        },
       };
 
       write!(f, "{}", string_rep)
