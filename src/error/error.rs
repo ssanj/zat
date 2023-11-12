@@ -11,7 +11,7 @@ pub enum ZatError {
   UserConfigError(UserConfigErrorReason),
   VariableFileError(VariableFileErrorReason),
   TemplateProcessingError(TemplateProcessingErrorReason),
-  PostProcessingError(String),
+  PostProcessingError(PostProcessingErrorReason),
 }
 
 #[derive(Debug, PartialEq)]
@@ -44,6 +44,14 @@ pub enum ReasonFileErrorReason {
   UnsupportedContentError(String, Option<String>, String),
   PrefixError(String, Option<String>, String),
 }
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum PostProcessingErrorReason {
+  ExecutionError(String, Option<String>, String),
+  NonZeroStatusCode(String, String),
+  ProcessInterrupted(String, String),
+}
+
 
 impl fmt::Display for UserConfigErrorReason {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -223,6 +231,36 @@ impl ZatError {
       )
     )
   }
+
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // PostProcessingError
+  // -------------------------------------------------------------------------------------------------------------------
+
+  pub fn post_processing_hook_failed(path: &str, error: String) -> ZatError {
+    ZatError::PostProcessingError(
+      PostProcessingErrorReason::ExecutionError(
+        s!("Shell hook `{}` failed with an error.", path),
+        Some(error),
+        s!("Please ensure the shell hook file {} exists and is executable.", path))
+    )
+  }
+
+  pub fn post_processing_hook_completed_with_non_zero_status(path: &str, status: i32) -> ZatError {
+    ZatError::PostProcessingError(
+      PostProcessingErrorReason::NonZeroStatusCode(
+        s!("Shell hook `{}` failed with status code {}. The shell hook failed with a non-zero error code signifying an error.", path, status),
+        s!("Please check the logs above for why the shell hook failed. Try running the shell hook file `{}` manually by itself on the output to iterate on the error", path))
+    )
+  }
+
+  pub fn post_processing_hook_was_shutdown(path: &str) -> ZatError {
+    ZatError::PostProcessingError(
+      PostProcessingErrorReason::ProcessInterrupted(
+        s!("Shell hook `{}` was shutdown. Some other process killed the shell hook process.", path),
+        s!("Try running the shell hook file `{}` manually on the output.", path))
+    )
+  }
 }
 
 
@@ -232,7 +270,7 @@ impl std::fmt::Display for ZatError {
         ZatError::UserConfigError(error)        => ZatError::print_error("Got a configuration error:", error),
         ZatError::VariableFileError(error)      => ZatError::print_error("Got a error processing variables:", error),
         ZatError::TemplateProcessingError(_)    => s!("There was an error running the template {}.", "TODO: Remove"),
-        ZatError::PostProcessingError(error)    => s!("There was an error running the post processor {}.", error),
+        ZatError::PostProcessingError(error)    => s!("There was an error running the post processor {}.", "TODO: Remove"),
       };
 
       write!(f, "{}", string_rep)

@@ -22,15 +22,15 @@ fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatE
     Command::new(shell_hook)
       .arg::<&Path>(<TargetDir as AsRef<Path>>::as_ref(&user_config.target_dir).as_ref())
       .status()
-      .map_err(|e| ZatError::PostProcessingError(s!("Shell hook `{}` did not complete as expected: {}.\nPlease ensure the shell hook file {} exists and is executable.", shell_hook, e, shell_hook)))
+      .map_err(|e| ZatError::post_processing_hook_failed(shell_hook, e.to_string()))
       .and_then(|exit|{
         match exit.code() {
           Some(0) => {
             println!("Shell hook exited successfully");
             Ok(())
           },
-          Some(other) => Err(ZatError::PostProcessingError(s!("Shell hook `{}` completed with error: {}", shell_hook, other))),
-          None => Err(ZatError::PostProcessingError(s!("Shell hook `{}` was shutdown by signal", shell_hook)))
+          Some(other) => Err(ZatError::post_processing_hook_completed_with_non_zero_status(shell_hook, other)),
+          None => Err(ZatError::post_processing_hook_was_shutdown(shell_hook))
         }
       })
 }
