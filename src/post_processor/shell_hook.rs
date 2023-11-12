@@ -4,8 +4,6 @@ use super::PostProcessingHook;
 use std::process::Command;
 use std::path::Path;
 
-use std::format as s;
-
 pub struct ShellHook;
 
 impl PostProcessingHook for ShellHook {
@@ -40,6 +38,8 @@ mod tests {
     use crate::args::test_util::create_file_in;
     use super::*;
     use crate::{spath, assert_error_with};
+    use crate::error::error::PostProcessingErrorReason;
+    use std::format as s;
 
     #[test]
     fn should_do_nothing_when_there_is_no_shell_hook() {
@@ -51,13 +51,13 @@ mod tests {
     fn should_fail_when_the_shell_hook_should_exist_but_doesnt() {
         let config = config_with_shell_hook(default_config());
 
-        let assert_error_starts_with =
-          |error: String| assert!(error.starts_with("Shell hook `some-script.sh` did not complete as expected: No such file or directory"));
+        let assert_error_ends_with =
+          |error: String| assert!(error.ends_with("failed with an error."));
 
         assert_error_with!(
           ShellHook.run(&config),
-          Err(ZatError::PostProcessingError(error)) => error,
-          assert_error_starts_with
+          Err(ZatError::PostProcessingError(PostProcessingErrorReason::ExecutionError(error, ..))) => error,
+          assert_error_ends_with
         )
     }
 
@@ -83,15 +83,15 @@ mod tests {
 
         println!("config: {:?}", &config);
 
-        let assert_error_starts_with = |error_message: String| {
-          let expected_error = s!("Shell hook `{}` did not complete as expected: Permission denied", spath!(shell_hook));
-          assert!(error_message.starts_with(expected_error.as_str()), "Assertion did not match. Error received: {}", error_message.as_str())
+        let assert_error_ends_with = |error_message: String| {
+          let expected_error = s!("failed with an error.");
+          assert!(error_message.ends_with(expected_error.as_str()), "Assertion did not match. Error received: {}", error_message.as_str())
         };
 
        assert_error_with!{
           ShellHook.run(&config),
-          Err(ZatError::PostProcessingError(error)) => error,
-          assert_error_starts_with
+          Err(ZatError::PostProcessingError(PostProcessingErrorReason::ExecutionError(error, ..))) => error,
+          assert_error_ends_with
         }
     }
 

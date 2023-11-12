@@ -1,5 +1,4 @@
-// TODO: rename file to: default_enriched_template_file_processor
-use crate::error::{ZatResult, ZatError};
+use crate::error::ZatResult;
 use super::{EnrichedTemplateFileProcessor, EnrichedTemplateFile, FileWriter, DirectoryCreator, DefaultFileWriter, DefaultDirectoryCreator, StringTokenReplacer};
 
 pub struct DefaultEnrichedTemplateFileProcessor<'a> {
@@ -8,7 +7,9 @@ pub struct DefaultEnrichedTemplateFileProcessor<'a> {
 }
 
 impl <'a> DefaultEnrichedTemplateFileProcessor<'a> {
-  pub fn new(file_writer: &'a dyn FileWriter, directory_creator: &'a dyn DirectoryCreator) -> Self {
+
+  #[cfg(test)]
+  fn new(file_writer: &'a dyn FileWriter, directory_creator: &'a dyn DirectoryCreator) -> Self {
     Self {
       file_writer,
       directory_creator
@@ -50,6 +51,9 @@ mod tests {
     use super::super::SourceFile;
     use super::super::DestinationFile;
     use pretty_assertions::assert_eq;
+    use crate::error::error::TemplateProcessingErrorReason;
+    use crate::error::error::ZatError;
+    use std::{format as s};
 
     struct Succeeding;
 
@@ -99,7 +103,11 @@ mod tests {
     impl <'a> FileWriter for Failing<'a> {
       fn write_source_to_destination(&self, source_file: &SourceFile, _destination_file: &DestinationFile, _token_replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
         if self.source_files.contains(&source_file) {
-          Err(ZatError::WritingFileError(format!("Could not write file: {}", source_file)))
+          Err(
+            ZatError::TemplateProcessingError(
+              TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", source_file), None, "".to_string())
+            )
+          )
         } else {
           Ok(())
         }
@@ -109,7 +117,11 @@ mod tests {
     impl <'a> DirectoryCreator for Failing<'a> {
       fn create_directory(&self, destination_directory: &DestinationFile, _replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
         if self.destination_files.contains(&destination_directory) {
-          Err(ZatError::WritingFileError(format!("Could not write file: {}", destination_directory)))
+          Err(
+            ZatError::TemplateProcessingError(
+              TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", destination_directory), None, "".to_string())
+            )
+          )
         } else {
           Ok(())
         }
@@ -182,13 +194,8 @@ mod tests {
       let result = template_processor.process_enriched_template_files(&enriched_templates, &token_replacer);
 
       let expected_errors =
-        ZatError::ProcessingErrors(
-          vec![
-            ZatError::WritingFileError("Could not write file: some/destination/dir2".to_owned()),
-            ZatError::WritingFileError("Could not write file: some/source/file2".to_owned()),
-            ZatError::WritingFileError("Could not write file: some/source/file3".to_owned()),
-            ZatError::WritingFileError("Could not write file: some/destination/dir4".to_owned()),
-          ]
+        ZatError::TemplateProcessingError(
+            TemplateProcessingErrorReason::WritingFileError("Could not write file: some/destination/dir2".to_owned(), None, "".to_string())
         );
 
       assert_eq!(result, Err(expected_errors))
