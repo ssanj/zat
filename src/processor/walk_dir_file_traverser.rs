@@ -140,7 +140,7 @@ mod tests {
         ];
 
       let ignores =
-        |template_dir_path: TemplateDirectory, input_dir_path: InputDirectory, output_dir_path: OutputDirectory, working_dir_path: WorkingDirectory| {
+        |_template_dir_path: TemplateDirectory, _input_dir_path: InputDirectory, _output_dir_path: OutputDirectory, working_dir_path: WorkingDirectory| {
           vec![
             r"\.variables".to_owned(),
             r"input1\.json".to_owned(),

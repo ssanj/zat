@@ -1,5 +1,5 @@
 use super::{ExpandedVariables, TemplateVariableExpander, ExpandedKey, ExpandedValue, DEFAULT_FILTER, FilterApplicator};
-use crate::templates::{TemplateVariables, UserVariableKey, UserVariableValue, FilterType};
+use crate::templates::{TemplateVariables, UserVariableKey, UserVariableValue};
 use std::collections::HashMap;
 
 pub struct DefaultTemplateVariableExpander {
@@ -76,7 +76,8 @@ mod tests {
 
   use super::*;
   use super::super::DefaultTemplateVariableExpander;
-  use crate::templates::TemplateVariables;
+  use crate::templates::{TemplateVariables, FilterType};
+
 
   struct FilterNameFilterApplicator;
 

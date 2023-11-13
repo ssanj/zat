@@ -34,7 +34,6 @@ pub use string_token_replacer::StringTokenReplacer;
 
 // Module-private exports
 use file_traverser::{FileTraverser, TemplateFile};
-use string_token_replacer::{ReplacingStringTokenReplacer, EchoingStringTokenReplacer};
 use regex_file_chooser::RegExFileChooser;
 use default_template_enricher::DefaultTemplateEnricher;
 use walk_dir_file_traverser::WalkDirFileTraverser;
@@ -44,3 +43,6 @@ use enriched_default_template_file_processor::DefaultEnrichedTemplateFileProcess
 use default_directory_creator::DefaultDirectoryCreator;
 use source_file::SourceFile;
 use destination_file::DestinationFile;
+
+#[cfg(test)]
+use string_token_replacer::{ReplacingStringTokenReplacer, EchoingStringTokenReplacer};

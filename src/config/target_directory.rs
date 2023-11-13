@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::{path::Path, ffi::OsStr};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,12 +10,6 @@ impl TargetDir {
     TargetDir {
       path: path.to_owned()
     }
-  }
-
-  pub fn join<P>(&self, other: P) -> PathBuf where
-    P: AsRef<Path>
-  {
-    Path::new(&self.path).join(other)
   }
 
   pub fn does_exist(&self) -> bool {

@@ -10,6 +10,7 @@ pub struct SourceFile(pub String);
 // TODO: Should this be a trait?
 impl SourceFile {
 
+  #[cfg(test)]
   pub fn new(file: &str) -> Self {
     Self(file.to_owned())
   }

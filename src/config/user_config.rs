@@ -17,6 +17,8 @@ pub struct UserConfig {
 }
 
 impl UserConfig {
+
+  #[cfg(test)]
   pub fn new(source_dir: &str, destination_dir: &str) -> Self {
     let template_dir = TemplateDir::new(source_dir);
     let template_files_dir = TemplateFilesDir::from(&template_dir);

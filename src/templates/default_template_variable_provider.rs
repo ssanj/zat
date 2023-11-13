@@ -4,8 +4,7 @@ use crate::config::UserConfig;
 use crate::config::VariableFile;
 use super::{TemplateVariable, TemplateVariables};
 use std::fs::File;
-use std::io::{Read, Write};
-use std::println;
+use std::io::Read;
 
 pub struct DefaultTemplateVariableProvider;
 
@@ -46,15 +45,12 @@ mod tests {
 
   use super::*;
   use tempfile::TempDir;
-  use crate::config::IgnoredFiles;
-  use crate::config::Filters;
-  use crate::config::TargetDir;
-  use crate::config::TemplateDir;
   use crate::config::DOT_VARIABLES_PROMPT;
   use crate::error::variable_file_error_reason::VariableFileErrorReason;
   use super::super::FilterType;
   use super::super::VariableFilter;
   use pretty_assertions::assert_eq;
+  use std::io::Write;
 
   #[test]
   fn tokens_are_loaded_from_variable_file() {

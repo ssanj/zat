@@ -8,14 +8,6 @@ pub struct TokenizedKeysExpandedVariables {
   pub value: HashMap<TokenizedExpandedKey, ExpandedValue>
 }
 
-impl TokenizedKeysExpandedVariables {
-  pub fn new(value: HashMap<TokenizedExpandedKey, ExpandedValue>) -> Self {
-    Self {
-      value
-    }
-  }
-}
-
 
 #[derive(Hash, Debug, Clone, PartialEq, Eq)]
 pub struct TokenizedExpandedKey {

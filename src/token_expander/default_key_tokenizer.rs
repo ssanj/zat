@@ -1,6 +1,4 @@
 use super::{KeyTokenizer, TokenizedExpandedKey, TokenizedKeysExpandedVariables, ExpandedVariables};
-use std::collections::HashMap;
-use super::{ExpandedKey, ExpandedValue};
 
 pub struct DefaultKeyTokenizer {
   token: String
@@ -35,6 +33,9 @@ impl KeyTokenizer for DefaultKeyTokenizer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
+    use super::super::{ExpandedKey, ExpandedValue};
+
 
     #[test]
     fn should_add_token_to_all_keys() {

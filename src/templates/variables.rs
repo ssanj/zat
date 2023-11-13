@@ -5,13 +5,6 @@ pub struct TemplateVariables {
   pub tokens: Vec<TemplateVariable>
 }
 
-impl TemplateVariables {
-  pub fn new(tokens: &[TemplateVariable]) -> Self {
-    Self {
-      tokens: Vec::from_iter(tokens.iter().map(|v| v.clone()))
-    }
-  }
-}
 
 impl Default for TemplateVariables {
   fn default() -> Self {
@@ -35,6 +28,8 @@ pub struct TemplateVariable {
 }
 
 impl TemplateVariable {
+
+  #[cfg(test)]
   pub fn new(variable_name: &str, description: &str, prompt: &str, filters: &[VariableFilter], default_value: Option<&str>) -> Self {
     Self {
       variable_name: variable_name.to_owned(),
@@ -79,6 +74,8 @@ pub struct VariableFilter {
 }
 
 impl VariableFilter {
+
+  #[cfg(test)]
   pub fn new(name: &str, filter: &FilterType) -> Self {
     Self {
       name: name.to_owned(),
@@ -86,6 +83,7 @@ impl VariableFilter {
     }
   }
 
+  #[cfg(test)]
   pub fn from_pairs(values: &[(&str, &FilterType)]) -> Vec<VariableFilter> {
     Vec::from_iter(
       values

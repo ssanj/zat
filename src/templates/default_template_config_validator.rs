@@ -120,6 +120,7 @@ impl DefaultTemplateConfigValidator {
     }
   }
 
+  #[cfg(test)]
   fn with_all_dependencies(user_input_provider: Box<dyn UserInputProvider>, user_template_variable_validator: Box<dyn UserTemplateVariableValidator>) -> Self {
     DefaultTemplateConfigValidator {
       user_input_provider,
@@ -143,10 +144,6 @@ mod tests {
   use super::*;
   use pretty_assertions::assert_eq;
   use crate::config::user_config::UserConfig;
-  use crate::config::ignored_files::IgnoredFiles;
-  use crate::config::filters::Filters;
-  use crate::config::target_directory::TargetDir;
-  use crate::config::template_directory::TemplateDir;
 
   impl UserInputProvider for HashMap<String, String> {
     fn get_user_input(&self, variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {

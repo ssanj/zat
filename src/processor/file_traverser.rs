@@ -13,10 +13,13 @@ pub trait FileTraverser {
 
 
 impl TemplateFile {
+
+  #[cfg(test)]
   pub fn new_file(file: &str) -> Self {
     Self::File(file.to_owned())
   }
 
+  #[cfg(test)]
   pub fn new_dir(dir: &str) -> Self {
     Self::Dir(dir.to_owned())
   }

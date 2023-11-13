@@ -1,4 +1,4 @@
-use std::{path::{PathBuf, Path}, fs::File, os::unix::prelude::PermissionsExt, println};
+use std::{path::{PathBuf, Path}};
 
 #[cfg(test)]
 use tempfile::TempDir;
@@ -40,6 +40,7 @@ pub fn temp_dir_with_parent_child_pair(child: &str) -> (PathBuf, PathBuf) {
 
 /// Creates file supplied under a temp directory and returns the
 /// parent temp directory and the path to the file respectively as a pair.
+#[allow(unused)]
 pub fn temp_dir_with_file_pair(file: &str, content: &[u8], maybe_permissions: Option<u32>) -> (TempDir, PathBuf) {
   use std::os::unix::fs::OpenOptionsExt;
   let temp_dir = TempDir::new().unwrap();

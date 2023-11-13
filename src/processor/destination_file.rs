@@ -18,16 +18,6 @@ impl DestinationFile {
       .map(|p| p.to_string_lossy().to_owned())
   }
 
-  pub fn remove_extension(&self) -> DestinationFile {
-    let without_extension =
-      Path::new(&self.0)
-        .file_stem()
-        .expect(&format!("Could not retrieve file name stem for: {}", &self.0))
-        .to_string_lossy();
-
-    DestinationFile(without_extension.to_string())
-  }
-
   pub fn parent_directory(&self) -> DestinationFile {
     let parent_dir =
       Path::new(&self.0)

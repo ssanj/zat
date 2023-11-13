@@ -23,6 +23,7 @@ pub struct ReplacingStringTokenReplacer<'a> {
 
 impl <'a> ReplacingStringTokenReplacer<'a> {
 
+  #[cfg(test)]
   pub fn new(replacements: &'a[(&'a str, &'a str)]) -> Self {
     Self {
       replacements

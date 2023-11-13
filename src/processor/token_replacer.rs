@@ -4,6 +4,8 @@ pub struct ContentWithTokens {
 }
 
 impl ContentWithTokens {
+
+  #[cfg(test)]
   pub fn new(input: &str) -> Self {
     Self {
       value: input.to_owned()
@@ -24,6 +26,8 @@ pub struct ContentTokensReplaced {
 }
 
 impl ContentTokensReplaced {
+
+  #[cfg(test)]
   pub fn new(input: &str) -> Self {
     Self {
       value: input.to_owned()
