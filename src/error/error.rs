@@ -1,7 +1,6 @@
-use std::{fmt::{self, write}, format as s, unimplemented, todo};
+use format as s;
 
 use ansi_term::Color::Yellow;
-use clap::error;
 
 pub type ZatResult<A> = Result<A, ZatError>;
 pub type ZatAction = Result<(), ZatError>;
@@ -55,23 +54,11 @@ pub enum PostProcessingErrorReason {
 
 #[derive(Debug)]
 struct ErrorFormat {
-  error_type: String,
   error_reason: String,
   exception: Option<String>,
   remediation: Option<String>
 }
 
-
-
-impl fmt::Display for UserConfigErrorReason {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    match self {
-      UserConfigErrorReason::TemplateDirDoesNotExist(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-      UserConfigErrorReason::TemplateFilesDirDoesNotExist(error, fix) =>  write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-      UserConfigErrorReason::TargetDirectoryShouldNotExist(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-    }
-  }
-}
 
 
 impl From<&UserConfigErrorReason> for ErrorFormat {
@@ -84,7 +71,6 @@ impl From<&UserConfigErrorReason> for ErrorFormat {
     };
 
     ErrorFormat {
-      error_type: "Got a configuration error".to_owned(),
       error_reason: error.to_owned(),
       exception: None,
       remediation: Some(fix.to_owned())
@@ -103,7 +89,6 @@ impl From<&VariableFileErrorReason> for ErrorFormat {
     };
 
     ErrorFormat {
-      error_type: "Got a error processing variables".to_owned(),
       error_reason: error.to_owned(),
       exception: None,
       remediation: Some(fix.to_owned())
@@ -111,43 +96,57 @@ impl From<&VariableFileErrorReason> for ErrorFormat {
   }
 }
 
-impl fmt::Display for VariableFileErrorReason {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-      match self {
-        VariableFileErrorReason::VariableFileNotFound(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-        VariableFileErrorReason::VariableOpenError(error, fix) =>  write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-        VariableFileErrorReason::VariableReadError(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-        VariableFileErrorReason::VariableDecodeError(error, fix) => write!(f, "{}", ZatError::print_error_fix(&error, &fix)),
-      }
+
+
+impl From<&TemplateProcessingErrorReason> for ErrorFormat {
+  fn from(error: &TemplateProcessingErrorReason) -> Self {
+    let (error, exception, fix) = match error {
+        TemplateProcessingErrorReason::NoFilesToProcessError(error, fix) => (error, &None, fix),
+        TemplateProcessingErrorReason::ReadingFileError(ReasonFileErrorReason::ReadingError(error, exception, fix)) => (error, exception, fix),
+        TemplateProcessingErrorReason::ReadingFileError(ReasonFileErrorReason::UnsupportedContentError(error, exception, fix)) => (error, exception, fix),
+        TemplateProcessingErrorReason::ReadingFileError(ReasonFileErrorReason::PrefixError(error, exception, fix)) => (error, exception, fix),
+        TemplateProcessingErrorReason::WritingFileError(error, exception, fix) => (error, exception, fix),
+        TemplateProcessingErrorReason::DirectoryCreationError(error, exception, fix) => (error, exception, fix),
+    };
+
+    ErrorFormat {
+      error_reason: error.to_owned(),
+      exception: exception.to_owned(),
+      remediation: Some(fix.to_owned())
     }
+  }
 }
+
+impl From<&PostProcessingErrorReason> for ErrorFormat {
+  fn from(error: &PostProcessingErrorReason) -> Self {
+
+    let (error, exception, fix) = match error {
+        PostProcessingErrorReason::ExecutionError(error, exception, fix) => (error, exception, fix),
+        PostProcessingErrorReason::NonZeroStatusCode(error, fix) => (error, &None, fix),
+        PostProcessingErrorReason::ProcessInterrupted(error, fix) => (error, &None, fix),
+    };
+
+    ErrorFormat {
+      error_reason: error.to_owned(),
+      exception: exception.to_owned(),
+      remediation: Some(fix.to_owned())
+    }
+  }
+}
+
 
 
 impl ZatError {
 
-  fn print_error_fix(error: &str, fix: &str) -> String {
-    let indent = "    ";
-    let heading_indent = "  ";
-    let heading = Yellow.paint("Possible fix:");
-    let error_indent = s!("{}", indent);
-    let fix_indent = s!("{}", indent);
 
-    s!("{}{}\n\n{}{}\n{}{}", error_indent, error, heading_indent, heading, fix_indent, fix)
-  }
-
-  fn print_error<D: fmt::Display>(prefix: &str, error: D) -> String {
-    let indent = "  ";
-    s!("\n\n{}{}\n{}", indent, Yellow.paint(prefix), error)
-  }
-
-  fn print_formatted_error<E>(err: E) -> String
+  fn print_formatted_error<E>(error_type: &str, err: E) -> String
     where E: Into<ErrorFormat>
   {
     let error = err.into();
     let heading_indent = "  ";
     let content_indent = "    ";
 
-    let error_reason_heading = ZatError::heading(error.error_type.as_str());
+    let error_reason_heading = ZatError::heading(error_type);
     let error_reason = error.error_reason;
 
     let error_section = s!("{}{}\n{}{}", heading_indent, error_reason_heading, content_indent, error_reason);
@@ -274,7 +273,7 @@ impl ZatError {
     ZatError::TemplateProcessingError(
       TemplateProcessingErrorReason::ReadingFileError(
         ReasonFileErrorReason::UnsupportedContentError(
-          s!("Could not decode template file '{}' content to a string. Only text file templates are supported.", path),
+          s!("Could not decode ReasonFileErrorReason::template file '{}' content to a string. Only text file templates are supported.", path),
           Some(error),
           s!("Ensure the template file '{}' is a text file and is not corrupted.", path)
         )
@@ -349,10 +348,10 @@ impl ZatError {
 impl std::fmt::Display for ZatError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
       let string_rep = match self {
-        ZatError::UserConfigError(error)        => ZatError::print_formatted_error(error),
-        ZatError::VariableFileError(error)      => ZatError::print_formatted_error(error),
-        ZatError::TemplateProcessingError(_)    => s!("There was an error running the template {}.", "TODO: Remove"),
-        ZatError::PostProcessingError(error)    => s!("There was an error running the post processor {}.", "TODO: Remove"),
+        ZatError::UserConfigError(error)          => ZatError::print_formatted_error("Got a configuration error", error),
+        ZatError::VariableFileError(error)        => ZatError::print_formatted_error("Got a error processing variables", error),
+        ZatError::TemplateProcessingError(error)  => ZatError::print_formatted_error("There was an error running the template {}.", error),
+        ZatError::PostProcessingError(error)      => ZatError::print_formatted_error("There was an error running the post processor {}.", error),
       };
 
       write!(f, "{}", string_rep)
