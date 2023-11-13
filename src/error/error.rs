@@ -1,10 +1,14 @@
 use format as s;
-
+use super::ErrorFormat;
+use super::UserConfigErrorReason;
+use super::VariableFileErrorReason;
+use super::TemplateProcessingErrorReason;
+use super::ReasonFileErrorReason;
+use super::PostProcessingErrorReason;
 use ansi_term::Color::Yellow;
 
 pub type ZatResult<A> = Result<A, ZatError>;
 pub type ZatAction = Result<(), ZatError>;
-
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ZatError {
@@ -14,130 +18,8 @@ pub enum ZatError {
   PostProcessingError(PostProcessingErrorReason),
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum UserConfigErrorReason {
-  TemplateDirDoesNotExist(String, String),
-  TemplateFilesDirDoesNotExist(String, String),
-  TargetDirectoryShouldNotExist(String, String),
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum VariableFileErrorReason {
-  VariableFileNotFound(String, String),
-  VariableOpenError(String, String),
-  VariableReadError(String, String),
-  VariableDecodeError(String, String),
-}
-
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum TemplateProcessingErrorReason {
-  NoFilesToProcessError(String, String),
-  ReadingFileError(ReasonFileErrorReason),
-  WritingFileError(String, Option<String>, String),
-  DirectoryCreationError(String, Option<String>, String),
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum ReasonFileErrorReason {
-  ReadingError(String, Option<String>, String),
-  UnsupportedContentError(String, Option<String>, String),
-  PrefixError(String, Option<String>, String),
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum PostProcessingErrorReason {
-  ExecutionError(String, Option<String>, String),
-  NonZeroStatusCode(String, String),
-  ProcessInterrupted(String, String),
-}
-
-#[derive(Debug)]
-struct ErrorFormat {
-  error_reason: String,
-  exception: Option<String>,
-  remediation: Option<String>
-}
-
-
-
-impl From<&UserConfigErrorReason> for ErrorFormat {
-  fn from(error: &UserConfigErrorReason) -> Self {
-
-    let (error, fix) = match error {
-        UserConfigErrorReason::TemplateDirDoesNotExist(error, fix) => (error, fix),
-        UserConfigErrorReason::TemplateFilesDirDoesNotExist(error, fix) => (error, fix),
-        UserConfigErrorReason::TargetDirectoryShouldNotExist(error, fix) => (error, fix),
-    };
-
-    ErrorFormat {
-      error_reason: error.to_owned(),
-      exception: None,
-      remediation: Some(fix.to_owned())
-    }
-  }
-}
-
-impl From<&VariableFileErrorReason> for ErrorFormat {
-  fn from(error: &VariableFileErrorReason) -> Self {
-
-    let (error, fix) = match error {
-        VariableFileErrorReason::VariableFileNotFound(error, fix) => (error, fix),
-        VariableFileErrorReason::VariableOpenError(error, fix) => (error, fix),
-        VariableFileErrorReason::VariableReadError(error, fix) => (error, fix),
-        VariableFileErrorReason::VariableDecodeError(error, fix) => (error, fix),
-    };
-
-    ErrorFormat {
-      error_reason: error.to_owned(),
-      exception: None,
-      remediation: Some(fix.to_owned())
-    }
-  }
-}
-
-
-
-impl From<&TemplateProcessingErrorReason> for ErrorFormat {
-  fn from(error: &TemplateProcessingErrorReason) -> Self {
-    let (error, exception, fix) = match error {
-        TemplateProcessingErrorReason::NoFilesToProcessError(error, fix) => (error, &None, fix),
-        TemplateProcessingErrorReason::ReadingFileError(ReasonFileErrorReason::ReadingError(error, exception, fix)) => (error, exception, fix),
-        TemplateProcessingErrorReason::ReadingFileError(ReasonFileErrorReason::UnsupportedContentError(error, exception, fix)) => (error, exception, fix),
-        TemplateProcessingErrorReason::ReadingFileError(ReasonFileErrorReason::PrefixError(error, exception, fix)) => (error, exception, fix),
-        TemplateProcessingErrorReason::WritingFileError(error, exception, fix) => (error, exception, fix),
-        TemplateProcessingErrorReason::DirectoryCreationError(error, exception, fix) => (error, exception, fix),
-    };
-
-    ErrorFormat {
-      error_reason: error.to_owned(),
-      exception: exception.to_owned(),
-      remediation: Some(fix.to_owned())
-    }
-  }
-}
-
-impl From<&PostProcessingErrorReason> for ErrorFormat {
-  fn from(error: &PostProcessingErrorReason) -> Self {
-
-    let (error, exception, fix) = match error {
-        PostProcessingErrorReason::ExecutionError(error, exception, fix) => (error, exception, fix),
-        PostProcessingErrorReason::NonZeroStatusCode(error, fix) => (error, &None, fix),
-        PostProcessingErrorReason::ProcessInterrupted(error, fix) => (error, &None, fix),
-    };
-
-    ErrorFormat {
-      error_reason: error.to_owned(),
-      exception: exception.to_owned(),
-      remediation: Some(fix.to_owned())
-    }
-  }
-}
-
-
 
 impl ZatError {
-
 
   fn print_formatted_error<E>(error_type: &str, err: E) -> String
     where E: Into<ErrorFormat>
@@ -173,6 +55,10 @@ impl ZatError {
   fn heading(heading: &str) -> String {
     s!("{}:", Yellow.paint(heading))
   }
+}
+
+impl ZatError {
+
 
   // -------------------------------------------------------------------------------------------------------------------
   // UserConfigError

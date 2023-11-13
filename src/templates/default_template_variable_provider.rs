@@ -51,7 +51,7 @@ mod tests {
   use crate::config::TargetDir;
   use crate::config::TemplateDir;
   use crate::config::DOT_VARIABLES_PROMPT;
-use crate::error::error::VariableFileErrorReason;
+  use crate::error::variable_file_error_reason::VariableFileErrorReason;
   use super::super::FilterType;
   use super::super::VariableFilter;
   use pretty_assertions::assert_eq;

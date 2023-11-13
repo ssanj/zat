@@ -51,7 +51,7 @@ mod tests {
     use super::super::SourceFile;
     use super::super::DestinationFile;
     use pretty_assertions::assert_eq;
-    use crate::error::error::TemplateProcessingErrorReason;
+    use crate::error::template_processing_error_reason::TemplateProcessingErrorReason;
     use crate::error::error::ZatError;
     use std::{format as s};
 

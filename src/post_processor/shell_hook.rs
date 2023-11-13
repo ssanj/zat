@@ -38,7 +38,7 @@ mod tests {
     use crate::args::test_util::create_file_in;
     use super::*;
     use crate::{spath, assert_error_with};
-    use crate::error::error::PostProcessingErrorReason;
+    use crate::error::post_processing_error_reason::PostProcessingErrorReason;
     use std::format as s;
 
     #[test]

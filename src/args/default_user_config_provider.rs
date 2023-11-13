@@ -164,6 +164,7 @@ mod tests {
   use tempfile::TempDir;
   use super::super::test_util::temp_dir_with;
   use std::{format as s};
+  use crate::error::user_config_error_reason::UserConfigErrorReason;
 
   struct TestArgs{
     args: Args
@@ -296,7 +297,7 @@ mod tests {
 
         let expected_error = s!("The Zat template directory '{}' does not exist. It should exist so Zat can read the templates configuration.", template_dir_path);
         let expected_fix = s!("Please create the Zat template directory '{}' with the Zat template folder structure. See `zat -h` for more.", template_dir_path);
-        assert_eq!(error, ZatError::UserConfigError(error::UserConfigErrorReason::TemplateDirDoesNotExist(expected_error, expected_fix)))
+        assert_eq!(error, ZatError::UserConfigError(UserConfigErrorReason::TemplateDirDoesNotExist(expected_error, expected_fix)))
       }
     }
   }
@@ -325,7 +326,7 @@ mod tests {
       Err(error) => {
         let expected_error = s!("The Zat template files directory '{}/template' does not exist. It should exist so Zat can read the template files.", template_dir_path);
         let expected_fix = s!("Please create the Zat template files directory '{}/template' with the necessary template files. See `zat -h` for more details.", template_dir_path);
-        assert_eq!(error, ZatError::UserConfigError(error::UserConfigErrorReason::TemplateFilesDirDoesNotExist(expected_error, expected_fix)))
+        assert_eq!(error, ZatError::UserConfigError(UserConfigErrorReason::TemplateFilesDirDoesNotExist(expected_error, expected_fix)))
       }
     }
 
@@ -355,7 +356,7 @@ mod tests {
       Err(error) => {
         let expected_error = s!("The target directory '{}' should not exist. It will be created when Zat processes the template files.", target_dir_path);
         let expected_fix = "Please supply an empty directory for the target.".to_owned();
-        assert_eq!(error, ZatError::UserConfigError(error::UserConfigErrorReason::TargetDirectoryShouldNotExist(expected_error, expected_fix)))
+        assert_eq!(error, ZatError::UserConfigError(UserConfigErrorReason::TargetDirectoryShouldNotExist(expected_error, expected_fix)))
       }
     }
   }
