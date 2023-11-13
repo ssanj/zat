@@ -149,12 +149,12 @@ impl ZatError {
     let error_reason_heading = ZatError::heading(error_type);
     let error_reason = error.error_reason;
 
-    let error_section = s!("{}{}\n{}{}", heading_indent, error_reason_heading, content_indent, error_reason);
+    let error_section = s!("\n\n{}{}\n{}{}", heading_indent, error_reason_heading, content_indent, error_reason);
 
     let exception_section = match error.exception {
         Some(exception) => {
           let exception_heading = ZatError::heading("Exception");
-          s!("{}{}\n{}{}", heading_indent, exception_heading, content_indent, exception)
+          s!("\n\n{}{}\n{}{}", heading_indent, exception_heading, content_indent, exception)
         },
         None => "".to_owned(),
     };
@@ -162,12 +162,12 @@ impl ZatError {
     let remediation_section = match error.remediation {
         Some(remediation) => {
           let possible_fix_heading = ZatError::heading("Possible fix");
-          s!("{}{}\n{}{}", heading_indent, possible_fix_heading, content_indent, remediation)
+          s!("\n\n{}{}\n{}{}", heading_indent, possible_fix_heading, content_indent, remediation)
         },
         None => "".to_owned(),
     };
 
-    s!("\n\n{}\n{}\n{}", error_section, exception_section, remediation_section)
+    s!("{}{}{}", error_section, exception_section, remediation_section)
   }
 
   fn heading(heading: &str) -> String {
@@ -323,7 +323,7 @@ impl ZatError {
       PostProcessingErrorReason::ExecutionError(
         s!("Shell hook `{}` failed with an error.", path),
         Some(error),
-        s!("Please ensure the shell hook file {} exists and is executable.", path))
+        s!("Please ensure the shell hook file `{}` exists and is executable.", path))
     )
   }
 
@@ -350,8 +350,8 @@ impl std::fmt::Display for ZatError {
       let string_rep = match self {
         ZatError::UserConfigError(error)          => ZatError::print_formatted_error("Got a configuration error", error),
         ZatError::VariableFileError(error)        => ZatError::print_formatted_error("Got a error processing variables", error),
-        ZatError::TemplateProcessingError(error)  => ZatError::print_formatted_error("There was an error running the template {}.", error),
-        ZatError::PostProcessingError(error)      => ZatError::print_formatted_error("There was an error running the post processor {}.", error),
+        ZatError::TemplateProcessingError(error)  => ZatError::print_formatted_error("There was an error running the template", error),
+        ZatError::PostProcessingError(error)      => ZatError::print_formatted_error("There was an error running the post processor", error),
       };
 
       write!(f, "{}", string_rep)
