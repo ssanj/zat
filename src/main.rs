@@ -7,6 +7,8 @@ mod processor;
 mod post_processor;
 mod macros;
 
+use std::process::ExitCode;
+
 use args::UserConfigProvider;
 use args::DefaultUserConfigProvider;
 
@@ -30,10 +32,16 @@ use crate::post_processor::ShellHook;
 
 use ansi_term::Color::Red;
 
-fn main() {
+fn main() -> ExitCode {
   match run_zat() {
-    Ok(_) => println!("Zat completed successfully."),
-    Err(error) => eprintln!("{}{}", Red.paint("Zat failed an with error."), error),
+    Ok(_) => {
+      println!("Zat completed successfully.");
+      ExitCode::SUCCESS
+    },
+    Err(error) => {
+      eprintln!("{}{}", Red.paint("Zat failed an with error."), error);
+      ExitCode::FAILURE
+    },
   }
 }
 
