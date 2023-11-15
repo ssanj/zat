@@ -11,9 +11,37 @@ struct ErrorParts(String, String, String);
 
 #[test]
 fn error_message_on_missing_template_dir() -> Result<(), Box<dyn std::error::Error>> {
+  let source_directory = "./tests/errors/no-template-dir/source";
+
+  let error =
+    ErrorParts(
+      "Got a configuration error".to_owned(),
+      s!("The Zat template directory '{}' does not exist. It should exist so Zat can read the templates configuration.", source_directory),
+      s!("Please create the Zat template directory '{}' with the Zat template folder structure. See `zat -h` for more.", source_directory),
+    );
+
+  assert_source_dir_error(error, source_directory)
+}
+
+#[test]
+fn error_message_on_missing_template_files_dir() -> Result<(), Box<dyn std::error::Error>> {
+  let source_directory = "./tests/errors/no-template-files-dir/source";
+
+  let error =
+    ErrorParts(
+      "Got a configuration error".to_owned(),
+      s!("The Zat template files directory '{}/template' does not exist. It should exist so Zat can read the template files.", source_directory),
+      s!("Please create the Zat template files directory '{}/template' with the necessary template files. See `zat -h` for more details.", source_directory),
+    );
+
+  assert_source_dir_error(error, source_directory)
+}
+
+/// Asserts error output from the source directory and ensure the target directory has not been created
+fn assert_source_dir_error(error: ErrorParts, source_directory: &str) -> Result<(), Box<dyn std::error::Error>> {
   let mut cmd = Command::cargo_bin("zat").unwrap();
   let working_directory = tempdir()?;
-  let target_directory = working_directory.into_path().join("errors-no-template_dir").to_string_lossy().to_string();
+  let target_directory = working_directory.into_path().join("errors-no-template-dir").to_string_lossy().to_string();
 
   let std_err_contains = |error: ErrorParts| {
     predicate::function(move |out: &[u8]| {
@@ -23,16 +51,9 @@ fn error_message_on_missing_template_dir() -> Result<(), Box<dyn std::error::Err
     })
   };
 
-  let error =
-    ErrorParts(
-      "Got a configuration error".to_owned(),
-      "The Zat template directory './tests/errors/no-template-dir/source' does not exist. It should exist so Zat can read the templates configuration.".to_owned(),
-      "Please create the Zat template directory './tests/errors/no-template-dir/source' with the Zat template folder structure. See `zat -h` for more.".to_owned(),
-    );
-
   cmd
     .arg("--template-dir")
-    .arg("./tests/errors/no-template-dir/source")
+    .arg(source_directory)
     .arg("--target-dir")
     .arg(&target_directory)
     .assert()
