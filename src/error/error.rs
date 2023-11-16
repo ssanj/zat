@@ -124,8 +124,8 @@ impl ZatError {
   pub fn variable_file_cant_be_decoded(path: &str, reason: &str) -> ZatError {
     ZatError::VariableFileError(
       VariableFileErrorReason::VariableDecodeError(
-        s!("Variable file '{}' could not decoded. It failed decoding with this error: {}. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path, reason),
-        s!("Make the variable file '{}' is a valid JSON file.", path)
+        s!("Variable file '{}' could not be decoded as JSON into the expected format. It failed decoding with this error: {}. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path, reason),
+        s!("Make the variable file '{}' is a valid JSON file in the format required by Zat. See `zat -h` for more details on the format", path)
       )
     )
   }
