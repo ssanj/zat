@@ -197,6 +197,41 @@ fn error_message_on_binary_files() -> Result<(), Box<dyn std::error::Error>> {
   Ok(())
 }
 
+#[test]
+fn error_message_on_no_variables_defined() -> Result<(), Box<dyn std::error::Error>> {
+  let source_directory = "./tests/errors/no-variables-defined/source";
+
+  let error =
+    ErrorParts::new(
+      "Got a error processing variables".to_owned(),
+      s!("Variable file '{}/.variables.zat-prompt' does not define any variables. The purpose of Zat is to provide a templating tool to customise frequently used file structures. It does this by replacing variables defined in the file '{}/.variables.zat-prompt' on file and directory names of templates as well as within '.tmpl' files. If you want to simply copy a file structure use 'cp' instead.", source_directory, source_directory),
+      s!("Please define at least one variable in the variable file '{}/.variables.zat-prompt'.", source_directory),
+    );
+
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+  let working_directory = tempdir()?;
+  let target_directory = working_directory.into_path().join("errors-no-variables-defined").to_string_lossy().to_string();
+
+  let std_err_contains = |error: ErrorParts| {
+    predicate::function(move |out: &[u8]| {
+      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
+      let lines: Vec<&str> = output.split('\n').collect();
+      assert_error_message(&lines, error.clone())
+    })
+  };
+
+  cmd
+    .arg("--template-dir")
+    .arg(source_directory)
+    .arg("--target-dir")
+    .arg(&target_directory)
+    .assert()
+    .failure()
+    .stderr(std_err_contains(error));
+
+  Ok(())
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper functions
 //----------------------------------------------------------------------------------------------------------------------

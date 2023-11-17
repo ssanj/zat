@@ -29,11 +29,15 @@ impl TemplateVariableProvider for DefaultTemplateVariableProvider {
 
       let tokens: Vec<TemplateVariable> = serde_json::from_str(&variables_json).map_err(|e| ZatError::variable_file_cant_be_decoded(&variable_file_path, e.to_string().as_str()))?;
 
-      Ok(
-        TemplateVariables {
-          tokens
-        }
-      )
+      if !tokens.is_empty() {
+        Ok(
+          TemplateVariables {
+            tokens
+          }
+        )
+      } else {
+        Err(ZatError::variable_file_has_no_variables_defined(&variable_file_path))
+      }
     } else {
       Err(ZatError::variable_file_does_not_exist(&variable_file_path))
     }
@@ -184,6 +188,39 @@ mod tests {
       Err(other_error) => assert!(false, "Expected ZatError::VariableFileNotFound but got different error : {}", other_error.to_string()),
       Ok(value) => assert!(false, "Expected ZatError::VariableFileNotFound but got success with: {:?}", value)
     }
+  }
+
+  #[test]
+  fn fails_if_the_variable_file_has_no_variables_defined() {
+    let target_dir = TempDir::new().unwrap();
+    let template_dir = TempDir::new().unwrap();
+
+    let template_dir_path = template_dir.path().display().to_string();
+    let target_dir_path = target_dir.path().display().to_string();
+    let variable_file_path = template_dir.path().join(DOT_VARIABLES_PROMPT);
+
+    let mut variable_file = File::create(variable_file_path).unwrap();
+
+    drop(target_dir);
+
+    let variables_config = r#"
+      [
+      ]
+    "#;
+
+    writeln!(&mut variable_file, "{}", variables_config).unwrap();
+
+    let template_config_provider = DefaultTemplateVariableProvider::new();
+
+    let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
+
+    match template_config_provider.get_tokens(user_config) {
+      Err(ZatError::VariableFileError(VariableFileErrorReason::VariableFileHasNoVariableDefinitions(..))) => assert!(true),
+      Err(other_error) => assert!(false, "Expected ZatError::VariableFileHasNoVariableDefinitions but got different error : {}", other_error.to_string()),
+      Ok(value) => assert!(false, "Expected ZatError::VariableFileHasNoVariableDefinitions but got success with: {:?}", value)
+    }
+
+    drop(variable_file);
   }
 
 }

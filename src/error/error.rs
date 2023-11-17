@@ -103,6 +103,15 @@ impl ZatError {
     )
   }
 
+  pub fn variable_file_has_no_variables_defined(path: &str) -> ZatError {
+    ZatError::VariableFileError(
+      VariableFileErrorReason::VariableFileHasNoVariableDefinitions(
+        s!("Variable file '{}' does not define any variables. The purpose of Zat is to provide a templating tool to customise frequently used file structures. It does this by replacing variables defined in the file '{}' on file and directory names of templates as well as within '.tmpl' files. If you want to simply copy a file structure use 'cp' instead.", path, path),
+        s!("Please define at least one variable in the variable file '{}'.", path)
+      )
+    )
+  }
+
   pub fn variable_file_cant_be_opened(path: &str, reason: &str) -> ZatError {
     ZatError::VariableFileError(
       VariableFileErrorReason::VariableOpenError(

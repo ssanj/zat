@@ -6,6 +6,7 @@ pub enum VariableFileErrorReason {
   VariableOpenError(String, String),
   VariableReadError(String, String),
   VariableDecodeError(String, String),
+  VariableFileHasNoVariableDefinitions(String, String),
 }
 
 impl From<&VariableFileErrorReason> for ErrorFormat {
@@ -16,6 +17,7 @@ impl From<&VariableFileErrorReason> for ErrorFormat {
         VariableFileErrorReason::VariableOpenError(error, fix) => (error, fix),
         VariableFileErrorReason::VariableReadError(error, fix) => (error, fix),
         VariableFileErrorReason::VariableDecodeError(error, fix) => (error, fix),
+        VariableFileErrorReason::VariableFileHasNoVariableDefinitions(error, fix) => (error, fix),
     };
 
     ErrorFormat {
