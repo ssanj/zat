@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo "shell hook received args: $1"
+echo "running shell hook"
+
+exit 0

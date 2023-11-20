@@ -231,6 +231,80 @@ fn error_message_on_binary_template() -> Result<(), Box<dyn std::error::Error>> 
   Ok(())
 }
 
+#[test]
+fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn std::error::Error>> {
+  let source_directory = "./tests/errors/non-zero-post-processing-shell-hook-result/source";
+
+  let error =
+    ErrorParts::new(
+      "There was an error running the post processor".to_owned(),
+      s!("Shell hook `{}/shell-hook.zat-exec` failed with status code 1. The shell hook failed with a non-zero error code signifying an error.", source_directory),
+      s!("Please check the logs above for why the shell hook failed. Try running the shell hook file `{}/shell-hook.zat-exec` manually by itself on the output to iterate on the error.", source_directory),
+    );
+
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+  let working_directory = tempdir()?;
+  let target_directory = working_directory.into_path().join("errors-non-zero-post-processing-shell-hook-result").to_string_lossy().to_string();
+
+  let std_err_contains = |error: ErrorParts| {
+    predicate::function(move |out: &[u8]| {
+      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
+      let lines: Vec<&str> = output.split('\n').collect();
+      assert_error_message(&lines, error.clone())
+    })
+  };
+
+  cmd
+    .arg("--template-dir")
+    .arg(source_directory)
+    .arg("--target-dir")
+    .arg(&target_directory)
+    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
+    .assert()
+    .failure()
+    .stderr(std_err_contains(error));
+
+  Ok(())
+}
+
+#[test]
+fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error::Error>> {
+  let source_directory = "./tests/errors/post-processing-shell-hook-not-executable/source";
+
+  let error =
+    ErrorParts::with_exception(
+      "There was an error running the post processor".to_owned(),
+      s!("Shell hook `{}/shell-hook.zat-exec` failed with an error.", source_directory),
+      "Permission denied (os error 13)".to_owned(),
+      s!("Please ensure the shell hook file `{}/shell-hook.zat-exec` exists and is executable.", source_directory),
+    );
+
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+  let working_directory = tempdir()?;
+  let target_directory = working_directory.into_path().join("errors-post-processing-shell-hook-not-executable").to_string_lossy().to_string();
+
+  let std_err_contains = |error: ErrorParts| {
+    predicate::function(move |out: &[u8]| {
+      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
+      let lines: Vec<&str> = output.split('\n').collect();
+      assert_error_message(&lines, error.clone())
+    })
+  };
+
+  cmd
+    .arg("--template-dir")
+    .arg(source_directory)
+    .arg("--target-dir")
+    .arg(&target_directory)
+    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
+    .assert()
+    .failure()
+    .stderr(std_err_contains(error));
+
+  Ok(())
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper functions
 //----------------------------------------------------------------------------------------------------------------------

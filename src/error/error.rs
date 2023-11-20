@@ -226,7 +226,7 @@ impl ZatError {
     ZatError::PostProcessingError(
       PostProcessingErrorReason::NonZeroStatusCode(
         s!("Shell hook `{}` failed with status code {}. The shell hook failed with a non-zero error code signifying an error.", path, status),
-        s!("Please check the logs above for why the shell hook failed. Try running the shell hook file `{}` manually by itself on the output to iterate on the error", path))
+        s!("Please check the logs above for why the shell hook failed. Try running the shell hook file `{}` manually by itself on the output to iterate on the error.", path))
     )
   }
 

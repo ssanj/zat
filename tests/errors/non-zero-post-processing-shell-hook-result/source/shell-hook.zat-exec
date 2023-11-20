@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "shell hook received args: $1"
+echo "running shell hook"
+
+# Simulate failure
+exit 1
