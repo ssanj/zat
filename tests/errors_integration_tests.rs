@@ -31,7 +31,8 @@ impl ErrorParts {
 
 #[test]
 fn error_message_on_missing_template_dir() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/no-template-dir/source";
+  let test_directory = "no-template-dir";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let error =
     ErrorParts::new(
@@ -40,12 +41,13 @@ fn error_message_on_missing_template_dir() -> Result<(), Box<dyn std::error::Err
       s!("Please create the Zat template directory '{}' with the Zat template folder structure. See `zat -h` for more.", source_directory),
     );
 
-  assert_source_dir_error(error, source_directory)
+  assert_source_dir_error(test_directory, None, error)
 }
 
 #[test]
 fn error_message_on_missing_template_files_dir() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/no-template-files-dir/source";
+  let test_directory = "no-template-files-dir";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let error =
     ErrorParts::new(
@@ -54,12 +56,13 @@ fn error_message_on_missing_template_files_dir() -> Result<(), Box<dyn std::erro
       s!("Please create the Zat template files directory '{}/template' with the necessary template files. See `zat -h` for more details.", source_directory),
     );
 
-  assert_source_dir_error(error, source_directory)
+  assert_source_dir_error(test_directory, None, error)
 }
 
 #[test]
 fn error_message_on_missing_variables_file() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/no-variables-file/source";
+  let test_directory = "no-variables-file";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let error =
     ErrorParts::new(
@@ -68,12 +71,13 @@ fn error_message_on_missing_variables_file() -> Result<(), Box<dyn std::error::E
       s!("Please create the variable file '{}/.variables.zat-prompt' with the required tokens. See `zat -h` for more details.", source_directory),
     );
 
-  assert_source_dir_error(error, source_directory)
+  assert_source_dir_error(test_directory, None, error)
 }
 
 #[test]
 fn error_message_on_non_json_variables_file() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/non-json-variables-file/source";
+  let test_directory = "non-json-variables-file";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let error =
     ErrorParts::new(
@@ -82,12 +86,13 @@ fn error_message_on_non_json_variables_file() -> Result<(), Box<dyn std::error::
       s!("Make the variable file '{}/.variables.zat-prompt' is a valid JSON file in the format required by Zat. See `zat -h` for more details on the format", source_directory),
     );
 
-  assert_source_dir_error(error, source_directory)
+  assert_source_dir_error(test_directory, None, error)
 }
 
 #[test]
 fn error_message_on_no_template_files() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/no-template-files/source";
+  let test_directory = "no-template-files";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let error =
     ErrorParts::new(
@@ -96,38 +101,13 @@ fn error_message_on_no_template_files() -> Result<(), Box<dyn std::error::Error>
       s!("Create at least one file in the template directory '{}/template' for processing.", source_directory),
     );
 
-  let mut cmd = Command::cargo_bin("zat").unwrap();
-  let working_directory = tempdir()?;
-  let target_directory = working_directory.into_path().join("errors-no-template-files").to_string_lossy().to_string();
-
-  let std_err_contains = |error: ErrorParts| {
-    predicate::function(move |out: &[u8]| {
-      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
-      let lines: Vec<&str> = output.split('\n').collect();
-      assert_error_message(&lines, error.clone())
-    })
-  };
-
-  cmd
-    .arg("--template-dir")
-    .arg(source_directory)
-    .arg("--target-dir")
-    .arg(&target_directory)
-    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
-    .assert()
-    .failure()
-    .stderr(std_err_contains(error));
-
-  assert!(!std::path::Path::new(&target_directory).exists());
-  println!("Targer dir {} should not have been created", &target_directory);
-
-  Ok(())
+  assert_source_dir_error(test_directory, Some(&["YouOnlyLiveOnce", "y"]), error)
 }
 
 
 #[test]
-fn error_message_on_missing_target_dir() -> Result<(), Box<dyn std::error::Error>> {
-  let test_directory = "no-target-dir";
+fn error_message_on_target_dir_exists() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "target-dir-exists";
   let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let mut cmd = Command::cargo_bin("zat").unwrap();
@@ -245,27 +225,30 @@ fn run_error_test(test_directory: &str, maybe_input: Option<&[&str]>, error_part
     })
   };
 
-let command =
-  cmd
-    .arg("--template-dir")
-    .arg(source_directory)
-    .arg("--target-dir")
-    .arg(&target_directory);
+  let command =
+    cmd
+      .arg("--template-dir")
+      .arg(source_directory)
+      .arg("--target-dir")
+      .arg(&target_directory);
 
-if let Some(input) = maybe_input {
-  command.write_stdin(stdin(input));
-}
+  if let Some(input) = maybe_input {
+    command.write_stdin(stdin(input));
+  }
 
-command
-  .assert()
-  .failure()
-  .stderr(std_err_contains(error_parts));
+  command
+    .assert()
+    .failure()
+    .stderr(std_err_contains(error_parts));
 
   Ok(())
 }
 
 /// Asserts error output from the source directory and ensure the target directory has not been created
-fn assert_source_dir_error(error: ErrorParts, source_directory: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn assert_source_dir_error(test_directory: &str, maybe_input: Option<&[&str]>, error: ErrorParts) -> Result<(), Box<dyn std::error::Error>> {
+
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
+
   let mut cmd = Command::cargo_bin("zat").unwrap();
   let working_directory = tempdir()?;
   let target_directory = working_directory.into_path().join("errors-no-template-dir").to_string_lossy().to_string();
@@ -278,11 +261,18 @@ fn assert_source_dir_error(error: ErrorParts, source_directory: &str) -> Result<
     })
   };
 
-  cmd
-    .arg("--template-dir")
-    .arg(source_directory)
-    .arg("--target-dir")
-    .arg(&target_directory)
+  let command =
+    cmd
+      .arg("--template-dir")
+      .arg(source_directory)
+      .arg("--target-dir")
+      .arg(&target_directory);
+
+  if let Some(input) = maybe_input {
+    command.write_stdin(stdin(input));
+  }
+
+  command
     .assert()
     .failure()
     .stderr(std_err_contains(error));
