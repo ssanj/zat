@@ -111,6 +111,32 @@ fn runs_a_sublime_plugin_template() -> Result<(), Box<dyn std::error::Error>> {
   Ok(())
 }
 
+
+#[test]
+fn runs_a_template_with_binary_files() -> Result<(), Box<dyn std::error::Error>> {
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+  let working_directory = tempdir()?;
+  let target_directory = working_directory.into_path().join("binary-files").to_string_lossy().to_string();
+  let expected_target_directory = "./tests/examples/binary-files/destination";
+  let template_directory = "./tests/examples/binary-files/source";
+
+  cmd
+    .arg("--template-dir")
+    .arg(template_directory)
+    .arg("--target-dir")
+    .arg(&target_directory)
+    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
+    .assert()
+    .success();
+
+  // TODO: How do we detect a text file?
+  print_changes(&expected_target_directory, &target_directory);
+
+  assert!(!dir_diff::is_different(&target_directory, expected_target_directory).unwrap());
+
+  Ok(())
+}
+
 fn stdin(responses: &[&str]) -> String {
   let delimited =
     responses

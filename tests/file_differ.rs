@@ -1,8 +1,9 @@
-use std::{path::Path, collections::HashSet, fmt, println};
+use std::{path::Path, collections::HashSet, fmt, println, eprint};
 
 use walkdir::{WalkDir, DirEntry};
 use similar::{ChangeTag, TextDiff};
 use ansi_term::Colour;
+use binaryornot;
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 enum FileType {
@@ -76,24 +77,32 @@ pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: 
     let expected_file = expected_target_directory.as_ref().join(file);
     let actual_file = target_directory.as_ref().join(file);
 
-    let expected_content = read_file(expected_file);
-    let actual_content = read_file(actual_file);
+    match (binaryornot::is_binary(&expected_file), binaryornot::is_binary(&actual_file)) {
+        (Ok(false), Ok(false)) => {
+          let expected_content = read_file(expected_file);
+          let actual_content = read_file(actual_file);
 
-    if expected_content != actual_content {
-      println!("Changes found in: {}", Colour::Red.paint(file.as_str()).to_string());
-      let text_diff = TextDiff::from_lines(&expected_content, &actual_content);
-      for change in text_diff.iter_all_changes() {
-          let sign = match change.tag() {
-              ChangeTag::Delete => Colour::Red.paint("-").to_string(),
-              ChangeTag::Insert => Colour::Green.paint("+").to_string(),
-              ChangeTag::Equal => Colour::RGB(128, 128, 128).paint("|").to_string(),
-          };
-          print!("  {}{}", sign, change);
-      }
+          if expected_content != actual_content {
+            println!("Changes found in: {}", Colour::Red.paint(file.as_str()).to_string());
+            let text_diff = TextDiff::from_lines(&expected_content, &actual_content);
+            for change in text_diff.iter_all_changes() {
+                let sign = match change.tag() {
+                    ChangeTag::Delete => Colour::Red.paint("-").to_string(),
+                    ChangeTag::Insert => Colour::Green.paint("+").to_string(),
+                    ChangeTag::Equal => Colour::RGB(128, 128, 128).paint("|").to_string(),
+                };
+                print!("  {}{}", sign, change);
+            }
+          }
+        },
+        (Ok(true), Ok(true))  => println!("Expected file: '{}' and actual file: '{}' are binary. Not comparing", &expected_file.to_string_lossy(), &actual_file.to_string_lossy()),
+        (Ok(true), Ok(false)) => println!("Expected file: '{}' is binary but the actual file: '{}' is not. Not comparing", &expected_file.to_string_lossy(), &actual_file.to_string_lossy()),
+        (Ok(false), Ok(true)) => println!("Expected file: '{}' is not binary but the actual file: '{}' is binary. Not comparing", &expected_file.to_string_lossy(), &actual_file.to_string_lossy()),
+        (Ok(_), Err(e2))      => eprintln!("Binary checking actual file: '{}' raised error: '{}'", &actual_file.to_string_lossy(), e2.to_string()),
+        (Err(e1), Ok(_))      => eprintln!("Binary checking expected file: '{}' raised error: '{}'", &expected_file.to_string_lossy(), e1.to_string()),
+        (Err(e1), Err(e2))    => eprintln!("Binary checking actual file: '{}' and expected file: '{}' raised error: {}", &actual_file.to_string_lossy(), e1.to_string(), e2.to_string()),
     }
   }
-
-  // We also need the files that are identical
 }
 
 pub fn print_diff(actual_content: &str, expected_content: &str) {

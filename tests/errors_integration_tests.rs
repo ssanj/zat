@@ -159,44 +159,6 @@ fn error_message_on_missing_target_dir() -> Result<(), Box<dyn std::error::Error
   Ok(())
 }
 
-
-#[test]
-fn error_message_on_binary_files() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/binary-template-files/source";
-
-  let error =
-    ErrorParts::with_exception(
-      "There was an error running the template".to_owned(),
-      s!("Could not decode ReasonFileErrorReason::template file '{}/template/one.zip' content to a string. Only text file templates are supported.", source_directory),
-      s!("invalid utf-8 sequence of 1 bytes from index 14"),
-      s!("Ensure the template file '{}/template/one.zip' is a text file and is not corrupted.", source_directory),
-    );
-
-  let mut cmd = Command::cargo_bin("zat").unwrap();
-  let working_directory = tempdir()?;
-  let target_directory = working_directory.into_path().join("errors-binary-template-files").to_string_lossy().to_string();
-
-  let std_err_contains = |error: ErrorParts| {
-    predicate::function(move |out: &[u8]| {
-      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
-      let lines: Vec<&str> = output.split('\n').collect();
-      assert_error_message(&lines, error.clone())
-    })
-  };
-
-  cmd
-    .arg("--template-dir")
-    .arg(source_directory)
-    .arg("--target-dir")
-    .arg(&target_directory)
-    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
-    .assert()
-    .failure()
-    .stderr(std_err_contains(error));
-
-  Ok(())
-}
-
 #[test]
 fn error_message_on_no_variables_defined() -> Result<(), Box<dyn std::error::Error>> {
   let source_directory = "./tests/errors/no-variables-defined/source";

@@ -15,7 +15,7 @@ impl SourceFile {
     Self(file.to_owned())
   }
 
-  pub fn read(&self) -> ZatResult<String> {
+  pub fn read_text(&self) -> ZatResult<String> {
     fs::read(&self.0)
       .map_err(|e|{
         ZatError::could_not_read_template_file(self.0.as_str(), e.to_string())
@@ -26,6 +26,13 @@ impl SourceFile {
             ZatError::template_file_content_is_unsupported(&self.0, e.to_string())
           })
           .map(|c| c.to_owned())
+      })
+  }
+
+  pub fn read_binary(&self) -> ZatResult<Vec<u8>> {
+    fs::read(&self.0)
+      .map_err(|e|{
+        ZatError::could_not_read_template_file(self.0.as_str(), e.to_string())
       })
   }
 

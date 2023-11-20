@@ -10,16 +10,16 @@ pub struct DefaultFileWriter;
 impl FileWriter for DefaultFileWriter {
 
   fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
-    let content = source_file.read()?;
-
     let target_file_name_tokens_applied = destination_file.map(|df| token_replacer.replace(df));
 
     if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a templates
+      let content = source_file.read_text()?;
       let parent_dir = &target_file_name_tokens_applied.parent_directory();
       let full_target_file_path_templated = parent_dir.join(&target_file_name_tokens_applied.file_stem());
       let content_with_tokens_applied = token_replacer.replace(&content);
       Self::write_file(&full_target_file_path_templated, &content_with_tokens_applied)
     } else {
+      let content = source_file.read_binary()?;
       Self::write_file(&target_file_name_tokens_applied, &content)
     }
   }
