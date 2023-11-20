@@ -224,6 +224,12 @@ fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error
   run_error_test(test_directory, Some(&["YouOnlyLiveOnce", "y"]), error)
 }
 
+
+//----------------------------------------------------------------------------------------------------------------------
+// Helper functions
+//----------------------------------------------------------------------------------------------------------------------
+
+/// Runs an error test with optional user input
 fn run_error_test(test_directory: &str, maybe_input: Option<&[&str]>, error_parts: ErrorParts) -> Result<(), Box<dyn std::error::Error>> {
 
   let source_directory = s!("./tests/errors/{}/source", test_directory);
@@ -239,7 +245,7 @@ fn run_error_test(test_directory: &str, maybe_input: Option<&[&str]>, error_part
     })
   };
 
-let mut command =
+let command =
   cmd
     .arg("--template-dir")
     .arg(source_directory)
@@ -257,11 +263,6 @@ command
 
   Ok(())
 }
-
-
-//----------------------------------------------------------------------------------------------------------------------
-// Helper functions
-//----------------------------------------------------------------------------------------------------------------------
 
 /// Asserts error output from the source directory and ensure the target directory has not been created
 fn assert_source_dir_error(error: ErrorParts, source_directory: &str) -> Result<(), Box<dyn std::error::Error>> {
