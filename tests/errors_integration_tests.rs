@@ -196,7 +196,8 @@ fn error_message_on_no_variables_defined() -> Result<(), Box<dyn std::error::Err
 
 #[test]
 fn error_message_on_binary_template() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/binary-template-file/source";
+  let test_directory = "binary-template-file";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let error =
     ErrorParts::with_exception(
@@ -206,34 +207,13 @@ fn error_message_on_binary_template() -> Result<(), Box<dyn std::error::Error>> 
       s!("Ensure the template file '{}/template/one.zip.tmpl' is a text file and is not corrupted.", source_directory),
     );
 
-  let mut cmd = Command::cargo_bin("zat").unwrap();
-  let working_directory = tempdir()?;
-  let target_directory = working_directory.into_path().join("errors-binary-template-file").to_string_lossy().to_string();
-
-  let std_err_contains = |error: ErrorParts| {
-    predicate::function(move |out: &[u8]| {
-      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
-      let lines: Vec<&str> = output.split('\n').collect();
-      assert_error_message(&lines, error.clone())
-    })
-  };
-
-  cmd
-    .arg("--template-dir")
-    .arg(source_directory)
-    .arg("--target-dir")
-    .arg(&target_directory)
-    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
-    .assert()
-    .failure()
-    .stderr(std_err_contains(error));
-
-  Ok(())
+  run_error_test(test_directory, &["YouOnlyLiveOnce", "y"], error)
 }
 
 #[test]
 fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/non-zero-post-processing-shell-hook-result/source";
+  let test_directory = "non-zero-post-processing-shell-hook-result";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let error =
     ErrorParts::new(
@@ -242,34 +222,13 @@ fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn
       s!("Please check the logs above for why the shell hook failed. Try running the shell hook file `{}/shell-hook.zat-exec` manually by itself on the output to iterate on the error.", source_directory),
     );
 
-  let mut cmd = Command::cargo_bin("zat").unwrap();
-  let working_directory = tempdir()?;
-  let target_directory = working_directory.into_path().join("errors-non-zero-post-processing-shell-hook-result").to_string_lossy().to_string();
-
-  let std_err_contains = |error: ErrorParts| {
-    predicate::function(move |out: &[u8]| {
-      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
-      let lines: Vec<&str> = output.split('\n').collect();
-      assert_error_message(&lines, error.clone())
-    })
-  };
-
-  cmd
-    .arg("--template-dir")
-    .arg(source_directory)
-    .arg("--target-dir")
-    .arg(&target_directory)
-    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
-    .assert()
-    .failure()
-    .stderr(std_err_contains(error));
-
-  Ok(())
+  run_error_test(test_directory, &["YouOnlyLiveOnce", "y"], error)
 }
 
 #[test]
 fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/post-processing-shell-hook-not-executable/source";
+  let test_directory = "post-processing-shell-hook-not-executable";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let error =
     ErrorParts::with_exception(
@@ -279,9 +238,15 @@ fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error
       s!("Please ensure the shell hook file `{}/shell-hook.zat-exec` exists and is executable.", source_directory),
     );
 
+  run_error_test(test_directory, &["YouOnlyLiveOnce", "y"], error)
+}
+
+fn run_error_test(test_directory: &str, input: &[&str], error_parts: ErrorParts) -> Result<(), Box<dyn std::error::Error>> {
+
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
   let mut cmd = Command::cargo_bin("zat").unwrap();
   let working_directory = tempdir()?;
-  let target_directory = working_directory.into_path().join("errors-post-processing-shell-hook-not-executable").to_string_lossy().to_string();
+  let target_directory = working_directory.into_path().join(s!("errors-{}", test_directory)).to_string_lossy().to_string();
 
   let std_err_contains = |error: ErrorParts| {
     predicate::function(move |out: &[u8]| {
@@ -296,10 +261,10 @@ fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error
     .arg(source_directory)
     .arg("--target-dir")
     .arg(&target_directory)
-    .write_stdin(stdin(&["YouOnlyLiveOnce", "y"]))
+    .write_stdin(stdin(input))
     .assert()
     .failure()
-    .stderr(std_err_contains(error));
+    .stderr(std_err_contains(error_parts));
 
   Ok(())
 }
