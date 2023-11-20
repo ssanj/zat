@@ -127,6 +127,9 @@ fn error_message_on_no_template_files() -> Result<(), Box<dyn std::error::Error>
 
 #[test]
 fn error_message_on_missing_target_dir() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "no-target-dir";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
+
   let mut cmd = Command::cargo_bin("zat").unwrap();
   let target_directory = tempdir()?;
   let target_pathbuf = target_directory.into_path();
@@ -149,7 +152,7 @@ fn error_message_on_missing_target_dir() -> Result<(), Box<dyn std::error::Error
 
   cmd
     .arg("--template-dir")
-    .arg("./tests/errors/no-target-dir/source")
+    .arg(&source_directory)
     .arg("--target-dir")
     .arg(&target_string)
     .assert()
@@ -161,7 +164,8 @@ fn error_message_on_missing_target_dir() -> Result<(), Box<dyn std::error::Error
 
 #[test]
 fn error_message_on_no_variables_defined() -> Result<(), Box<dyn std::error::Error>> {
-  let source_directory = "./tests/errors/no-variables-defined/source";
+  let test_directory = "no-variables-defined";
+  let source_directory = s!("./tests/errors/{}/source", test_directory);
 
   let error =
     ErrorParts::new(
@@ -170,28 +174,7 @@ fn error_message_on_no_variables_defined() -> Result<(), Box<dyn std::error::Err
       s!("Please define at least one variable in the variable file '{}/.variables.zat-prompt'.", source_directory),
     );
 
-  let mut cmd = Command::cargo_bin("zat").unwrap();
-  let working_directory = tempdir()?;
-  let target_directory = working_directory.into_path().join("errors-no-variables-defined").to_string_lossy().to_string();
-
-  let std_err_contains = |error: ErrorParts| {
-    predicate::function(move |out: &[u8]| {
-      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
-      let lines: Vec<&str> = output.split('\n').collect();
-      assert_error_message(&lines, error.clone())
-    })
-  };
-
-  cmd
-    .arg("--template-dir")
-    .arg(source_directory)
-    .arg("--target-dir")
-    .arg(&target_directory)
-    .assert()
-    .failure()
-    .stderr(std_err_contains(error));
-
-  Ok(())
+  run_error_test(test_directory, None, error)
 }
 
 #[test]
@@ -207,7 +190,7 @@ fn error_message_on_binary_template() -> Result<(), Box<dyn std::error::Error>> 
       s!("Ensure the template file '{}/template/one.zip.tmpl' is a text file and is not corrupted.", source_directory),
     );
 
-  run_error_test(test_directory, &["YouOnlyLiveOnce", "y"], error)
+  run_error_test(test_directory, Some(&["YouOnlyLiveOnce", "y"]), error)
 }
 
 #[test]
@@ -222,7 +205,7 @@ fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn
       s!("Please check the logs above for why the shell hook failed. Try running the shell hook file `{}/shell-hook.zat-exec` manually by itself on the output to iterate on the error.", source_directory),
     );
 
-  run_error_test(test_directory, &["YouOnlyLiveOnce", "y"], error)
+  run_error_test(test_directory, Some(&["YouOnlyLiveOnce", "y"]), error)
 }
 
 #[test]
@@ -238,10 +221,10 @@ fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error
       s!("Please ensure the shell hook file `{}/shell-hook.zat-exec` exists and is executable.", source_directory),
     );
 
-  run_error_test(test_directory, &["YouOnlyLiveOnce", "y"], error)
+  run_error_test(test_directory, Some(&["YouOnlyLiveOnce", "y"]), error)
 }
 
-fn run_error_test(test_directory: &str, input: &[&str], error_parts: ErrorParts) -> Result<(), Box<dyn std::error::Error>> {
+fn run_error_test(test_directory: &str, maybe_input: Option<&[&str]>, error_parts: ErrorParts) -> Result<(), Box<dyn std::error::Error>> {
 
   let source_directory = s!("./tests/errors/{}/source", test_directory);
   let mut cmd = Command::cargo_bin("zat").unwrap();
@@ -256,15 +239,21 @@ fn run_error_test(test_directory: &str, input: &[&str], error_parts: ErrorParts)
     })
   };
 
+let mut command =
   cmd
     .arg("--template-dir")
     .arg(source_directory)
     .arg("--target-dir")
-    .arg(&target_directory)
-    .write_stdin(stdin(input))
-    .assert()
-    .failure()
-    .stderr(std_err_contains(error_parts));
+    .arg(&target_directory);
+
+if let Some(input) = maybe_input {
+  command.write_stdin(stdin(input));
+}
+
+command
+  .assert()
+  .failure()
+  .stderr(std_err_contains(error_parts));
 
   Ok(())
 }
