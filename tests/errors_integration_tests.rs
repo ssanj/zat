@@ -6,131 +6,6 @@ use format as s;
 
 mod file_differ;
 
-#[derive(Clone)]
-struct ErrorParts(String, String, Option<String>, String);
-
-
-struct ErrorTestConfig<'a> {
-  test_directory: &'a str,
-  maybe_input: Option<&'a[&'a str]>,
-  maybe_target_directory: Option<&'a str>,
-  target_directory_should_exist: bool,
-  error_parts: ErrorParts
-}
-
-impl ErrorParts {
-  fn new(error_type: String, error: String, fix: String) -> Self {
-    ErrorParts(
-      error_type,
-      error,
-      None,
-      fix
-    )
-  }
-
-  fn with_exception(error_type: String, error: String, exception: String, fix: String) -> Self {
-    ErrorParts(
-      error_type,
-      error,
-      Some(exception),
-      fix
-    )
-  }
-}
-
-impl <'a> ErrorTestConfig<'a> {
-
-  /// Source error test, without input and without a target directory getting created.
-  fn source_no_input_directory_not_exists(test_directory: &'a str, error_parts: ErrorParts) -> Self {
-
-  let maybe_input = None;
-  let maybe_target_directory = None;
-  let target_directory_should_exist = false;
-
-    Self {
-      test_directory,
-      maybe_input,
-      maybe_target_directory,
-      target_directory_should_exist,
-      error_parts
-    }
-  }
-
-  /// Source error test, with input and without a target directory getting created.
-  fn source_with_input_directory_not_exists(test_directory: &'a str, input: &'a[&'a str], error_parts: ErrorParts) -> Self {
-    let maybe_input = Some(input);
-    let maybe_target_directory = None;
-    let target_directory_should_exist = false;
-
-      Self {
-        test_directory,
-        maybe_input,
-        maybe_target_directory,
-        target_directory_should_exist,
-        error_parts
-      }
-  }
-
-  /// Source error test, ensuring a specific target directory does not exist
-  fn source_with_target_directory_not_exists(test_directory: &'a str, target_directory: &'a str, error_parts: ErrorParts) -> Self {
-    let maybe_input = None;
-    let maybe_target_directory = Some(target_directory);
-    let target_directory_should_exist = false;
-
-      Self {
-        test_directory,
-        maybe_input,
-        maybe_target_directory,
-        target_directory_should_exist,
-        error_parts
-      }
-  }
-
-  /// Source error test, with input and with a specific a target directory, which may or may not exist.
-  #[allow(dead_code)]
-  fn source_with_input_and_target_directory(test_directory: &'a str, input: &'a[&'a str], target_directory: &'a str, target_directory_should_exist: bool, error_parts: ErrorParts) -> Self {
-    let maybe_input = Some(input);
-    let maybe_target_directory = Some(target_directory);
-
-      Self {
-        test_directory,
-        maybe_input,
-        maybe_target_directory,
-        target_directory_should_exist,
-        error_parts
-      }
-  }
-
-  /// Source error test, with input and where the target directory should exist.
-  fn run_template(test_directory: &'a str, input: &'a[&'a str], error_parts: ErrorParts) -> Self {
-    let maybe_input = Some(input);
-    let maybe_target_directory = None;
-    let target_directory_should_exist = true;
-
-      Self {
-        test_directory,
-        maybe_input,
-        maybe_target_directory,
-        target_directory_should_exist,
-        error_parts
-      }
-  }
-
-  fn run_template_without_input(test_directory: &'a str, error_parts: ErrorParts) -> Self {
-    let maybe_input = None;
-    let maybe_target_directory = None;
-    let target_directory_should_exist = false;
-
-      Self {
-        test_directory,
-        maybe_input,
-        maybe_target_directory,
-        target_directory_should_exist,
-        error_parts
-      }
-  }
-}
-
 #[test]
 fn error_message_on_missing_template_dir() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "no-template-dir";
@@ -309,6 +184,135 @@ fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error
   run_error_test(error_test_config)
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// Helper Classes
+//----------------------------------------------------------------------------------------------------------------------
+
+#[derive(Clone)]
+struct ErrorParts(String, String, Option<String>, String);
+
+
+struct ErrorTestConfig<'a> {
+  test_directory: &'a str,
+  maybe_input: Option<&'a[&'a str]>,
+  maybe_target_directory: Option<&'a str>,
+  target_directory_should_exist: bool,
+  error_parts: ErrorParts
+}
+
+impl ErrorParts {
+  fn new(error_type: String, error: String, fix: String) -> Self {
+    ErrorParts(
+      error_type,
+      error,
+      None,
+      fix
+    )
+  }
+
+  fn with_exception(error_type: String, error: String, exception: String, fix: String) -> Self {
+    ErrorParts(
+      error_type,
+      error,
+      Some(exception),
+      fix
+    )
+  }
+}
+
+impl <'a> ErrorTestConfig<'a> {
+
+  /// Source error test, without input and without a target directory getting created.
+  fn source_no_input_directory_not_exists(test_directory: &'a str, error_parts: ErrorParts) -> Self {
+
+  let maybe_input = None;
+  let maybe_target_directory = None;
+  let target_directory_should_exist = false;
+
+    Self {
+      test_directory,
+      maybe_input,
+      maybe_target_directory,
+      target_directory_should_exist,
+      error_parts
+    }
+  }
+
+  /// Source error test, with input and without a target directory getting created.
+  fn source_with_input_directory_not_exists(test_directory: &'a str, input: &'a[&'a str], error_parts: ErrorParts) -> Self {
+    let maybe_input = Some(input);
+    let maybe_target_directory = None;
+    let target_directory_should_exist = false;
+
+      Self {
+        test_directory,
+        maybe_input,
+        maybe_target_directory,
+        target_directory_should_exist,
+        error_parts
+      }
+  }
+
+  /// Source error test, ensuring a specific target directory does not exist
+  fn source_with_target_directory_not_exists(test_directory: &'a str, target_directory: &'a str, error_parts: ErrorParts) -> Self {
+    let maybe_input = None;
+    let maybe_target_directory = Some(target_directory);
+    let target_directory_should_exist = false;
+
+      Self {
+        test_directory,
+        maybe_input,
+        maybe_target_directory,
+        target_directory_should_exist,
+        error_parts
+      }
+  }
+
+  /// Source error test, with input and with a specific a target directory, which may or may not exist.
+  #[allow(dead_code)]
+  fn source_with_input_and_target_directory(test_directory: &'a str, input: &'a[&'a str], target_directory: &'a str, target_directory_should_exist: bool, error_parts: ErrorParts) -> Self {
+    let maybe_input = Some(input);
+    let maybe_target_directory = Some(target_directory);
+
+      Self {
+        test_directory,
+        maybe_input,
+        maybe_target_directory,
+        target_directory_should_exist,
+        error_parts
+      }
+  }
+
+  /// Source error test, with input and where the target directory should exist.
+  fn run_template(test_directory: &'a str, input: &'a[&'a str], error_parts: ErrorParts) -> Self {
+    let maybe_input = Some(input);
+    let maybe_target_directory = None;
+    let target_directory_should_exist = true;
+
+      Self {
+        test_directory,
+        maybe_input,
+        maybe_target_directory,
+        target_directory_should_exist,
+        error_parts
+      }
+  }
+
+  fn run_template_without_input(test_directory: &'a str, error_parts: ErrorParts) -> Self {
+    let maybe_input = None;
+    let maybe_target_directory = None;
+    let target_directory_should_exist = false;
+
+      Self {
+        test_directory,
+        maybe_input,
+        maybe_target_directory,
+        target_directory_should_exist,
+        error_parts
+      }
+  }
+}
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Helper functions
@@ -362,6 +366,7 @@ fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::
 
 /// Assert each line of stderror.
 ///
+/// Without an exception:
 /// line0: "Zat failed an with error."
 /// line1: Blank
 /// line2: <Error Category>:
@@ -370,6 +375,19 @@ fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::
 /// line5: "Possible fix:"
 /// line6: <Fix>
 /// line7: Blank
+///
+/// With an exception:
+/// line0: "Zat failed an with error."
+/// line1: Blank
+/// line2: <Error Category>:
+/// line3: <Error>
+/// line4: Blank
+/// line5: Exception:
+/// line6: <Exception Message>
+/// line7: Blank
+/// line8: "Possible fix:"
+/// line9: <Fix>
+/// line10: Blank
 fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
 
   let error_colour = ansi_term::Color::Red;
