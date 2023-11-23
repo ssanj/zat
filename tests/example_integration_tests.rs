@@ -3,8 +3,9 @@ use tempfile::tempdir;
 
 use crate::file_differ::print_changes;
 use predicates::prelude::*;
-use std::{format as s};
+use std::{format as s, println as p};
 use std::path::Path;
+use ansi_term::Color::Red;
 
 mod file_differ;
 
@@ -13,7 +14,7 @@ fn returns_version() -> Result<(), Box<dyn std::error::Error>> {
   let mut cmd = Command::cargo_bin("zat").unwrap();
 
   let version = env!("CARGO_PKG_VERSION");
-  let expected_version_string = format!("zat {}\n", version);
+  let expected_version_string = s!("zat {}\n", version);
 
   cmd
     .arg("-V")
@@ -42,7 +43,7 @@ fn runs_a_simple_template_with_shell_hook() -> Result<(), Box<dyn std::error::Er
   let working_directory = tempdir()?;
   let target_directory = working_directory.into_path().join("example-simple-with-shell-hook");
 
-  let args_string = format!("shell hook received args: {}", target_directory.to_string_lossy());
+  let args_string = s!("shell hook received args: {}", target_directory.to_string_lossy());
   let shell_output = "running shell hook";
   let shell_assertions = [shell_output, &args_string];
 
@@ -89,8 +90,9 @@ fn runs_a_template_with_binary_files() -> Result<(), Box<dyn std::error::Error>>
 // Helper classes
 //----------------------------------------------------------------------------------------------------------------------
 
+#[allow(dead_code)]
 enum AssertionType<'a> {
-  Equals(&'a str),
+  Equals(&'a str), // We are not using Equals just yet, but we probably will
   Contains(&'a[&'a str]),
 }
 
@@ -158,19 +160,19 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
     },
   };
 
-  println!("target directory: {}", &target_directory);
+  p!("target directory: {}", &target_directory);
 
   let std_out_contains = |expected:&str| {
     let owned_expected = expected.to_owned();
     predicate::function(move |out: &[u8]| {
       let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
-      println!("Could not validate stdout contains: {}", &owned_expected);
+      p!("Could not validate stdout contains: {}", &owned_expected);
       output.contains(&owned_expected)
     })
   };
 
 
-  assert!(Path::new(&source_directory).exists(), "Source directory `{}` does not exist: ", &source_directory);
+  assert!(Path::new(&source_directory).exists(), "{}", Red.paint(s!("Source directory `{}` does not exist: ", &source_directory)));
 
   cmd
     .arg("--template-dir")
@@ -189,7 +191,7 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
 
   match example_config.maybe_stdout_assertions {
       Some(AssertionType::Equals(content)) => {
-        println!("stdout did not equal: {}", &content);
+        p!("stdout did not equal: {}", &content);
         output.stdout(content.to_owned());
       },
 
@@ -202,13 +204,13 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
       None => ()
   }
 
-  assert!(Path::new(&target_directory).exists(), "target directory `{}` does not exist", &target_directory);
+  assert!(Path::new(&target_directory).exists(), "{}", Red.paint(s!("target directory `{}` does not exist", &target_directory)));
   for expected_file in example_config.files_that_should_exist {
-    assert!(Path::new(expected_file).exists(), "Expected file `{}` does not exist: ", &expected_file.to_string_lossy());
+    assert!(Path::new(expected_file).exists(), "{}", Red.paint(s!("Expected file `{}` does not exist: ", &expected_file.to_string_lossy())));
   }
 
   for unexpected_file in example_config.files_that_should_not_exist {
-    assert!(!Path::new(unexpected_file).exists(), "Unexpected file `{}` exists", &unexpected_file.to_string_lossy());
+    assert!(!Path::new(unexpected_file).exists(), "{}", Red.paint(s!("Unexpected file `{}` exists", &unexpected_file.to_string_lossy())));
   }
 
   print_changes(&expected_target_directory, &target_directory);
@@ -224,5 +226,5 @@ fn stdin(responses: &[&str]) -> String {
     responses
       .join("\n");
 
-  format!("{}\n", delimited) // add the extra newline for complete the final answer
+  s!("{}\n", delimited) // add the extra newline for complete the final answer
 }
