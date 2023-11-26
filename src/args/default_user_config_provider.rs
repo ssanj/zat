@@ -119,6 +119,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
     let ignores = IgnoredFiles::from(ignores_with_defaults);
 
+    let verbose = args.verbose;
 
     match (template_dir_exists, template_files_dir_exists, target_dir_exists) {
       (TemplateDirStatus::DoesNotExist, _, _) => {
@@ -146,6 +147,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
             target_dir,
             filters,
             ignores,
+            verbose,
             shell_hook_status
           }
         )
@@ -200,7 +202,8 @@ mod tests {
       args: Args {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
-        ignores: ignores
+        ignores: ignores,
+        verbose: false
       }
     };
 
@@ -248,7 +251,8 @@ mod tests {
       args: Args {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
-        ignores: ignores
+        ignores: ignores,
+        verbose: false
       }
     };
 
@@ -286,7 +290,8 @@ mod tests {
       args: Args {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
-        ignores: vec![]
+        ignores: vec![],
+        verbose: false
       }
     };
 
@@ -316,7 +321,8 @@ mod tests {
       args: Args {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
-        ignores: vec![]
+        ignores: vec![],
+        verbose: false
       }
     };
 
@@ -346,7 +352,8 @@ mod tests {
       args: Args {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
-        ignores: vec![]
+        ignores: vec![],
+        verbose: false
       }
     };
 

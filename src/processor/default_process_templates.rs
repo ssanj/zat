@@ -42,7 +42,10 @@ impl ProcessTemplates for DefaultProcessTemplates {
       let enriched_template_file_processor = DefaultEnrichedTemplateFileProcessor::with_defaults();
 
       let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
-      println!("{:?} ==============================> {:?}", &template_files_dir, files_to_process);
+
+      if user_config.verbose {
+        println!("{:?} ==============================> {:?}", &template_files_dir, files_to_process);
+      }
 
       if self.has_template_files(&template_files, &template_files_dir) {
         files_to_process

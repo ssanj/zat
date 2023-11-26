@@ -60,15 +60,21 @@ fn run_zat() -> ZatAction {
   let template_config_validator = DefaultTemplateConfigValidator::new();
   let template_variable_review = template_config_validator.validate(user_config.clone(), template_variables.clone());
 
-  println!("config: {:?}", user_config);
-  println!("variables: {:?}", template_variables);
-  println!("variable review: {:?}", template_variable_review);
+  let verbose = user_config.clone().verbose;
+  if verbose {
+    println!("config: {:?}", user_config);
+    println!("variables: {:?}", template_variables);
+    println!("variable review: {:?}", template_variable_review);
+  }
 
   match template_variable_review {
     TemplateVariableReview::Accepted(ValidConfig { user_variables, user_config: _ }) => {
       let expand_filters = DefaultExpandFilters::new();
       let tokenized_key_expanded_variables = expand_filters.expand_filers(template_variables, user_variables);
-      println!("tokenized variables: {:?}", &tokenized_key_expanded_variables);
+
+      if verbose {
+        println!("tokenized variables: {:?}", &tokenized_key_expanded_variables);
+      }
 
       DefaultProcessTemplates.process_templates(user_config.clone(), tokenized_key_expanded_variables)?;
 

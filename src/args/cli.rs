@@ -17,7 +17,11 @@ pub struct Args {
    /// The files '.variables.zat-prompt' and '.git' are always specified.
    /// Accepts any valid regular expressions.
    #[clap(long, value_parser,)]
-   pub ignores: Vec<String>
+   pub ignores: Vec<String>,
+
+   /// Verbose debug logging
+   #[clap(long)]
+   pub verbose: bool
 }
 
 pub fn get_cli_args() -> Args {

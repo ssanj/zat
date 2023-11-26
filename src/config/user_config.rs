@@ -13,6 +13,7 @@ pub struct UserConfig {
   pub target_dir: TargetDir,
   pub filters: Filters,
   pub ignores: IgnoredFiles,
+  pub verbose: bool,
   pub shell_hook_status: ConfigShellHookStatus
 }
 
@@ -29,6 +30,7 @@ impl UserConfig {
       target_dir: TargetDir::new(destination_dir),
       filters: Default::default(),
       ignores: Default::default(),
+      verbose: Default::default(),
       shell_hook_status: Default::default(),
     }
   }
