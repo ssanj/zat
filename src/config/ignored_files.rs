@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt::Display, fmt};
 use super::DOT_VARIABLES_PROMPT;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -16,6 +16,12 @@ impl IgnoredFiles {
       .map(|v| v.to_owned())
       .collect()
   }
+}
+
+impl Display for IgnoredFiles {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      write!(f, "{}", self.ignores.clone().into_iter().collect::<Vec<_>>().join(","))
+    }
 }
 
 impl Default for IgnoredFiles {

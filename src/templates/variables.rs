@@ -1,5 +1,8 @@
 use serde::Deserialize;
 
+use crate::logging::Lines;
+use std::{format as s};
+
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct TemplateVariables {
   pub tokens: Vec<TemplateVariable>
@@ -12,6 +15,27 @@ impl Default for TemplateVariables {
       tokens: vec![]
     }
   }
+}
+
+impl Lines for TemplateVariables {
+
+    fn lines(&self) -> Vec<String> {
+        self
+          .tokens
+          .clone()
+          .into_iter()
+          .flat_map(|token| {
+            vec!
+              [
+                s!("Variable name: {}", token.variable_name),
+                s!("Description: {}", token.description),
+                s!("Prompt: {}", token.prompt),
+                s!("Default value: {}", token.default_value.unwrap_or_else(|| "-".to_owned())),
+                s!(""),
+              ]
+          })
+          .collect()
+    }
 }
 
 

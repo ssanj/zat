@@ -6,6 +6,7 @@ mod token_expander;
 mod processor;
 mod post_processor;
 mod macros;
+mod logging;
 
 use std::process::ExitCode;
 
@@ -31,6 +32,7 @@ use crate::post_processor::PostProcessingHook;
 use crate::post_processor::ShellHook;
 
 use ansi_term::Color::Red;
+use logging::Printer;
 
 fn main() -> ExitCode {
   match run_zat() {
@@ -62,10 +64,12 @@ fn run_zat() -> ZatAction {
 
   let verbose = user_config.clone().verbose;
   if verbose {
-    println!("config: {:?}", user_config);
-    println!("variables: {:?}", template_variables);
-    println!("variable review: {:?}", template_variable_review);
+    Printer::print_verbose("User configuration", &user_config);
+    Printer::print_verbose("Template variables", &template_variables);
+    // println!("variable review: {:?}", template_variable_review);
   }
+
+  panic!("testing output");
 
   match template_variable_review {
     TemplateVariableReview::Accepted(ValidConfig { user_variables, user_config: _ }) => {
@@ -86,3 +90,5 @@ fn run_zat() -> ZatAction {
 
   Ok(())
 }
+
+
