@@ -1,11 +1,24 @@
 use std::collections::HashMap;
-
+use crate::logging::Lines;
 use super::{ExpandedValue, ExpandedVariables};
+use std::{format as s};
 
 
 #[derive(Debug, Clone)]
 pub struct TokenizedKeysExpandedVariables {
   pub value: HashMap<TokenizedExpandedKey, ExpandedValue>
+}
+
+impl Lines for TokenizedKeysExpandedVariables {
+    fn lines(&self) -> Vec<String> {
+      self
+        .value
+        .iter()
+        .map(|(k, v)|{
+          s!("{} -> {}", k.value, v.value)
+        })
+        .collect()
+    }
 }
 
 

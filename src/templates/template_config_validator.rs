@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
-use crate::config::UserConfig;
+use crate::{config::UserConfig, logging::Lines};
 use super::{UserVariableValue, UserVariableKey, TemplateVariables};
+use std::{format as s};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValidConfig {
@@ -18,6 +19,18 @@ impl ValidConfig {
   }
 }
 
+
+impl Lines for ValidConfig {
+    fn lines(&self) -> Vec<String> {
+      self
+        .user_variables
+        .iter()
+        .map(|(k, v)|{
+          s!("{} -> {}", k.value, v.value)
+        })
+        .collect()
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TemplateVariableReview {
