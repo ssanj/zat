@@ -1,5 +1,6 @@
 use crate::error::ZatError;
 use crate::error::{ZatResult, ZatAction};
+use crate::logging::Logger;
 
 use super::ProcessTemplates;
 use super::RegExFileChooser;
@@ -12,6 +13,7 @@ use super::DefaultEnrichedTemplateFileProcessor;
 use super::AhoCorasickTokenReplacer;
 use super::FileTraverser;
 use crate::config::{UserConfig, TemplateFilesDir};
+use std::{format as s};
 
 pub struct DefaultProcessTemplates;
 
@@ -41,9 +43,7 @@ impl ProcessTemplates for DefaultProcessTemplates {
 
       let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
 
-      if user_config.verbose {
-        println!("{:?} ==============================> {:?}", &template_files_dir, files_to_process);
-      }
+      DefaultProcessTemplates::log_files_to_process(&user_config, &files_to_process);
 
       if self.has_template_files(&template_files, &template_files_dir) {
         files_to_process
@@ -69,5 +69,22 @@ impl DefaultProcessTemplates {
       [TemplateFile::Dir(one)] => one != template_files_dir.path(), //only contains the template files directory, so technically empty
       _ => true // not empty
     }
+  }
+
+  fn log_files_to_process(user_config: &UserConfig, files_to_process: &[TemplateFile]) {
+    let files: Vec<String> =
+      files_to_process
+        .iter()
+        .map(|file|{
+          match file {
+            TemplateFile::File(file) => {
+                s!("file: {}", file)
+            },
+            TemplateFile::Dir(dir) => s!("dir: {}", dir),
+          }
+        })
+        .collect();
+
+    Logger::log_files_to_process(&user_config, files);
   }
 }

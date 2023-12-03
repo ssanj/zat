@@ -6,13 +6,13 @@ use crate::token_expander::TokenizedKeysExpandedVariables;
 pub struct Logger;
 
 impl Logger {
-  pub fn log_user_config(user_config: &UserConfig) {
+  pub(crate) fn log_user_config(user_config: &UserConfig) {
     if user_config.verbose {
       Printer::print_verbose("User configuration", user_config);
     }
   }
 
-  pub fn log_template_variables(user_config: &UserConfig, template_variables: &TemplateVariables) {
+  pub(crate) fn log_template_variables(user_config: &UserConfig, template_variables: &TemplateVariables) {
     if user_config.verbose {
       Printer::print_verbose("Template variables", template_variables);
     }
@@ -27,6 +27,12 @@ impl Logger {
   pub(crate) fn expanded_tokens(user_config: &UserConfig, expanded_tokens: &TokenizedKeysExpandedVariables) {
     if user_config.verbose {
       Printer::print_verbose("Expanded tokens", expanded_tokens)
+    }
+  }
+
+  pub(crate) fn log_files_to_process(user_config: &UserConfig, files_to_process: Vec<String>) {
+    if user_config.verbose {
+      Printer::print_verbose_strings("Files to process", files_to_process)
     }
   }
 

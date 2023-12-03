@@ -37,10 +37,6 @@ impl TemplateEnricher for DefaultTemplateEnricher {
     let template_files_dir_path = &self.config.template_files_dir;
     let destination_dir_path = &self.config.target_dir;
 
-    if self.config.verbose {
-      println!("Enriching Template file: {:?}", &template_file);
-    }
-
     match template_file {
       TemplateFile::File(file) => {
         let source_file = SourceFile(file);
