@@ -1,32 +1,28 @@
-use crate::error::ZatResult;
+use crate::{error::ZatResult, logging::Logger, config::UserConfig};
 use super::{EnrichedTemplateFileProcessor, EnrichedTemplateFile, FileWriter, DirectoryCreator, DefaultFileWriter, DefaultDirectoryCreator, StringTokenReplacer};
 
 pub struct DefaultEnrichedTemplateFileProcessor<'a> {
   file_writer: &'a dyn FileWriter,
-  directory_creator: &'a dyn DirectoryCreator
+  directory_creator: &'a dyn DirectoryCreator,
+  user_config: &'a UserConfig
 }
 
 impl <'a> DefaultEnrichedTemplateFileProcessor<'a> {
 
-  #[cfg(test)]
-  fn new(file_writer: &'a dyn FileWriter, directory_creator: &'a dyn DirectoryCreator) -> Self {
-    Self {
-      file_writer,
-      directory_creator
-    }
-  }
-
-  pub fn with_defaults() -> Self {
-    Self {
-      file_writer: &DefaultFileWriter,
-      directory_creator: &DefaultDirectoryCreator
-    }
+  pub fn new(file_writer: &'a dyn FileWriter, directory_creator: &'a dyn DirectoryCreator, user_config: &'a UserConfig)-> Self {
+      Self {
+        file_writer,
+        directory_creator,
+        user_config
+      }
   }
 }
 
 impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> {
 
   fn process_enriched_template_files(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
+
+    Logger::log_header(self.user_config, "Files being processed");
 
     let results: ZatResult<()> =
       template_files
@@ -151,7 +147,8 @@ mod tests {
 
       let token_replacer = NotImplemented;
 
-      let template_processor = DefaultEnrichedTemplateFileProcessor::new(&file_writer, &directory_creator);
+      let user_config = UserConfig::default();
+      let template_processor = DefaultEnrichedTemplateFileProcessor::new(&file_writer, &directory_creator, &user_config);
       let result = template_processor.process_enriched_template_files(&enriched_templates, &token_replacer);
 
       assert_eq!(result, Ok(()))
@@ -190,7 +187,8 @@ mod tests {
 
       let token_replacer = NotImplemented;
 
-      let template_processor = DefaultEnrichedTemplateFileProcessor::new(&file_writer, &directory_creator);
+      let user_config = UserConfig::default();
+      let template_processor = DefaultEnrichedTemplateFileProcessor::new(&file_writer, &directory_creator, &user_config);
       let result = template_processor.process_enriched_template_files(&enriched_templates, &token_replacer);
 
       let expected_errors =

@@ -1,31 +1,44 @@
 use super::FileWriter;
 use super::SourceFile;
 use super::DestinationFile;
+use crate::config::UserConfig;
 use crate::error::{ZatError, ZatResult};
+use crate::logging::Logger;
 use super::StringTokenReplacer;
-use std::{fs, path::Path, fmt::Display};
+use std::{fs, path::Path, fmt::Display, format as s};
 
-pub struct DefaultFileWriter;
+pub struct DefaultFileWriter<'a> {
+  user_config: &'a UserConfig
+}
 
-impl FileWriter for DefaultFileWriter {
+impl FileWriter for DefaultFileWriter<'_> {
 
   fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
     let target_file_name_tokens_applied = destination_file.map(|df| token_replacer.replace(df));
 
     if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a templates
+      Logger::log_content(self.user_config, &s!("Writing template file: {}", &target_file_name_tokens_applied));
       let content = source_file.read_text()?;
       let parent_dir = &target_file_name_tokens_applied.parent_directory();
       let full_target_file_path_templated = parent_dir.join(&target_file_name_tokens_applied.file_stem());
       let content_with_tokens_applied = token_replacer.replace(&content);
       Self::write_file(&full_target_file_path_templated, &content_with_tokens_applied)
     } else {
+      Logger::log_content(self.user_config, &s!("Copying template file: {}", &target_file_name_tokens_applied));
       let content = source_file.read_binary()?;
       Self::write_file(&target_file_name_tokens_applied, &content)
     }
   }
 }
 
-impl DefaultFileWriter {
+impl <'a> DefaultFileWriter<'a> {
+
+  pub fn with_user_config(user_config: &'a UserConfig) -> Self {
+    Self {
+      user_config
+    }
+  }
+
   fn write_file<C, T>(target_file_with_tokens_replaced: T, content: C) -> ZatResult<()> where
     T: AsRef<Path> + Display,
     C: AsRef<[u8]>
@@ -53,7 +66,8 @@ mod tests {
       let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
       let destination_file = DestinationFile(temp_destination_file.path().to_string_lossy().to_string());
 
-      let file_writer = DefaultFileWriter;
+      let user_config = UserConfig::default();
+      let file_writer = DefaultFileWriter::with_user_config(&user_config);
       let source_content = b"HelloWorld from $project_underscore$";
       fs::write(&source_file, &source_content).unwrap();
 
@@ -83,7 +97,8 @@ mod tests {
       let destination_file = destination_dir.join("$project_underscore$.py");
       let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
 
-      let file_writer = DefaultFileWriter;
+      let user_config = UserConfig::default();
+      let file_writer = DefaultFileWriter::with_user_config(&user_config);
       let source_content = b"HelloWorld from $project_underscore$";
       fs::write(&source_file, &source_content).unwrap();
 
@@ -122,7 +137,8 @@ mod tests {
       let destination_file = destination_dir.join("$project_underscore$.py");
       let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
 
-      let file_writer = DefaultFileWriter;
+      let user_config = UserConfig::default();
+      let file_writer = DefaultFileWriter::with_user_config(&user_config);
       let source_content = b"HelloWorld from $project$";
       fs::write(&source_file, &source_content).unwrap();
 
@@ -161,7 +177,8 @@ mod tests {
       let destination_template_file = destination_dir.join("$project_underscore$.py.tmpl");
       let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
 
-      let file_writer = DefaultFileWriter;
+      let user_config = UserConfig::default();
+      let file_writer = DefaultFileWriter::with_user_config(&user_config);
       let source_content = b"HelloWorld from $project$";
       fs::write(&source_file, &source_content).unwrap();
 

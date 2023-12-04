@@ -41,3 +41,11 @@ impl AsRef<OsStr> for TargetDir {
     self.path.as_ref()
   }
 }
+
+impl Default for TargetDir {
+  fn default() -> Self {
+    Self {
+      path: "".to_owned()
+    }
+  }
+}

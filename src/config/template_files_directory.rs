@@ -36,3 +36,11 @@ impl AsRef<Path> for TemplateFilesDir {
       &Path::new(&self.path)
   }
 }
+
+impl Default for TemplateFilesDir {
+  fn default() -> Self {
+    Self {
+      path: "".to_owned()
+    }
+  }
+}

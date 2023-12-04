@@ -1,15 +1,28 @@
 use super::DirectoryCreator;
 use super::DestinationFile;
+use crate::config::UserConfig;
 use crate::error::{ZatError, ZatResult};
+use crate::logging::Logger;
 use super::StringTokenReplacer;
-use std::fs;
+use std::{fs, format as s};
 
-pub struct DefaultDirectoryCreator;
+pub struct DefaultDirectoryCreator<'a> {
+  user_config: &'a UserConfig
+}
 
-impl DirectoryCreator for DefaultDirectoryCreator {
+impl <'a> DefaultDirectoryCreator<'a> {
+  pub fn with_user_config(user_config: &'a UserConfig) -> Self {
+    Self {
+      user_config
+    }
+  }
+}
+
+impl DirectoryCreator for DefaultDirectoryCreator<'_> {
     fn create_directory(&self, destination_directory: &DestinationFile, replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
 
       let directory_path_with_tokens_replaced = destination_directory.map(|dd| replacer.replace(dd));
+      Logger::log_content(self.user_config, &s!("Creating directory: {}", &directory_path_with_tokens_replaced));
 
       fs::create_dir(&directory_path_with_tokens_replaced)
         .map_err(|e| {
@@ -27,7 +40,8 @@ mod tests {
     #[test]
     fn creates_supplied_directory() {
       let tmp_directory = TempDir::new().unwrap();
-      let directory_creator = DefaultDirectoryCreator;
+      let user_config = UserConfig::default();
+      let directory_creator = DefaultDirectoryCreator::with_user_config(&user_config);
 
       let working_directory = DestinationFile::from(tmp_directory.into_path());
       let destination_directory: DestinationFile = working_directory.join("some-cool-directory");
@@ -43,7 +57,8 @@ mod tests {
     #[test]
     fn creates_supplied_directory_after_replacing_tokens() {
       let tmp_directory = TempDir::new().unwrap();
-      let directory_creator = DefaultDirectoryCreator;
+      let user_config = UserConfig::default();
+      let directory_creator = DefaultDirectoryCreator::with_user_config(&user_config);
 
       let working_directory = DestinationFile::from(tmp_directory.into_path());
       let destination_directory: DestinationFile = working_directory.join("some-$project$");

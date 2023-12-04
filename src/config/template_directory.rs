@@ -47,3 +47,11 @@ impl From<&Path> for TemplateDir {
   }
 }
 
+impl Default for TemplateDir {
+  fn default() -> Self {
+    Self {
+      path: "".to_owned()
+    }
+  }
+}
+

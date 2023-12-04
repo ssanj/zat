@@ -6,8 +6,8 @@ pub enum ConfigShellHookStatus {
 
 
 impl Default for ConfigShellHookStatus {
-    fn default() -> Self {
-      Self::NoShellHook
-    }
+  fn default() -> Self {
+    Self::NoShellHook
+  }
 }
 

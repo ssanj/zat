@@ -2,11 +2,13 @@ use crate::error::ZatError;
 use crate::error::{ZatResult, ZatAction};
 use crate::logging::Logger;
 
-use super::ProcessTemplates;
+use super::default_directory_creator::DefaultDirectoryCreator;
+use super::{ProcessTemplates, default_directory_creator};
 use super::RegExFileChooser;
 use super::WalkDirFileTraverser;
 use super::TemplateEnricher;
 use super::DefaultTemplateEnricher;
+use super::default_file_writer::DefaultFileWriter;
 use super::file_traverser::TemplateFile;
 use super::{EnrichedTemplateFileProcessor, EnrichedTemplateFile};
 use super::DefaultEnrichedTemplateFileProcessor;
@@ -31,6 +33,8 @@ impl ProcessTemplates for DefaultProcessTemplates {
       let file_traverser = WalkDirFileTraverser::new(Box::new(file_chooser));
       let template_files_dir = &user_config.template_files_dir;
       let files_to_process = file_traverser.traverse_files(&template_files_dir);
+
+      // We need a &[&TemplateFile] to pass to `has_template_files`.
       let template_files: Vec<_> =
         files_to_process
           .iter()
@@ -39,7 +43,10 @@ impl ProcessTemplates for DefaultProcessTemplates {
 
       // Converts template files into enriched files that include replaced file name and content tokens
       let template_enricher = DefaultTemplateEnricher::new(user_config.clone());
-      let enriched_template_file_processor = DefaultEnrichedTemplateFileProcessor::with_defaults();
+
+      let default_file_writer = DefaultFileWriter::with_user_config(&user_config);
+      let default_directory_creator = DefaultDirectoryCreator::with_user_config(&user_config);
+      let enriched_template_file_processor = DefaultEnrichedTemplateFileProcessor::new(&default_file_writer, &default_directory_creator, &user_config);
 
       let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
 

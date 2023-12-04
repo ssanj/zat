@@ -36,4 +36,16 @@ impl Logger {
     }
   }
 
+  pub(crate) fn log_header(user_config: &UserConfig, header: &str) {
+    if user_config.verbose {
+      Printer::heading_only(header);
+    }
+  }
+
+  pub(crate) fn log_content(user_config: &UserConfig, content: &str) {
+    if user_config.verbose {
+      Printer::content_only(content);
+    }
+  }
+
 }
