@@ -24,7 +24,7 @@ impl FileWriter for DefaultFileWriter<'_> {
       let content_with_tokens_applied = token_replacer.replace(&content);
       Self::write_file(&full_target_file_path_templated, &content_with_tokens_applied)
     } else {
-      Logger::log_content(self.user_config, &s!("Copying template file: {}", &target_file_name_tokens_applied));
+      Logger::log_content(self.user_config, &s!("Copying file: {}", &target_file_name_tokens_applied));
       let content = source_file.read_binary()?;
       Self::write_file(&target_file_name_tokens_applied, &content)
     }
