@@ -7,16 +7,6 @@ use std::format as s;
 
 pub struct ShellHook;
 
-pub struct ShellHookLog {
-  shell_hook: String
-}
-
-impl Lines for ShellHookLog {
-  fn lines(&self) -> Vec<String> {
-    vec![s!("Running shell hook {}", self.shell_hook)]
-  }
-}
-
 impl PostProcessingHook for ShellHook {
 
   fn run(&self, user_config: &UserConfig) -> ZatAction {
@@ -28,11 +18,6 @@ impl PostProcessingHook for ShellHook {
 }
 
 fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatError> {
-    let shell_hook_log =
-      ShellHookLog {
-        shell_hook: shell_hook.to_owned()
-      };
-
     VerboseLogger::log_header(&user_config, "Executing Shellhook");
     VerboseLogger::log_content(&user_config, &s!("Running shellhook: {}", shell_hook));
 
