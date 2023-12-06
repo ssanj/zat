@@ -31,18 +31,18 @@ use crate::processor::DefaultProcessTemplates;
 use crate::post_processor::PostProcessingHook;
 use crate::post_processor::ShellHook;
 
-use ansi_term::Color::{Red, Yellow};
 use logging::VerboseLogger;
-use std::{println as p, eprintln as e};
+use logging::Logger;
+
 
 fn main() -> ExitCode {
   match run_zat() {
     Ok(_) => {
-      p!("\n{}", Yellow.paint("Zat completed successfully."));
+      Logger::info("Zat completed successfully.");
       ExitCode::SUCCESS
     },
     Err(error) => {
-      e!("\n{}{}", Red.paint("Zat failed an with error."), error);
+      Logger::error("Zat failed an with error.", error.to_string());
       ExitCode::FAILURE
     },
   }
@@ -78,7 +78,7 @@ fn run_zat() -> ZatAction {
       // Run post-processor if one exists
       ShellHook.run(&user_config)?
     },
-    TemplateVariableReview::Rejected => p!("\n{}", Red.paint("The user rejected the variables."))
+    TemplateVariableReview::Rejected => Logger::warn("The user rejected the variables.")
   }
 
   Ok(())
