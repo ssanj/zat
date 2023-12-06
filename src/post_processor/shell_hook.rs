@@ -1,10 +1,22 @@
-use crate::{config::{UserConfig, ConfigShellHookStatus, TargetDir}, error::{ZatAction, ZatError}};
+use crate::{config::{UserConfig, ConfigShellHookStatus, TargetDir}, error::{ZatAction, ZatError}, logging::{Lines, Logger}};
 
 use super::PostProcessingHook;
 use std::process::Command;
 use std::path::Path;
+use std::{format as s, println as p};
+use ansi_term::Color::Yellow;
 
 pub struct ShellHook;
+
+pub struct ShellHookLog {
+  shell_hook: String
+}
+
+impl Lines for ShellHookLog {
+  fn lines(&self) -> Vec<String> {
+    vec![s!("Running shell hook {}", self.shell_hook)]
+  }
+}
 
 impl PostProcessingHook for ShellHook {
 
@@ -17,6 +29,14 @@ impl PostProcessingHook for ShellHook {
 }
 
 fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatError> {
+    let shell_hook_log =
+      ShellHookLog {
+        shell_hook: shell_hook.to_owned()
+      };
+
+    Logger::log_header(&user_config, "Executing Shellhook");
+    Logger::log_content(&user_config, &s!("Running shellhook: {}", shell_hook));
+
     Command::new(shell_hook)
       .arg::<&Path>(<TargetDir as AsRef<Path>>::as_ref(&user_config.target_dir).as_ref())
       .status()
@@ -24,7 +44,7 @@ fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatE
       .and_then(|exit|{
         match exit.code() {
           Some(0) => {
-            println!("Shell hook exited successfully");
+            Logger::log_content(&user_config, "Shell hook exited successfully");
             Ok(())
           },
           Some(other) => Err(ZatError::post_processing_hook_completed_with_non_zero_status(shell_hook, other)),
@@ -75,13 +95,13 @@ mod tests {
         let shell_hook_content = b"blee";
         let _ = create_file_in(source_dir.path(),  spath!(&shell_hook), shell_hook_content, None);
 
-        println!("shell hook file exists: {}", shell_hook.exists());
+        p!("shell hook file exists: {}", shell_hook.exists());
 
         let config =
           config_with_shell_hook(
             config_with_source_and_target(source_dir.path(), target_dir.path()));
 
-        println!("config: {:?}", &config);
+        p!("config: {:?}", &config);
 
         let assert_error_ends_with = |error_message: String| {
           let expected_error = s!("failed with an error.");
@@ -109,13 +129,13 @@ mod tests {
         let shell_hook_content = b"#!/bin/bash\ntouch \"$1\"/testing.txt";
         let _ = create_file_in(source_dir.path(),  spath!(&shell_hook), shell_hook_content, Some(0o755));
 
-        println!("shell hook file exists: {}", shell_hook.exists());
+        p!("shell hook file exists: {}", shell_hook.exists());
 
         let config =
           config_with_shell_hook(
             config_with_source_and_target(source_dir.path(), target_dir.path()));
 
-        println!("config: {:?}", &config);
+        p!("config: {:?}", &config);
 
         match ShellHook.run(&config) {
           Ok(_) => assert!(target_dir.path().join("testing.txt").exists()),

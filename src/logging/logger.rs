@@ -1,4 +1,5 @@
 use crate::config::UserConfig;
+use crate::post_processor::ShellHookLog;
 use crate::templates::{TemplateVariables, ValidConfig};
 use super::Printer;
 use crate::token_expander::TokenizedKeysExpandedVariables;
@@ -45,6 +46,12 @@ impl Logger {
   pub(crate) fn log_content(user_config: &UserConfig, content: &str) {
     if user_config.verbose {
       Printer::content_only(content);
+    }
+  }
+
+  pub(crate) fn log_shell_execution(user_config: &UserConfig, shell_hook_log: &ShellHookLog) {
+    if user_config.verbose {
+      Printer::print_verbose("Executing Shellhook", shell_hook_log);
     }
   }
 

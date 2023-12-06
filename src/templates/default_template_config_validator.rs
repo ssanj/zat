@@ -90,7 +90,7 @@ impl Cli {
 
   fn check_user_input() -> UserVariablesValidity {
     // Check if variables are ok
-    println!("\nPress [y]es if correct, and any other key if not.");
+    println!("{}", Yellow.paint("\nPress [y]es if correct, and any other key if not."));
     let mut user_response = String::new();
     let stdin = std::io::stdin();
     let mut handle = stdin.lock();
