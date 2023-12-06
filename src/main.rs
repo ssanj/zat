@@ -33,7 +33,7 @@ use crate::post_processor::ShellHook;
 
 use ansi_term::Color::{Red, Yellow};
 use logging::Logger;
-use std::{format as s, println as p, eprintln as e};
+use std::{println as p, eprintln as e};
 
 fn main() -> ExitCode {
   match run_zat() {

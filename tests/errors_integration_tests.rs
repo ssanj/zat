@@ -377,17 +377,18 @@ fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::
 /// line7: Blank
 ///
 /// With an exception:
-/// line0: "Zat failed an with error."
-/// line1: Blank
-/// line2: <Error Category>:
-/// line3: <Error>
-/// line4: Blank
-/// line5: Exception:
-/// line6: <Exception Message>
-/// line7: Blank
-/// line8: "Possible fix:"
-/// line9: <Fix>
-/// line10: Blank
+/// line0:
+/// line1: "Zat failed an with error."
+/// line2: Blank
+/// line3: <Error Category>:
+/// line4: <Error>
+/// line5: Blank
+/// line6: Exception:
+/// line7: <Exception Message>
+/// line8: Blank
+/// line9: "Possible fix:"
+/// line10: <Fix>
+/// line11: Blank
 fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
 
   let error_colour = ansi_term::Color::Red;
@@ -404,23 +405,49 @@ fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
   }
 
   if let Some(exception) = maybe_exception {
-    assert_eq!(num_lines, 11, "expected 11 lines but got {}", num_lines);
+    assert_eq!(num_lines, 12, "expected 12 lines but got {}", num_lines);
 
-    let line0 = assert_line(0, lines[0], error_colour.paint("Zat failed an with error.").to_string().as_str());
-    let line1 = assert_line(1, lines[1], "",);
+    let line0 = assert_line(0, lines[0], "");
+    let line1 = assert_line(1, lines[1], error_colour.paint("Zat failed an with error.").to_string().as_str());
+    let line2 = assert_line(2, lines[2], "",);
 
-    let line2 = assert_line(2, lines[2], s!("{}{}:", heading_indent, heading_colour.paint(error_type).to_string()).as_str());
-    let line3 = assert_line(3, lines[3], s!("{}{}", content_indent, error).as_str());
-    let line4 = assert_line(4, lines[4], "");
+    let line3 = assert_line(3, lines[3], s!("{}{}:", heading_indent, heading_colour.paint(error_type).to_string()).as_str());
+    let line4 = assert_line(4, lines[4], s!("{}{}", content_indent, error).as_str());
+    let line5 = assert_line(5, lines[5], "");
 
-    let line5 = assert_line(5, lines[5], s!("{}{}:", heading_indent, heading_colour.paint("Exception").to_string()).as_str());
-    let line6 = assert_line(6, lines[6], s!("{}{}", content_indent, exception).as_str());
-    let line7 = assert_line(7, lines[7], "");
+    let line6 = assert_line(6, lines[6], s!("{}{}:", heading_indent, heading_colour.paint("Exception").to_string()).as_str());
+    let line7 = assert_line(7, lines[7], s!("{}{}", content_indent, exception).as_str());
+    let line8 = assert_line(8, lines[8], "");
 
 
-    let line8 = assert_line(8, lines[8], s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string()).as_str());
-    let line9 = assert_line(9, lines[9], s!("{}{}", content_indent, fix).as_str());
-    let line10 = assert_line(10, lines[10], "");
+    let line9 = assert_line(9, lines[9], s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string()).as_str());
+    let line10 = assert_line(10, lines[10], s!("{}{}", content_indent, fix).as_str());
+    let line11 = assert_line(11, lines[11], "");
+
+    line0  &&
+    line1  &&
+    line2  &&
+    line3  &&
+    line4  &&
+    line5  &&
+    line6  &&
+    line7  &&
+    line8  &&
+    line9  &&
+    line10 &&
+    line11
+  } else {
+    assert_eq!(num_lines, 9, "expected 9 lines but got {}", num_lines);
+
+    let line0 = assert_line(0, lines[0], "");
+    let line1 = assert_line(1, lines[1], error_colour.paint("Zat failed an with error.").to_string().as_str());
+    let line2 = assert_line(2, lines[2], "",);
+    let line3 = assert_line(3, lines[3], s!("{}{}:", heading_indent, heading_colour.paint(error_type).to_string()).as_str());
+    let line4 = assert_line(4, lines[4], s!("{}{}", content_indent, error).as_str());
+    let line5 = assert_line(5, lines[5], "");
+    let line6 = assert_line(6, lines[6], s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string()).as_str());
+    let line7 = assert_line(7, lines[7], s!("{}{}", content_indent, fix).as_str());
+    let line8 = assert_line(8, lines[8], "");
 
     line0 &&
     line1 &&
@@ -430,31 +457,8 @@ fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
     line5 &&
     line6 &&
     line7 &&
-    line8 &&
-    line9 &&
-    line10
-  } else {
-    assert_eq!(num_lines, 8, "expected 8 lines but got {}", num_lines);
-
-    let line0 = assert_line(0, lines[0], error_colour.paint("Zat failed an with error.").to_string().as_str());
-    let line1 = assert_line(1, lines[1], "",);
-    let line2 = assert_line(2, lines[2], s!("{}{}:", heading_indent, heading_colour.paint(error_type).to_string()).as_str());
-    let line3 = assert_line(3, lines[3], s!("{}{}", content_indent, error).as_str());
-    let line4 = assert_line(4, lines[4], "");
-    let line5 = assert_line(5, lines[5], s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string()).as_str());
-    let line6 = assert_line(6, lines[6], s!("{}{}", content_indent, fix).as_str());
-    let line7 = assert_line(7, lines[7], "");
-
-    line0 &&
-    line1 &&
-    line2 &&
-    line3 &&
-    line4 &&
-    line5 &&
-    line6 &&
-    line7
+    line8
   }
-
 }
 
 fn assert_line(
