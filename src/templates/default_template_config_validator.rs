@@ -6,6 +6,8 @@ use super::{UserVariableValue, UserVariableKey, TemplateVariables};
 use crate::config::UserConfig;
 use ansi_term::Colour::{Yellow, Green, Blue};
 use ansi_term::Style;
+use std::{println as p, format as s};
+use crate::logging::Logger;
 
 // This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
 trait UserInputProvider {
@@ -42,10 +44,10 @@ impl UserInputProvider for Cli {
           if default_value.is_empty() {
             "".to_owned()
           } else {
-            format!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(&default_value))
+            s!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(&default_value))
           };
 
-        println!("{}{}", Yellow.paint(v.prompt), default_string);
+        p!("{}{}", Yellow.paint(v.prompt), default_string);
         let mut variable_value = String::new();
         if let Ok(read_count) = stdin.read_line(&mut variable_value) {
           if read_count > 0 { //read at least one character
@@ -81,16 +83,16 @@ impl UserTemplateVariableValidator for Cli {
 
 impl Cli {
   fn print_user_input(user_variables: &HashMap<UserVariableKey, UserVariableValue>) {
-    println!("\n{}\n", Yellow.paint("Please confirm the variable mappings below are correct."));
+    Logger::info("Please confirm the variable mappings below are correct.");
 
     for t in user_variables.iter() {
-      println!("{} -> {}", Blue.paint(&t.0.value), Green.paint(&t.1.value))
+      p!("{} -> {}", Blue.paint(&t.0.value), Green.paint(&t.1.value))
     }
   }
 
   fn check_user_input() -> UserVariablesValidity {
     // Check if variables are ok
-    println!("{}", Yellow.paint("\nPress [y]es if correct, and any other key if not."));
+    Logger::info("Press [y]es if correct, and any other key if not.");
     let mut user_response = String::new();
     let stdin = std::io::stdin();
     let mut handle = stdin.lock();
