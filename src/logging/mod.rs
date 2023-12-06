@@ -1,7 +1,7 @@
 pub mod lines;
 pub mod printer;
-pub mod logger;
+pub mod verbose_logger;
 
 pub use lines::Lines;
 pub use printer::Printer;
-pub use logger::Logger;
+pub use verbose_logger::VerboseLogger;

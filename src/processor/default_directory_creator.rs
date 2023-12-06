@@ -2,7 +2,7 @@ use super::DirectoryCreator;
 use super::DestinationFile;
 use crate::config::UserConfig;
 use crate::error::{ZatError, ZatResult};
-use crate::logging::Logger;
+use crate::logging::VerboseLogger;
 use super::StringTokenReplacer;
 use std::{fs, format as s};
 
@@ -22,7 +22,7 @@ impl DirectoryCreator for DefaultDirectoryCreator<'_> {
     fn create_directory(&self, destination_directory: &DestinationFile, replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
 
       let directory_path_with_tokens_replaced = destination_directory.map(|dd| replacer.replace(dd));
-      Logger::log_content(self.user_config, &s!("Creating directory: {}", &directory_path_with_tokens_replaced));
+      VerboseLogger::log_content(self.user_config, &s!("Creating directory: {}", &directory_path_with_tokens_replaced));
 
       fs::create_dir(&directory_path_with_tokens_replaced)
         .map_err(|e| {

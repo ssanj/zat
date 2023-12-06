@@ -1,6 +1,6 @@
 use crate::error::ZatError;
 use crate::error::{ZatResult, ZatAction};
-use crate::logging::Logger;
+use crate::logging::VerboseLogger;
 
 use super::default_directory_creator::DefaultDirectoryCreator;
 use super::{ProcessTemplates, default_directory_creator};
@@ -92,6 +92,6 @@ impl DefaultProcessTemplates {
         })
         .collect();
 
-    Logger::log_files_to_process(&user_config, files);
+    VerboseLogger::log_files_to_process(&user_config, files);
   }
 }

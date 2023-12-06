@@ -1,4 +1,4 @@
-use crate::{error::ZatResult, logging::Logger, config::UserConfig};
+use crate::{error::ZatResult, logging::VerboseLogger, config::UserConfig};
 use super::{EnrichedTemplateFileProcessor, EnrichedTemplateFile, FileWriter, DirectoryCreator, DefaultFileWriter, DefaultDirectoryCreator, StringTokenReplacer};
 
 pub struct DefaultEnrichedTemplateFileProcessor<'a> {
@@ -22,7 +22,7 @@ impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> 
 
   fn process_enriched_template_files(&self, template_files: &[EnrichedTemplateFile], replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
 
-    Logger::log_header(self.user_config, "Files being processed");
+    VerboseLogger::log_header(self.user_config, "Files being processed");
 
     let results: ZatResult<()> =
       template_files

@@ -3,7 +3,7 @@ use super::SourceFile;
 use super::DestinationFile;
 use crate::config::UserConfig;
 use crate::error::{ZatError, ZatResult};
-use crate::logging::Logger;
+use crate::logging::VerboseLogger;
 use super::StringTokenReplacer;
 use std::{fs, path::Path, fmt::Display, format as s};
 
@@ -17,14 +17,14 @@ impl FileWriter for DefaultFileWriter<'_> {
     let target_file_name_tokens_applied = destination_file.map(|df| token_replacer.replace(df));
 
     if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a templates
-      Logger::log_content(self.user_config, &s!("Writing template file: {}", &target_file_name_tokens_applied));
+      VerboseLogger::log_content(self.user_config, &s!("Writing template file: {}", &target_file_name_tokens_applied));
       let content = source_file.read_text()?;
       let parent_dir = &target_file_name_tokens_applied.parent_directory();
       let full_target_file_path_templated = parent_dir.join(&target_file_name_tokens_applied.file_stem());
       let content_with_tokens_applied = token_replacer.replace(&content);
       Self::write_file(&full_target_file_path_templated, &content_with_tokens_applied)
     } else {
-      Logger::log_content(self.user_config, &s!("Copying file: {}", &target_file_name_tokens_applied));
+      VerboseLogger::log_content(self.user_config, &s!("Copying file: {}", &target_file_name_tokens_applied));
       let content = source_file.read_binary()?;
       Self::write_file(&target_file_name_tokens_applied, &content)
     }

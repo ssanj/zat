@@ -1,12 +1,11 @@
 use crate::config::UserConfig;
-use crate::post_processor::ShellHookLog;
 use crate::templates::{TemplateVariables, ValidConfig};
 use super::Printer;
 use crate::token_expander::TokenizedKeysExpandedVariables;
 
-pub struct Logger;
+pub struct VerboseLogger;
 
-impl Logger {
+impl VerboseLogger {
   pub(crate) fn log_user_config(user_config: &UserConfig) {
     if user_config.verbose {
       Printer::print_verbose("User configuration", user_config);
@@ -37,6 +36,7 @@ impl Logger {
     }
   }
 
+  /// log_header is meant to be used with one or more log_content calls.
   pub(crate) fn log_header(user_config: &UserConfig, header: &str) {
     if user_config.verbose {
       Printer::heading_only(header);
@@ -48,11 +48,4 @@ impl Logger {
       Printer::content_only(content);
     }
   }
-
-  pub(crate) fn log_shell_execution(user_config: &UserConfig, shell_hook_log: &ShellHookLog) {
-    if user_config.verbose {
-      Printer::print_verbose("Executing Shellhook", shell_hook_log);
-    }
-  }
-
 }

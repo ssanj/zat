@@ -32,7 +32,7 @@ use crate::post_processor::PostProcessingHook;
 use crate::post_processor::ShellHook;
 
 use ansi_term::Color::{Red, Yellow};
-use logging::Logger;
+use logging::VerboseLogger;
 use std::{println as p, eprintln as e};
 
 fn main() -> ExitCode {
@@ -53,12 +53,12 @@ fn run_zat() -> ZatAction {
   // Basically everything from the cli config.
   let config_provider = DefaultUserConfigProvider::new();
   let user_config = config_provider.get_config()?;
-  Logger::log_user_config(&user_config);
+  VerboseLogger::log_user_config(&user_config);
 
   // Reads the .variables.zat-prompt file into TemplateVariables
   let template_variable_provider = DefaultTemplateVariableProvider::new();
   let template_variables = template_variable_provider.get_tokens(user_config.clone())?;
-  Logger::log_template_variables(&user_config, &template_variables);
+  VerboseLogger::log_template_variables(&user_config, &template_variables);
 
   // Ask for the user for the value of each variable
   // Then verify all the variables supplied are correct
@@ -67,12 +67,12 @@ fn run_zat() -> ZatAction {
 
   match template_variable_review {
     TemplateVariableReview::Accepted(vc) => {
-      Logger::log_user_supplied_variables(&user_config, &vc);
+      VerboseLogger::log_user_supplied_variables(&user_config, &vc);
       let user_variables = vc.user_variables;
       let expand_filters = DefaultExpandFilters::new();
       let tokenized_key_expanded_variables = expand_filters.expand_filers(template_variables, user_variables);
 
-      Logger::expanded_tokens(&user_config, &tokenized_key_expanded_variables);
+      VerboseLogger::expanded_tokens(&user_config, &tokenized_key_expanded_variables);
       DefaultProcessTemplates.process_templates(user_config.clone(), tokenized_key_expanded_variables)?;
 
       // Run post-processor if one exists
