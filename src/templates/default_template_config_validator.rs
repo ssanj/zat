@@ -1,4 +1,4 @@
-use std::{collections::HashMap, format};
+use std::collections::HashMap;
 use std::io::BufRead;
 
 use crate::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};

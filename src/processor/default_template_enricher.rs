@@ -1,5 +1,4 @@
 use std::path::Path;
-use std::println;
 use super::destination_file::DestinationFile;
 use super::file_traverser::TemplateFile;
 use crate::error::ZatResult;

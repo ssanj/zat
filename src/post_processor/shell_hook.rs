@@ -1,4 +1,6 @@
-use crate::{config::{UserConfig, ConfigShellHookStatus, TargetDir}, error::{ZatAction, ZatError}, logging::{Lines, VerboseLogger}};
+use crate::config::{UserConfig, ConfigShellHookStatus, TargetDir};
+use crate::error::{ZatAction, ZatError};
+use crate::logging::VerboseLogger;
 
 use super::PostProcessingHook;
 use std::process::Command;

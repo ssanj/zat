@@ -3,7 +3,7 @@ use crate::error::{ZatResult, ZatAction};
 use crate::logging::VerboseLogger;
 
 use super::default_directory_creator::DefaultDirectoryCreator;
-use super::{ProcessTemplates, default_directory_creator};
+use super::ProcessTemplates;
 use super::RegExFileChooser;
 use super::WalkDirFileTraverser;
 use super::TemplateEnricher;

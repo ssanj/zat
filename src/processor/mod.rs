@@ -38,9 +38,7 @@ use regex_file_chooser::RegExFileChooser;
 use default_template_enricher::DefaultTemplateEnricher;
 use walk_dir_file_traverser::WalkDirFileTraverser;
 use aho_corasick_token_replacer::AhoCorasickTokenReplacer;
-use default_file_writer::DefaultFileWriter;
 use enriched_default_template_file_processor::DefaultEnrichedTemplateFileProcessor;
-use default_directory_creator::DefaultDirectoryCreator;
 use source_file::SourceFile;
 use destination_file::DestinationFile;
 
