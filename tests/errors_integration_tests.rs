@@ -324,23 +324,8 @@ fn get_source_directory(test_directory: &str) -> String {
   let current_directory = std::env::current_dir().expect("Could not get current directory");
   println!("current directory {}", current_directory.to_string_lossy());
 
-
   let source_directory = current_directory.join(s!("tests/errors/{}/source", test_directory));
   println!("source directory {}", source_directory.to_string_lossy());
-
-  // Dump contents of current directory
-
-  let files = walkdir::WalkDir::new(&source_directory)
-      .into_iter()
-      .filter_map(|re| re.ok())
-      .map(|dir_entry|{
-        dir_entry.path().to_path_buf()
-      });
-
-  println!("Found the following files in {}", source_directory.to_string_lossy());
-  for f in files {
-    println!("{}", f.to_string_lossy())
-  }
 
   source_directory.to_string_lossy().to_string()
 }

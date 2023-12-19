@@ -71,8 +71,6 @@ impl ProcessTemplates for DefaultProcessTemplates {
 impl DefaultProcessTemplates {
 
   fn has_template_files(&self, template_files: &[&TemplateFile], template_files_dir: &TemplateFilesDir) -> bool {
-    println!("-----------------------> template files dir {}", template_files_dir.path());
-    println!("-----------------------> template files {:?}", template_files);
     match template_files {
       [] => false, //empty, so no files
       [TemplateFile::Dir(one)] => one != template_files_dir.path(), //only contains the template files directory, so technically empty
@@ -85,7 +83,6 @@ impl DefaultProcessTemplates {
       // TODO: Do we need to worry about this order? I've seen directories come through first. We may have to add
       // another clause if that is not the case.
       [TemplateFile::Dir(root_dir), TemplateFile::File(keep_file)] => {
-        println!("-----------------------> one: {}, two: {}", root_dir, keep_file);
         !(root_dir == template_files_dir.path() &&
           keep_file == &std::path::Path::new(template_files_dir.path()).join(".keep").to_string_lossy().to_string()
         )
