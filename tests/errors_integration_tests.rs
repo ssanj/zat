@@ -320,6 +320,13 @@ impl <'a> ErrorTestConfig<'a> {
 
 fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::error::Error>> {
 
+  let current_directory = std::env::current_dir().expect("Could not get current directory");
+  println!("current directory {}", current_directory.to_string_lossy());
+
+  let github_working_directory = std::env::var("GITHUB_WORKSPACE").unwrap_or_else(|_| s!("Falling back to current directory:{}", current_directory.to_string_lossy()));
+
+  println!("GH working directory: {}", github_working_directory);
+
   let source_directory = s!("./tests/errors/{}/source", error_config.test_directory);
 
   let mut cmd = Command::cargo_bin("zat").unwrap();
