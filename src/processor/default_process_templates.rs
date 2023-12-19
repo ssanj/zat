@@ -15,7 +15,7 @@ use super::DefaultEnrichedTemplateFileProcessor;
 use super::AhoCorasickTokenReplacer;
 use super::FileTraverser;
 use crate::config::{UserConfig, TemplateFilesDir};
-use std::{format as s};
+use std::{format as s, println};
 
 pub struct DefaultProcessTemplates;
 
@@ -74,6 +74,19 @@ impl DefaultProcessTemplates {
     match template_files {
       [] => false, //empty, so no files
       [TemplateFile::Dir(one)] => one != template_files_dir.path(), //only contains the template files directory, so technically empty
+
+      // Only contains the template files directory and a .keep file, so technically empty. Wait, what?
+      // We need this so we can commit an integration test to verify the expected error when the templates directory
+      // doesn't have any files.
+      // Git doesn't allow committing empty directories, so we need a .keep file which is
+      // technically not part of the template.
+      // TODO: Do we need to worry about this order? I've seen directories come through first. We may have to add
+      // another clause if that is not the case.
+      [TemplateFile::Dir(root_dir), TemplateFile::File(keep_file)] => {
+        !(root_dir == template_files_dir.path() &&
+          keep_file == &std::path::Path::new(template_files_dir.path()).join(".keep").to_string_lossy().to_string()
+        )
+      },
       _ => true // not empty
     }
   }
@@ -94,4 +107,63 @@ impl DefaultProcessTemplates {
 
     VerboseLogger::log_files_to_process(&user_config, files);
   }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::config::{TemplateDir, TemplateFilesDir};
+
+use super::*;
+
+  #[test]
+  fn has_template_files_returns_false_if_there_are_no_files() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+      let has_files = DefaultProcessTemplates.has_template_files(&[], &tfd);
+      assert!(!has_files)
+  }
+
+  #[test]
+  fn has_template_files_returns_false_if_only_file_is_the_template_files_directory() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+
+      let root_dir = TemplateFile::Dir(tfd.path().to_owned());
+      let template_files = &[&root_dir];
+
+      let has_files = DefaultProcessTemplates.has_template_files(template_files, &tfd);
+      assert!(!has_files)
+  }
+
+  #[test]
+  fn has_template_files_returns_false_if_theres_only_a_dot_keep_file_in_the_template_files_directory() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+
+      let keep_file = TemplateFile::File(s!("{}/.keep", tfd.path()));
+      let root_dir = TemplateFile::Dir(tfd.path().to_owned());
+      let template_files = &[&root_dir, &keep_file];
+
+      let has_files = DefaultProcessTemplates.has_template_files(template_files, &tfd);
+      assert!(!has_files)
+  }
+
+  #[test]
+  fn has_template_files_returns_true_if_there_are_any_other_directories() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+      let tf = TemplateFile::Dir("some-directory".to_owned());
+      let has_files = DefaultProcessTemplates.has_template_files(&[&tf], &tfd);
+      assert!(has_files)
+  }
+
+  #[test]
+  fn has_template_files_returns_true_if_there_are_any_other_files() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+      let tf = TemplateFile::File("some-file".to_owned());
+      let has_files = DefaultProcessTemplates.has_template_files(&[&tf], &tfd);
+      assert!(has_files)
+  }
+
 }

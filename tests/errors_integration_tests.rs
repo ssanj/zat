@@ -3,13 +3,14 @@ use file_differ::print_diff;
 use tempfile::tempdir;
 use predicates::prelude::*;
 use format as s;
+use std::{path::PathBuf, print, println};
 
 mod file_differ;
 
 #[test]
 fn error_message_on_missing_template_dir() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "no-template-dir";
-  let source_directory = s!("./tests/errors/{}/source", test_directory);
+  let source_directory = get_source_directory(test_directory);
 
   let error_parts =
     ErrorParts::new(
@@ -26,7 +27,7 @@ fn error_message_on_missing_template_dir() -> Result<(), Box<dyn std::error::Err
 #[test]
 fn error_message_on_missing_template_files_dir() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "no-template-files-dir";
-  let source_directory = s!("./tests/errors/{}/source", test_directory);
+  let source_directory = get_source_directory(test_directory);
 
   let error_parts =
     ErrorParts::new(
@@ -42,7 +43,7 @@ fn error_message_on_missing_template_files_dir() -> Result<(), Box<dyn std::erro
 #[test]
 fn error_message_on_missing_variables_file() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "no-variables-file";
-  let source_directory = s!("./tests/errors/{}/source", test_directory);
+  let source_directory = get_source_directory(test_directory);
 
   let error_parts =
     ErrorParts::new(
@@ -58,7 +59,7 @@ fn error_message_on_missing_variables_file() -> Result<(), Box<dyn std::error::E
 #[test]
 fn error_message_on_non_json_variables_file() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "non-json-variables-file";
-  let source_directory = s!("./tests/errors/{}/source", test_directory);
+  let source_directory = get_source_directory(test_directory);
 
   let error_parts =
     ErrorParts::new(
@@ -74,7 +75,7 @@ fn error_message_on_non_json_variables_file() -> Result<(), Box<dyn std::error::
 #[test]
 fn error_message_on_no_template_files() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "no-template-files";
-  let source_directory = s!("./tests/errors/{}/source", test_directory);
+  let source_directory = get_source_directory(test_directory);
 
   let error_parts =
     ErrorParts::new(
@@ -114,7 +115,7 @@ fn error_message_on_target_dir_exists() -> Result<(), Box<dyn std::error::Error>
 #[test]
 fn error_message_on_no_variables_defined() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "no-variables-defined";
-  let source_directory = s!("./tests/errors/{}/source", test_directory);
+  let source_directory = get_source_directory(test_directory);
 
   let error_parts =
     ErrorParts::new(
@@ -131,7 +132,7 @@ fn error_message_on_no_variables_defined() -> Result<(), Box<dyn std::error::Err
 #[test]
 fn error_message_on_binary_template() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "binary-template-file";
-  let source_directory = s!("./tests/errors/{}/source", test_directory);
+  let source_directory = get_source_directory(test_directory);
 
   let error_parts =
     ErrorParts::with_exception(
@@ -150,7 +151,7 @@ fn error_message_on_binary_template() -> Result<(), Box<dyn std::error::Error>> 
 #[test]
 fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "non-zero-post-processing-shell-hook-result";
-  let source_directory = s!("./tests/errors/{}/source", test_directory);
+  let source_directory = get_source_directory(test_directory);
 
   let error_parts =
     ErrorParts::new(
@@ -168,7 +169,7 @@ fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn
 #[test]
 fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "post-processing-shell-hook-not-executable";
-  let source_directory = s!("./tests/errors/{}/source", test_directory);
+  let source_directory = get_source_directory(test_directory);
 
   let error_parts =
     ErrorParts::with_exception(
@@ -318,12 +319,23 @@ impl <'a> ErrorTestConfig<'a> {
 // Helper functions
 //----------------------------------------------------------------------------------------------------------------------
 
-fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::error::Error>> {
 
-  let source_directory = s!("./tests/errors/{}/source", error_config.test_directory);
+fn get_source_directory(test_directory: &str) -> String {
+  let current_directory = std::env::current_dir().expect("Could not get current directory");
+  println!("current directory {}", current_directory.to_string_lossy());
+
+  let source_directory = current_directory.join(s!("tests/errors/{}/source", test_directory));
+  println!("source directory {}", source_directory.to_string_lossy());
+
+  source_directory.to_string_lossy().to_string()
+}
+
+fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::error::Error>> {
 
   let mut cmd = Command::cargo_bin("zat").unwrap();
   let working_directory = tempdir()?;
+
+  let source_directory = get_source_directory(error_config.test_directory);
 
   let target_directory = match error_config.maybe_target_directory {
     Some(target_dir) => target_dir.to_owned(),
