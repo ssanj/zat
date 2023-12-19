@@ -74,6 +74,11 @@ impl DefaultProcessTemplates {
     match template_files {
       [] => false, //empty, so no files
       [TemplateFile::Dir(one)] => one != template_files_dir.path(), //only contains the template files directory, so technically empty
+
+      //Only contains a .keep file, so technically empty. We need this so we can commit an
+      //integration test to verify the expected error when the templates directory doesn't have any files.
+      // Git doesn't allow committing empty directories.
+      [TemplateFile::File(one)] => one != &std::path::Path::new(template_files_dir.path()).join(".keep").to_string_lossy().to_string(),
       _ => true // not empty
     }
   }
@@ -93,5 +98,56 @@ impl DefaultProcessTemplates {
         .collect();
 
     VerboseLogger::log_files_to_process(&user_config, files);
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::config::{TemplateDir, TemplateFilesDir};
+
+use super::*;
+
+  #[test]
+  fn has_template_files_returns_false_if_there_are_no_files() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+      let has_files = DefaultProcessTemplates.has_template_files(&[], &tfd);
+      assert!(!has_files)
+  }
+
+  #[test]
+  fn has_template_files_returns_false_if_only_file_is_the_template_files_directory() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+      let tf = TemplateFile::Dir(tfd.path().to_owned());
+      let has_files = DefaultProcessTemplates.has_template_files(&[&tf], &tfd);
+      assert!(!has_files)
+  }
+
+  #[test]
+  fn has_template_files_returns_true_if_there_are_any_other_directories() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+      let tf = TemplateFile::Dir("some-directory".to_owned());
+      let has_files = DefaultProcessTemplates.has_template_files(&[&tf], &tfd);
+      assert!(has_files)
+  }
+
+  #[test]
+  fn has_template_files_returns_true_if_there_are_any_other_files() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+      let tf = TemplateFile::File("some-file".to_owned());
+      let has_files = DefaultProcessTemplates.has_template_files(&[&tf], &tfd);
+      assert!(has_files)
+  }
+
+  #[test]
+  fn has_template_files_returns_false_if_theres_only_a_dot_keep_file() {
+      let td = TemplateDir::new(".");
+      let tfd = TemplateFilesDir::from(&td);
+      let tf = TemplateFile::File(s!("{}/.keep", tfd.path()));
+      let has_files = DefaultProcessTemplates.has_template_files(&[&tf], &tfd);
+      assert!(!has_files)
   }
 }
