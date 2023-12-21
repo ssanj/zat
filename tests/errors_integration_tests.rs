@@ -3,7 +3,7 @@ use file_differ::print_diff;
 use tempfile::tempdir;
 use predicates::prelude::*;
 use format as s;
-use std::{path::PathBuf, print, println};
+use std::println;
 
 mod file_differ;
 
@@ -156,8 +156,8 @@ fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn
   let error_parts =
     ErrorParts::new(
       "There was an error running the post processor".to_owned(),
-      s!("Shell hook `{}/shell-hook.zat-exec` failed with status code 1. The shell hook failed with a non-zero error code signifying an error.", source_directory),
-      s!("Please check the logs above for why the shell hook failed. Try running the shell hook file `{}/shell-hook.zat-exec` manually by itself on the output to iterate on the error.", source_directory),
+      s!("Shell hook '{}/shell-hook.zat-exec' failed with status code 1. The shell hook failed with a non-zero error code signifying an error.", source_directory),
+      s!("Please check the logs above for why the shell hook failed. Try running the shell hook file '{}/shell-hook.zat-exec' manually by itself on the output to iterate on the error.", source_directory),
     );
 
   let input = &["YouOnlyLiveOnce", "y"];
@@ -174,9 +174,9 @@ fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error
   let error_parts =
     ErrorParts::with_exception(
       "There was an error running the post processor".to_owned(),
-      s!("Shell hook `{}/shell-hook.zat-exec` failed with an error.", source_directory),
+      s!("Shell hook '{}/shell-hook.zat-exec' failed with an error.", source_directory),
       "Permission denied (os error 13)".to_owned(),
-      s!("Please ensure the shell hook file `{}/shell-hook.zat-exec` exists and is executable.", source_directory),
+      s!("Please ensure the shell hook file '{}/shell-hook.zat-exec' exists and is executable.", source_directory),
     );
 
   let input = &["YouOnlyLiveOnce", "y"];
