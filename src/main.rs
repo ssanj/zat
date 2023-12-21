@@ -39,7 +39,7 @@ use std::format as s;
 fn main() -> ExitCode {
   match run_zat() {
     Ok(_) => {
-      Logger::info("Zat completed successfully.");
+      Logger::success("Zat completed successfully.");
       ExitCode::SUCCESS
     },
     Err(error) => {
