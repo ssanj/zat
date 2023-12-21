@@ -3,7 +3,7 @@ use file_differ::print_diff;
 use tempfile::tempdir;
 use predicates::prelude::*;
 use format as s;
-use std::{path::PathBuf, print, println};
+use std::println;
 
 mod file_differ;
 
@@ -47,7 +47,7 @@ fn error_message_on_missing_variables_file() -> Result<(), Box<dyn std::error::E
 
   let error_parts =
     ErrorParts::new(
-      "Got a error processing variables".to_owned(),
+      "Got an error processing variables".to_owned(),
       s!("Variable file '{}/.variables.zat-prompt' does not exist. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", source_directory),
       s!("Please create the variable file '{}/.variables.zat-prompt' with the required tokens. See `zat -h` for more details.", source_directory),
     );
@@ -63,7 +63,7 @@ fn error_message_on_non_json_variables_file() -> Result<(), Box<dyn std::error::
 
   let error_parts =
     ErrorParts::new(
-      "Got a error processing variables".to_owned(),
+      "Got an error processing variables".to_owned(),
       s!("Variable file '{}/.variables.zat-prompt' could not be decoded as JSON into the expected format. It failed decoding with this error: invalid type: integer `123`, expected a sequence at line 1 column 3. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", source_directory),
       s!("Make the variable file '{}/.variables.zat-prompt' is a valid JSON file in the format required by Zat. See `zat -h` for more details on the format", source_directory),
     );
@@ -119,7 +119,7 @@ fn error_message_on_no_variables_defined() -> Result<(), Box<dyn std::error::Err
 
   let error_parts =
     ErrorParts::new(
-      "Got a error processing variables".to_owned(),
+      "Got an error processing variables".to_owned(),
       s!("Variable file '{}/.variables.zat-prompt' does not define any variables. The purpose of Zat is to provide a templating tool to customise frequently used file structures. It does this by replacing variables defined in the file '{}/.variables.zat-prompt' on file and directory names of templates as well as within '.tmpl' files. If you want to simply copy a file structure use 'cp' instead.", source_directory, source_directory),
       s!("Please define at least one variable in the variable file '{}/.variables.zat-prompt'.", source_directory),
     );
@@ -156,8 +156,8 @@ fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn
   let error_parts =
     ErrorParts::new(
       "There was an error running the post processor".to_owned(),
-      s!("Shell hook `{}/shell-hook.zat-exec` failed with status code 1. The shell hook failed with a non-zero error code signifying an error.", source_directory),
-      s!("Please check the logs above for why the shell hook failed. Try running the shell hook file `{}/shell-hook.zat-exec` manually by itself on the output to iterate on the error.", source_directory),
+      s!("Shell hook '{}/shell-hook.zat-exec' failed with status code 1. The shell hook failed with a non-zero error code signifying an error.", source_directory),
+      s!("Please check the logs above for why the shell hook failed. Try running the shell hook file '{}/shell-hook.zat-exec' manually by itself on the output to iterate on the error.", source_directory),
     );
 
   let input = &["YouOnlyLiveOnce", "y"];
@@ -174,9 +174,9 @@ fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error
   let error_parts =
     ErrorParts::with_exception(
       "There was an error running the post processor".to_owned(),
-      s!("Shell hook `{}/shell-hook.zat-exec` failed with an error.", source_directory),
+      s!("Shell hook '{}/shell-hook.zat-exec' failed with an error.", source_directory),
       "Permission denied (os error 13)".to_owned(),
-      s!("Please ensure the shell hook file `{}/shell-hook.zat-exec` exists and is executable.", source_directory),
+      s!("Please ensure the shell hook file '{}/shell-hook.zat-exec' exists and is executable.", source_directory),
     );
 
   let input = &["YouOnlyLiveOnce", "y"];

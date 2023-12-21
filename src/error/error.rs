@@ -216,25 +216,25 @@ impl ZatError {
   pub fn post_processing_hook_failed(path: &str, error: String) -> ZatError {
     ZatError::PostProcessingError(
       PostProcessingErrorReason::ExecutionError(
-        s!("Shell hook `{}` failed with an error.", path),
+        s!("Shell hook '{}' failed with an error.", path),
         Some(error),
-        s!("Please ensure the shell hook file `{}` exists and is executable.", path))
+        s!("Please ensure the shell hook file '{}' exists and is executable.", path))
     )
   }
 
   pub fn post_processing_hook_completed_with_non_zero_status(path: &str, status: i32) -> ZatError {
     ZatError::PostProcessingError(
       PostProcessingErrorReason::NonZeroStatusCode(
-        s!("Shell hook `{}` failed with status code {}. The shell hook failed with a non-zero error code signifying an error.", path, status),
-        s!("Please check the logs above for why the shell hook failed. Try running the shell hook file `{}` manually by itself on the output to iterate on the error.", path))
+        s!("Shell hook '{}' failed with status code {}. The shell hook failed with a non-zero error code signifying an error.", path, status),
+        s!("Please check the logs above for why the shell hook failed. Try running the shell hook file '{}' manually by itself on the output to iterate on the error.", path))
     )
   }
 
   pub fn post_processing_hook_was_shutdown(path: &str) -> ZatError {
     ZatError::PostProcessingError(
       PostProcessingErrorReason::ProcessInterrupted(
-        s!("Shell hook `{}` was shutdown. Some other process killed the shell hook process.", path),
-        s!("Try running the shell hook file `{}` manually on the output.", path))
+        s!("Shell hook '{}' was shutdown. Some other process killed the shell hook process.", path),
+        s!("Try running the shell hook file '{}' manually on the output.", path))
     )
   }
 }
@@ -244,7 +244,7 @@ impl std::fmt::Display for ZatError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
       let string_rep = match self {
         ZatError::UserConfigError(error)          => ZatError::print_formatted_error("Got a configuration error", error),
-        ZatError::VariableFileError(error)        => ZatError::print_formatted_error("Got a error processing variables", error),
+        ZatError::VariableFileError(error)        => ZatError::print_formatted_error("Got an error processing variables", error),
         ZatError::TemplateProcessingError(error)  => ZatError::print_formatted_error("There was an error running the template", error),
         ZatError::PostProcessingError(error)      => ZatError::print_formatted_error("There was an error running the post processor", error),
       };

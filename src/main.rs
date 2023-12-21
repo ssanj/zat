@@ -33,12 +33,13 @@ use crate::post_processor::ShellHook;
 
 use logging::VerboseLogger;
 use logging::Logger;
+use std::format as s;
 
 
 fn main() -> ExitCode {
   match run_zat() {
     Ok(_) => {
-      Logger::info("Zat completed successfully.");
+      Logger::success("Zat completed successfully.");
       ExitCode::SUCCESS
     },
     Err(error) => {
@@ -76,7 +77,14 @@ fn run_zat() -> ZatAction {
       DefaultProcessTemplates.process_templates(user_config.clone(), tokenized_key_expanded_variables)?;
 
       // Run post-processor if one exists
-      ShellHook.run(&user_config)?
+      ShellHook.run(&user_config)?;
+
+      Logger::coloured(
+        &s!("{}{}{}",
+          Logger::info_str("Extracted template to '"),
+          &user_config.target_dir.path.as_str(),
+          Logger::info_str("'")
+        ))
     },
     TemplateVariableReview::Rejected => Logger::warn("The user rejected the variables.")
   }

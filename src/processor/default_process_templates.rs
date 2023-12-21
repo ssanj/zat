@@ -15,7 +15,7 @@ use super::DefaultEnrichedTemplateFileProcessor;
 use super::AhoCorasickTokenReplacer;
 use super::FileTraverser;
 use crate::config::{UserConfig, TemplateFilesDir};
-use std::{format as s, println};
+use std::format as s;
 
 pub struct DefaultProcessTemplates;
 
