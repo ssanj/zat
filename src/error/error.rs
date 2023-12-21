@@ -244,7 +244,7 @@ impl std::fmt::Display for ZatError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
       let string_rep = match self {
         ZatError::UserConfigError(error)          => ZatError::print_formatted_error("Got a configuration error", error),
-        ZatError::VariableFileError(error)        => ZatError::print_formatted_error("Got a error processing variables", error),
+        ZatError::VariableFileError(error)        => ZatError::print_formatted_error("Got an error processing variables", error),
         ZatError::TemplateProcessingError(error)  => ZatError::print_formatted_error("There was an error running the template", error),
         ZatError::PostProcessingError(error)      => ZatError::print_formatted_error("There was an error running the post processor", error),
       };

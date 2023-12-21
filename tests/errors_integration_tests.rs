@@ -47,7 +47,7 @@ fn error_message_on_missing_variables_file() -> Result<(), Box<dyn std::error::E
 
   let error_parts =
     ErrorParts::new(
-      "Got a error processing variables".to_owned(),
+      "Got an error processing variables".to_owned(),
       s!("Variable file '{}/.variables.zat-prompt' does not exist. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", source_directory),
       s!("Please create the variable file '{}/.variables.zat-prompt' with the required tokens. See `zat -h` for more details.", source_directory),
     );
@@ -63,7 +63,7 @@ fn error_message_on_non_json_variables_file() -> Result<(), Box<dyn std::error::
 
   let error_parts =
     ErrorParts::new(
-      "Got a error processing variables".to_owned(),
+      "Got an error processing variables".to_owned(),
       s!("Variable file '{}/.variables.zat-prompt' could not be decoded as JSON into the expected format. It failed decoding with this error: invalid type: integer `123`, expected a sequence at line 1 column 3. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", source_directory),
       s!("Make the variable file '{}/.variables.zat-prompt' is a valid JSON file in the format required by Zat. See `zat -h` for more details on the format", source_directory),
     );
@@ -119,7 +119,7 @@ fn error_message_on_no_variables_defined() -> Result<(), Box<dyn std::error::Err
 
   let error_parts =
     ErrorParts::new(
-      "Got a error processing variables".to_owned(),
+      "Got an error processing variables".to_owned(),
       s!("Variable file '{}/.variables.zat-prompt' does not define any variables. The purpose of Zat is to provide a templating tool to customise frequently used file structures. It does this by replacing variables defined in the file '{}/.variables.zat-prompt' on file and directory names of templates as well as within '.tmpl' files. If you want to simply copy a file structure use 'cp' instead.", source_directory, source_directory),
       s!("Please define at least one variable in the variable file '{}/.variables.zat-prompt'.", source_directory),
     );
