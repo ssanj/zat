@@ -82,6 +82,7 @@ impl UserTemplateVariableValidator for Cli {
 }
 
 impl Cli {
+
   fn print_user_input(user_variables: &HashMap<UserVariableKey, UserVariableValue>) {
     Logger::info("Please confirm the variable mappings below are correct.");
 
@@ -92,7 +93,14 @@ impl Cli {
 
   fn check_user_input() -> UserVariablesValidity {
     // Check if variables are ok
-    Logger::info("Press [y]es if correct, and any other key if not.");
+    Logger::coloured(
+      &s!("{}{}{}",
+        Yellow.paint("Press "),
+        Style::new().bold().paint("y"),
+        Yellow.paint(" if correct, and any other key if not.")
+      )
+    );
+
     let mut user_response = String::new();
     let stdin = std::io::stdin();
     let mut handle = stdin.lock();

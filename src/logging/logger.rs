@@ -9,6 +9,10 @@ impl Logger {
     p!("\n{}", Yellow.paint(message))
   }
 
+  pub (crate) fn coloured(message: &str) {
+    p!("\n{}", message)
+  }
+
   pub (crate) fn warn(message: &str) {
     p!("\n{}", Red.paint(message))
   }
