@@ -1,5 +1,5 @@
 use std::{println as p, eprintln as e};
-use ansi_term::Color::{Yellow, Red, Green};
+use ansi_term::Colour::{self, Yellow, Red, Green};
 
 pub struct Logger;
 
@@ -7,6 +7,10 @@ impl Logger {
 
   pub (crate) fn info(message: &str) {
     p!("\n{}", Yellow.paint(message))
+  }
+
+  pub (crate) fn info_str(message: &str) -> String {
+    Yellow.paint(message).to_string()
   }
 
   pub (crate) fn success(message: &str) {

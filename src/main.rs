@@ -79,7 +79,12 @@ fn run_zat() -> ZatAction {
       // Run post-processor if one exists
       ShellHook.run(&user_config)?;
 
-      Logger::info(s!("Extracted template to '{}'", &user_config.target_dir.path).as_str())
+      Logger::coloured(
+        &s!("{}{}{}",
+          Logger::info_str("Extracted template to '"),
+          &user_config.target_dir.path.as_str(),
+          Logger::info_str("'")
+        ))
     },
     TemplateVariableReview::Rejected => Logger::warn("The user rejected the variables.")
   }
