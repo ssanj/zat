@@ -1,5 +1,5 @@
 use crate::error::*;
-use crate::TemplateVariableProvider;
+use super::TemplateVariableProvider;
 use crate::config::UserConfig;
 use crate::config::VariableFile;
 use super::{TemplateVariable, TemplateVariables};

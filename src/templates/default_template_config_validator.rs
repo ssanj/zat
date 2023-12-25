@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::io::BufRead;
 
-use crate::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
+use super::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
 use super::{UserVariableValue, UserVariableKey, TemplateVariables};
 use crate::config::UserConfig;
 use ansi_term::Colour::{Yellow, Green, Blue};
