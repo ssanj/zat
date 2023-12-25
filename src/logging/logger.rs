@@ -1,5 +1,5 @@
 use std::{println as p, eprintln as e};
-use ansi_term::Colour::{self, Yellow, Red, Green};
+use ansi_term::Colour::{Yellow, Red, Green};
 
 pub struct Logger;
 
