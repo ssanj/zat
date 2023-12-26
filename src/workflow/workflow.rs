@@ -27,6 +27,10 @@ pub struct Workflow;
 impl Workflow {
 
   pub fn execute() -> ZatAction {
+    Workflow::run_extract()
+  }
+
+  fn run_extract() -> ZatAction {
     // Verifies that the source dir exists, and the destination does not and handles ignores (defaults and supplied).
     // Basically everything from the cli config.
     let config_provider = DefaultUserConfigProvider::new();
