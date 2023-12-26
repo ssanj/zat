@@ -1,5 +1,8 @@
+use crate::args::ArgSupplier;
 use crate::args::UserConfigProvider;
 use crate::args::DefaultUserConfigProvider;
+use crate::args::cli_arg_supplier::CliArgSupplier;
+use crate::args::{ZatCommand, ProcessTemplatesArgs, BootstrapProjectArgs};
 
 use crate::error::ZatAction;
 
@@ -21,20 +24,30 @@ use crate::post_processor::ShellHook;
 use crate::logging::VerboseLogger;
 use crate::logging::Logger;
 use std::format as s;
+use std::todo;
 
+//TODO: Make this into a trait and impl so we can test it.
 pub struct Workflow;
 
 impl Workflow {
 
   pub fn execute() -> ZatAction {
-    Workflow::run_extract()
-  }
-
-  fn run_extract() -> ZatAction {
     // Verifies that the source dir exists, and the destination does not and handles ignores (defaults and supplied).
     // Basically everything from the cli config.
     let config_provider = DefaultUserConfigProvider::new();
-    let user_config = config_provider.get_config()?;
+    let config = CliArgSupplier.get_args();
+
+    match config.command {
+      ZatCommand::Process(process_templates_args) => {
+        Workflow::process_templates(config_provider, process_templates_args)
+      },
+
+      ZatCommand::Bootstrap(_) => Workflow::process_boostrap(),
+    }
+  }
+
+  fn process_templates(config_provider: impl UserConfigProvider, process_templates: ProcessTemplatesArgs) -> ZatAction {
+    let user_config = config_provider.get_user_config(process_templates)?;
     VerboseLogger::log_user_config(&user_config);
 
     // Reads the .variables.zat-prompt file into TemplateVariables
@@ -71,5 +84,9 @@ impl Workflow {
     }
 
     Ok(())
+  }
+
+  fn process_boostrap() -> ZatAction {
+    todo!()
   }
 }

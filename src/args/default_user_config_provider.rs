@@ -1,8 +1,8 @@
+
 use crate::config::ConfigShellHookStatus;
 use crate::error::*;
 use super::UserConfigProvider;
-use super::cli::Args;
-use super::cli;
+use super::cli::ProcessTemplatesArgs;
 use crate::config::UserConfig;
 use crate::config::IgnoredFiles;
 use crate::config::DOT_VARIABLES_PROMPT;
@@ -11,17 +11,6 @@ use crate::config::TargetDir;
 use crate::config::TemplateDir;
 use crate::config::TemplateFilesDir;
 
-pub trait ArgSupplier {
-  fn get_args(&self) -> Args;
-}
-
-struct Cli;
-
-impl ArgSupplier for Cli {
-  fn get_args(&self) -> Args {
-    cli::get_cli_args()
-  }
-}
 
 #[derive(Debug, Clone, PartialEq)]
 enum TemplateDirStatus {
@@ -47,23 +36,15 @@ enum ShellHookStatus {
   DoesNotExist,
 }
 
-pub struct DefaultUserConfigProvider {
-  arg_supplier: Box<dyn ArgSupplier>
-}
+pub struct DefaultUserConfigProvider;
 
 impl DefaultUserConfigProvider {
   pub fn new() -> Self {
-    let cli = Cli;
-    let arg_supplier = Box::new(cli);
-    DefaultUserConfigProvider::with_args_supplier(arg_supplier)
+    DefaultUserConfigProvider
   }
+}
 
-  pub fn with_args_supplier(arg_supplier: Box<dyn ArgSupplier>) -> Self {
-    Self {
-      arg_supplier
-    }
-  }
-
+impl DefaultUserConfigProvider {
   fn get_shell_hook_status(template_dir: &TemplateDir) -> ShellHookStatus {
     let shell_hook = template_dir.shell_hook_file();
     let shell_hook_exists = shell_hook.exists();
@@ -77,9 +58,8 @@ impl DefaultUserConfigProvider {
 }
 
 impl UserConfigProvider for DefaultUserConfigProvider {
-  fn get_config(&self) -> ZatResult<UserConfig> {
-    let args = self.arg_supplier.get_args();
 
+  fn get_user_config(&self, args: ProcessTemplatesArgs) -> ZatResult<UserConfig> {
     let template_dir = TemplateDir::new(&args.template_dir);
     let target_dir = TargetDir::new(&args.target_dir);
     let template_files_dir = TemplateFilesDir::from(&template_dir);
@@ -165,19 +145,18 @@ mod tests {
   use super::*;
   use tempfile::TempDir;
   use super::super::test_util::temp_dir_with;
-  use std::{format as s};
+  use std::format as s;
   use crate::error::user_config_error_reason::UserConfigErrorReason;
 
-  struct TestArgs{
-    args: Args
+
+  /// Returns UserConfig or panics on any errors.
+  fn get_user_config(user_config_provider: impl UserConfigProvider, process_templates_args: ProcessTemplatesArgs) -> UserConfig {
+    user_config_provider.get_user_config(process_templates_args).expect("Could not load user config")
   }
 
-  impl ArgSupplier for TestArgs {
-    fn get_args(&self) -> Args {
-      self.args.clone()
-    }
+  fn get_user_config_fallable(user_config_provider: impl UserConfigProvider, process_templates_args: ProcessTemplatesArgs) -> ZatResult<UserConfig> {
+      user_config_provider.get_user_config(process_templates_args)
   }
-
 
   #[test]
   fn config_is_loaded() {
@@ -198,17 +177,16 @@ mod tests {
     // We only create it to get a random directory name
     drop(target_dir);
 
-    let args = TestArgs {
-      args: Args {
+    let args =
+      ProcessTemplatesArgs {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores: ignores,
         verbose: false
-      }
-    };
+      };
 
-    let user_config_provider = DefaultUserConfigProvider::with_args_supplier(Box::new(args));
-    let config = user_config_provider.get_config().expect("Could not get config");
+    let user_config_provider = DefaultUserConfigProvider;
+    let config = get_user_config(user_config_provider, args);
 
     let expected_template_dir = TemplateDir::new(&template_dir_path);
     let expected_template_files_dir = TemplateFilesDir::from(&expected_template_dir);
@@ -247,17 +225,16 @@ mod tests {
     // We only create it to get a random directory name
     drop(target_dir);
 
-    let args = TestArgs {
-      args: Args {
+    let args =
+      ProcessTemplatesArgs {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores: ignores,
         verbose: false
-      }
-    };
+      };
 
-    let user_config_provider = DefaultUserConfigProvider::with_args_supplier(Box::new(args));
-    let config = user_config_provider.get_config().expect("Could not get config");
+    let user_config_provider = DefaultUserConfigProvider;
+    let config = get_user_config(user_config_provider, args);
 
     let expected_template_dir = TemplateDir::new(&template_dir_path);
     let expected_template_files_dir = TemplateFilesDir::from(&expected_template_dir);
@@ -286,17 +263,16 @@ mod tests {
     drop(target_dir);
     drop(template_dir);
 
-    let args = TestArgs {
-      args: Args {
+    let args =
+      ProcessTemplatesArgs {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores: vec![],
         verbose: false
-      }
-    };
+      };
 
-    let user_config_provider = DefaultUserConfigProvider::with_args_supplier(Box::new(args));
-    match user_config_provider.get_config() {
+    let user_config_provider = DefaultUserConfigProvider;
+    match get_user_config_fallable(user_config_provider, args) {
       Ok(_) => assert!(false, "get_config should fail if the template directory does not exist"),
       Err(error) => {
 
@@ -317,17 +293,16 @@ mod tests {
     let template_dir_path = template_dir.path().display().to_string();
     let target_dir_path = target_dir.path().display().to_string();
 
-    let args = TestArgs {
-      args: Args {
+    let args =
+      ProcessTemplatesArgs {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores: vec![],
         verbose: false
-      }
-    };
+      };
 
-    let user_config_provider = DefaultUserConfigProvider::with_args_supplier(Box::new(args));
-    match user_config_provider.get_config() {
+    let user_config_provider = DefaultUserConfigProvider;
+    match get_user_config_fallable(user_config_provider, args) {
       Ok(_) => assert!(false, "get_config should fail if the template files directory does not exist"),
       Err(error) => {
         let expected_error = s!("The Zat template files directory '{}/template' does not exist. It should exist so Zat can read the template files.", template_dir_path);
@@ -348,17 +323,16 @@ mod tests {
     let template_dir_path = template_dir.path().display().to_string();
     let target_dir_path = target_dir.path().display().to_string();
 
-    let args = TestArgs {
-      args: Args {
+    let args =
+      ProcessTemplatesArgs {
         template_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores: vec![],
         verbose: false
-      }
-    };
+      };
 
-    let user_config_provider = DefaultUserConfigProvider::with_args_supplier(Box::new(args));
-    match user_config_provider.get_config() {
+    let user_config_provider = DefaultUserConfigProvider;
+    match get_user_config_fallable(user_config_provider, args) {
       Ok(_) => assert!(false, "get_config should fail if the target directory does exist"),
       Err(error) => {
         let expected_error = s!("The target directory '{}' should not exist. It will be created when Zat processes the template files.", target_dir_path);
