@@ -354,6 +354,7 @@ fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::
 
   let command =
     cmd
+      .arg("process")
       .arg("--template-dir")
       .arg(source_directory)
       .arg("--target-dir")

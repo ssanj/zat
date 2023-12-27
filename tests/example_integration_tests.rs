@@ -175,6 +175,7 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
   assert!(Path::new(&source_directory).exists(), "{}", Red.paint(s!("Source directory `{}` does not exist: ", &source_directory)));
 
   cmd
+    .arg("process")
     .arg("--template-dir")
     .arg(&source_directory)
     .arg("--target-dir")
