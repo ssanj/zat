@@ -46,6 +46,7 @@ mod tests {
     use crate::{spath, assert_error_with};
     use crate::error::post_processing_error_reason::PostProcessingErrorReason;
     use std::println as p;
+    use crate::error::ProcessCommandErrorReason;
 
     #[test]
     fn should_do_nothing_when_there_is_no_shell_hook() {
@@ -62,7 +63,7 @@ mod tests {
 
         assert_error_with!(
           ShellHook.run(&config),
-          Err(ZatError::PostProcessingError(PostProcessingErrorReason::ExecutionError(error, ..))) => error,
+          Err(ZatError::ProcessCommandError(ProcessCommandErrorReason::PostProcessingError(PostProcessingErrorReason::ExecutionError(error, ..)))) => error,
           assert_error_ends_with
         )
     }
@@ -96,7 +97,7 @@ mod tests {
 
        assert_error_with!{
           ShellHook.run(&config),
-          Err(ZatError::PostProcessingError(PostProcessingErrorReason::ExecutionError(error, ..))) => error,
+          Err(ZatError::ProcessCommandError(ProcessCommandErrorReason::PostProcessingError(PostProcessingErrorReason::ExecutionError(error, ..)))) => error,
           assert_error_ends_with
         }
     }

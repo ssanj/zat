@@ -162,7 +162,7 @@ mod tests {
     let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
 
     match template_config_provider.get_tokens(user_config) {
-      Err(ZatError::VariableFileError(VariableFileErrorReason::VariableDecodeError(..))) => assert!(true),
+      Err(ZatError::ProcessCommandError(ProcessCommandErrorReason::VariableFileError(VariableFileErrorReason::VariableDecodeError(..)))) => assert!(true),
       Err(other_error) => assert!(false, "Expected ZatError::VariableDecodeError but got different error : {}", other_error.to_string()),
       Ok(value) => assert!(false, "Expected ZatError::VariableDecodeError but got success with: {:?}", value)
     }
@@ -184,7 +184,7 @@ mod tests {
     let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
 
     match template_config_provider.get_tokens(user_config) {
-      Err(ZatError::VariableFileError(VariableFileErrorReason::VariableFileNotFound(..))) => assert!(true),
+      Err(ZatError::ProcessCommandError(ProcessCommandErrorReason::VariableFileError(VariableFileErrorReason::VariableFileNotFound(..)))) => assert!(true),
       Err(other_error) => assert!(false, "Expected ZatError::VariableFileNotFound but got different error : {}", other_error.to_string()),
       Ok(value) => assert!(false, "Expected ZatError::VariableFileNotFound but got success with: {:?}", value)
     }
@@ -215,7 +215,7 @@ mod tests {
     let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
 
     match template_config_provider.get_tokens(user_config) {
-      Err(ZatError::VariableFileError(VariableFileErrorReason::VariableFileHasNoVariableDefinitions(..))) => assert!(true),
+      Err(ZatError::ProcessCommandError(ProcessCommandErrorReason::VariableFileError(VariableFileErrorReason::VariableFileHasNoVariableDefinitions(..)))) => assert!(true),
       Err(other_error) => assert!(false, "Expected ZatError::VariableFileHasNoVariableDefinitions but got different error : {}", other_error.to_string()),
       Ok(value) => assert!(false, "Expected ZatError::VariableFileHasNoVariableDefinitions but got success with: {:?}", value)
     }

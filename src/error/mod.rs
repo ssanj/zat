@@ -8,6 +8,7 @@ pub mod post_processing_error_reason;
 pub use error::ZatAction;
 pub use error::ZatError;
 pub use error::ZatResult;
+pub use error::ProcessCommandErrorReason;
 
 
 use error_format::ErrorFormat;
