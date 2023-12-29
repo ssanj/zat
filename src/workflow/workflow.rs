@@ -4,8 +4,10 @@ use crate::args::DefaultUserConfigProvider;
 use crate::args::cli_arg_supplier::CliArgSupplier;
 use crate::args::{ZatCommand, ProcessTemplatesArgs, BootstrapProjectArgs};
 
+use crate::config::TargetDir;
 use crate::error::ZatAction;
 
+use crate::error::ZatError;
 use crate::templates::TemplateVariableProvider;
 use crate::templates::DefaultTemplateVariableProvider;
 use crate::templates::TemplateConfigValidator;
@@ -42,7 +44,7 @@ impl Workflow {
         Workflow::process_templates(config_provider, process_templates_args)
       },
 
-      ZatCommand::Bootstrap(_) => Workflow::process_boostrap(),
+      ZatCommand::Bootstrap(bootstrap_project_args) => Workflow::process_boostrap(bootstrap_project_args),
     }
   }
 
@@ -86,7 +88,16 @@ impl Workflow {
     Ok(())
   }
 
-  fn process_boostrap() -> ZatAction {
-    todo!()
+  fn process_boostrap(bootstrap_project_args: BootstrapProjectArgs) -> ZatAction {
+    // get the repository directory
+    let repository_directory = TargetDir::new(&bootstrap_project_args.repository_dir);
+    // verify that it doesn't exist
+    if repository_directory.does_exist() {
+      Err(ZatError::bootstrap_repository_dir_should_not_exist(&bootstrap_project_args.repository_dir))
+    } else {
+      // extract the sample files (return an error if this fails)
+      // display a message on how to run the template
+      todo!()
+    }
   }
 }

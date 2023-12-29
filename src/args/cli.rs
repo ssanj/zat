@@ -21,7 +21,7 @@ pub struct ProcessTemplatesArgs {
    #[clap(long, value_parser)]
    pub template_dir: String,
 
-   /// Where to extract the template to
+   /// Where to extract the template to. This should directory should not exist.
    #[clap(long, value_parser)]
    pub target_dir: String,
 
@@ -38,7 +38,8 @@ pub struct ProcessTemplatesArgs {
 
 #[derive(SubArgs, Debug, Clone)]
 pub struct BootstrapProjectArgs {
-   /// The location of where to create the sample repository
+
+   /// The location of where to create the sample repository. This should directory should not exist.
    #[clap(long, value_parser)]
    pub repository_dir: String,
 }

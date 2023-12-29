@@ -13,6 +13,7 @@ pub type ZatAction = Result<(), ZatError>;
 #[derive(Debug, PartialEq, Clone)]
 pub enum ZatError {
   ProcessCommandError(ProcessCommandErrorReason),
+  BootstrapCommandError(BootstrapCommandErrorReason)
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -21,6 +22,25 @@ pub enum ProcessCommandErrorReason {
   VariableFileError(VariableFileErrorReason),
   TemplateProcessingError(TemplateProcessingErrorReason),
   PostProcessingError(PostProcessingErrorReason),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum BootstrapCommandErrorReason {
+  RepositoryDirectoryShouldNotExist(String, String)
+}
+
+impl From<&BootstrapCommandErrorReason> for ErrorFormat {
+  fn from(error: &BootstrapCommandErrorReason) -> Self {
+    let (error, fix) = match error {
+        BootstrapCommandErrorReason::RepositoryDirectoryShouldNotExist(error, fix) => (error, fix),
+    };
+
+    ErrorFormat {
+      error_reason: error.to_owned(),
+      exception: None,
+      remediation: Some(fix.to_owned())
+    }
+  }
 }
 
 
@@ -276,6 +296,18 @@ impl ZatError {
       )
     )
   }
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // BootstrapError
+  // -------------------------------------------------------------------------------------------------------------------
+  pub fn bootstrap_repository_dir_should_not_exist(path: &str) -> ZatError {
+    ZatError::BootstrapCommandError(
+      BootstrapCommandErrorReason::RepositoryDirectoryShouldNotExist(
+          s!("The repository directory '{}' should not exist. It will be created by the Zat bootstrap process.", path),
+          s!("Please supply an empty directory for the repository.")
+      )
+    )
+  }
 }
 
 
@@ -286,6 +318,8 @@ impl std::fmt::Display for ZatError {
         ZatError::ProcessCommandError(ProcessCommandErrorReason::VariableFileError(error))        => ZatError::print_formatted_error("Got an error processing variables", error),
         ZatError::ProcessCommandError(ProcessCommandErrorReason::TemplateProcessingError(error))  => ZatError::print_formatted_error("There was an error running the template", error),
         ZatError::ProcessCommandError(ProcessCommandErrorReason::PostProcessingError(error))      => ZatError::print_formatted_error("There was an error running the post processor", error),
+        ZatError::BootstrapCommandError(error)                                                    =>
+          ZatError::print_formatted_error("There was an error running the bootstrap process", error),
       };
 
       write!(f, "{}", string_rep)
