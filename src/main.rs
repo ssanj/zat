@@ -8,6 +8,7 @@ mod post_processor;
 mod macros;
 mod logging;
 mod workflow;
+mod command;
 
 use error::ZatAction;
 use logging::Logger;
