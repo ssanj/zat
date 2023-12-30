@@ -26,13 +26,17 @@ pub enum ProcessCommandErrorReason {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum BootstrapCommandErrorReason {
-  RepositoryDirectoryShouldNotExist(String, String)
+  RepositoryDirectoryShouldNotExist(String, String),
+  CouldNotCreateRepositoryDirectory(String, String),
+  CouldNotCreateFile(String, String),
 }
 
 impl From<&BootstrapCommandErrorReason> for ErrorFormat {
   fn from(error: &BootstrapCommandErrorReason) -> Self {
     let (error, fix) = match error {
         BootstrapCommandErrorReason::RepositoryDirectoryShouldNotExist(error, fix) => (error, fix),
+        BootstrapCommandErrorReason::CouldNotCreateRepositoryDirectory(error, fix) => (error, fix),
+        BootstrapCommandErrorReason::CouldNotCreateFile(error, fix) => (error, fix),
     };
 
     ErrorFormat {
@@ -305,6 +309,24 @@ impl ZatError {
       BootstrapCommandErrorReason::RepositoryDirectoryShouldNotExist(
           s!("The repository directory '{}' should not exist. It will be created by the Zat bootstrap process.", path),
           s!("Please supply an empty directory for the repository.")
+      )
+    )
+  }
+
+  pub fn could_not_create_bootstrap_repository(e: std::io::Error, path: &str) -> ZatError {
+    ZatError::BootstrapCommandError(
+      BootstrapCommandErrorReason::CouldNotCreateRepositoryDirectory(
+          s!("The repository directory '{}' could not be created.", path),
+          s!("Please ensure the path supplied for the repository directory '{}' is writable by the current user", path)
+      )
+    )
+  }
+
+  pub fn could_not_create_bootstrap_file(e: std::io::Error, path: &str) -> ZatError {
+    ZatError::BootstrapCommandError(
+      BootstrapCommandErrorReason::CouldNotCreateFile(
+          s!("The bootstrap file '{}' could not be created.", path),
+          s!("Please ensure the file '{}' is writable by the current user", path)
       )
     )
   }

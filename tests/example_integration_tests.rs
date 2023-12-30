@@ -3,7 +3,7 @@ use tempfile::tempdir;
 
 use crate::file_differ::print_changes;
 use predicates::prelude::*;
-use std::{format as s, println as p};
+use std::{format as s, println as p, fs};
 use std::path::Path;
 use ansi_term::Color::Red;
 
@@ -86,6 +86,14 @@ fn runs_a_template_with_binary_files() -> Result<(), Box<dyn std::error::Error>>
   assert_run_example(example_test_config)
 }
 
+#[test]
+fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
+  let bootstrap_test_config =
+    BootstrapExampleTestConfig::new("bootstrap-source-dir");
+
+  assert_run_bootstrap_example(bootstrap_test_config)
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper classes
 //----------------------------------------------------------------------------------------------------------------------
@@ -141,6 +149,21 @@ impl <'a> ExampleTestConfig<'a> {
     }
   }
 }
+
+struct BootstrapExampleTestConfig<'a> {
+  repository_directory: &'a str,
+  // files_that_should_exist: &'a[&'a Path],
+}
+
+impl <'a> BootstrapExampleTestConfig<'a> {
+
+  fn new(repository: &'a str) -> Self {
+    BootstrapExampleTestConfig {
+      repository_directory: repository
+    }
+  }
+}
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Helper functions
@@ -217,6 +240,41 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
   print_changes(&expected_target_directory, &target_directory);
 
   assert!(!dir_diff::is_different(&target_directory, expected_target_directory).unwrap());
+
+  Ok(())
+}
+
+fn assert_run_bootstrap_example(bootstrap_example_config: BootstrapExampleTestConfig) -> Result<(), Box<dyn std::error::Error>> {
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+
+  let working_directory_path = tempdir()?.into_path();
+  let repository_directory =
+    &working_directory_path.join(s!("example-bootstrap-{}", bootstrap_example_config.repository_directory)).to_string_lossy().to_string();
+
+  // delete working directory, because it shouldn't exist for bootstrap projects; it will be created.
+  fs::remove_dir_all(working_directory_path)?;
+  p!("repository directory: {}", &repository_directory);
+
+  cmd
+    .arg("bootstrap")
+    .arg("--repository-dir")
+    .arg(&repository_directory);
+
+
+  let mut output =
+    cmd
+      .assert()
+      .success();
+
+  // assert!(Path::new(&repository_directory).exists(), "{}", Red.paint(s!("repository directory `{}` does not exist", &repository_directory)));
+
+  // for expected_file in example_config.files_that_should_exist {
+  //   assert!(Path::new(expected_file).exists(), "{}", Red.paint(s!("Expected file `{}` does not exist: ", &expected_file.to_string_lossy())));
+  // }
+
+  // print_changes(&expected_target_directory, &repository_directory);
+
+  // assert!(!dir_diff::is_different(&target_directory, expected_target_directory).unwrap());
 
   Ok(())
 }
