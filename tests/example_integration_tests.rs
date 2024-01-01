@@ -88,8 +88,18 @@ fn runs_a_template_with_binary_files() -> Result<(), Box<dyn std::error::Error>>
 
 #[test]
 fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
+
+  let variable_file = Path::new(".variables.zat-prompt");
+  let readme_file = Path::new("template").join("README.md");
+
+  let files_that_should_exist =
+    [
+      variable_file,
+      readme_file.as_path()
+    ];
+
   let bootstrap_test_config =
-    BootstrapExampleTestConfig::new("bootstrap-source-dir");
+    BootstrapExampleTestConfig::new("source-dir", &files_that_should_exist);
 
   assert_run_bootstrap_example(bootstrap_test_config)
 }
@@ -152,14 +162,15 @@ impl <'a> ExampleTestConfig<'a> {
 
 struct BootstrapExampleTestConfig<'a> {
   repository_directory: &'a str,
-  // files_that_should_exist: &'a[&'a Path],
+  files_that_should_exist: &'a[&'a Path],
 }
 
 impl <'a> BootstrapExampleTestConfig<'a> {
 
-  fn new(repository: &'a str) -> Self {
+  fn new(repository: &'a str, files_that_should_exist: &'a [&'a Path]) -> Self {
     BootstrapExampleTestConfig {
-      repository_directory: repository
+      repository_directory: repository,
+      files_that_should_exist
     }
   }
 }
@@ -266,15 +277,10 @@ fn assert_run_bootstrap_example(bootstrap_example_config: BootstrapExampleTestCo
       .assert()
       .success();
 
-  // assert!(Path::new(&repository_directory).exists(), "{}", Red.paint(s!("repository directory `{}` does not exist", &repository_directory)));
-
-  // for expected_file in example_config.files_that_should_exist {
-  //   assert!(Path::new(expected_file).exists(), "{}", Red.paint(s!("Expected file `{}` does not exist: ", &expected_file.to_string_lossy())));
-  // }
-
-  // print_changes(&expected_target_directory, &repository_directory);
-
-  // assert!(!dir_diff::is_different(&target_directory, expected_target_directory).unwrap());
+  for expected_file in bootstrap_example_config.files_that_should_exist {
+    let file = Path::new(repository_directory).join(expected_file);
+    assert!(file.exists(), "{}", Red.paint(s!("Expected file `{}` does not exist: ", file.to_string_lossy())));
+  }
 
   Ok(())
 }

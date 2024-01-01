@@ -1,9 +1,12 @@
 use std::fs;
 use std::path::Path;
+use std::format as s;
 
 use crate::args::BootstrapProjectArgs;
 use crate::error::{ZatError, ZatAction};
-use crate::config::{TargetDir, TemplateDir, DOT_VARIABLES_PROMPT, TemplateFilesDir};
+use crate::config::{TemplateDir, DOT_VARIABLES_PROMPT, TemplateFilesDir};
+use crate::logging::Logger;
+use crate::spath;
 
 pub struct BootstrapProject;
 
@@ -56,7 +59,7 @@ impl BootstrapProject {
       Self::create_directory(template_files_dir_path)?;
       Self::create_file(template_files_dir_path.join("README.md"), Self::README_MD)?;
 
-      // display a message on how to run the template
+      Logger::info(&s!("Run the bootstrap template with: `zat process --template-dir {} --target-dir <YOUR_TARGET_DIRECTORY>`", spath!(&repository_path)));
 
       Ok(())
     }
