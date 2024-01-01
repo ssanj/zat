@@ -2,7 +2,7 @@ use assert_cmd::Command;
 use tempfile::tempdir;
 
 use crate::file_differ::print_changes;
-use predicates::prelude::*;
+use predicates::{prelude::*, boolean};
 use std::{format as s, println as p, fs};
 use std::path::Path;
 use ansi_term::Color::Red;
@@ -98,8 +98,19 @@ fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
       readme_file.as_path()
     ];
 
+    let working_directory_path = tempdir()?.into_path();
+    let repository_directory =
+      &working_directory_path.join("example-bootstrap-dir").to_string_lossy().to_string();
+
+  let output_message_1 = s!("Run the bootstrap template with: `zat process --template-dir {} --target-dir <YOUR_TARGET_DIRECTORY>`", &repository_directory);
+  let output_messages =
+    [
+      output_message_1.as_str(),
+      "Zat completed successfully.",
+    ];
+
   let bootstrap_test_config =
-    BootstrapExampleTestConfig::new("source-dir", &files_that_should_exist);
+    BootstrapExampleTestConfig::new(&repository_directory, &files_that_should_exist, &output_messages);
 
   assert_run_bootstrap_example(bootstrap_test_config)
 }
@@ -163,14 +174,16 @@ impl <'a> ExampleTestConfig<'a> {
 struct BootstrapExampleTestConfig<'a> {
   repository_directory: &'a str,
   files_that_should_exist: &'a[&'a Path],
+  maybe_stdout_assertions: Option<AssertionType<'a>>,
 }
 
 impl <'a> BootstrapExampleTestConfig<'a> {
 
-  fn new(repository: &'a str, files_that_should_exist: &'a [&'a Path]) -> Self {
+  fn new(repository: &'a str, files_that_should_exist: &'a [&'a Path], output_messages: &'a[&'a str]) -> Self {
     BootstrapExampleTestConfig {
       repository_directory: repository,
-      files_that_should_exist
+      files_that_should_exist,
+      maybe_stdout_assertions: Some(AssertionType::Contains(output_messages))
     }
   }
 }
@@ -258,28 +271,47 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
 fn assert_run_bootstrap_example(bootstrap_example_config: BootstrapExampleTestConfig) -> Result<(), Box<dyn std::error::Error>> {
   let mut cmd = Command::cargo_bin("zat").unwrap();
 
-  let working_directory_path = tempdir()?.into_path();
-  let repository_directory =
-    &working_directory_path.join(s!("example-bootstrap-{}", bootstrap_example_config.repository_directory)).to_string_lossy().to_string();
+  let working_directory_path = bootstrap_example_config.repository_directory;
+  p!("repository directory: {}", &working_directory_path);
 
-  // delete working directory, because it shouldn't exist for bootstrap projects; it will be created.
-  fs::remove_dir_all(working_directory_path)?;
-  p!("repository directory: {}", &repository_directory);
+  let std_out_contains = |expected:&str| {
+    let owned_expected = expected.to_owned();
+    predicate::function(move |out: &[u8]| {
+      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
+      p!("Could not validate stdout contains: {}", &owned_expected);
+      output.contains(&owned_expected)
+    })
+  };
 
   cmd
     .arg("bootstrap")
     .arg("--repository-dir")
-    .arg(&repository_directory);
-
+    .arg(&working_directory_path);
 
   let mut output =
     cmd
       .assert()
       .success();
 
+
   for expected_file in bootstrap_example_config.files_that_should_exist {
-    let file = Path::new(repository_directory).join(expected_file);
+    let file = Path::new(&working_directory_path).join(expected_file);
     assert!(file.exists(), "{}", Red.paint(s!("Expected file `{}` does not exist: ", file.to_string_lossy())));
+  }
+
+  match bootstrap_example_config.maybe_stdout_assertions {
+    Some(AssertionType::Equals(content)) => {
+      p!("stdout did not equal: {}", &content);
+      output.stdout(content.to_owned());
+    },
+
+    Some(AssertionType::Contains(contents)) => {
+      for content in contents {
+        output = output.stdout(std_out_contains(content));
+      }
+    },
+
+    None => ()
   }
 
   Ok(())
