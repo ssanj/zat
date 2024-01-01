@@ -21,7 +21,7 @@ impl BootstrapProject {
         "prompt": "Please enter your project name",
         "filters": [
           { "name": "__default__",
-            "filter": "Pascal"
+            "filter": "Noop"
           },
           { "name": "underscore",
             "filter": "Snake"
@@ -37,11 +37,20 @@ impl BootstrapProject {
     ]
   "#;
 
-  const README_MD: &'static str =
+  const README_MD_TMPL: &'static str =
     r#"
       # $project$
 
-      Welcome to your bootstrap project. This is a template file, because it has the `.tmpl` extension. A template file will have any tokens defined, replaced by values supplied by the user. __project__ is a token used in this file. It is defined in the `.variables.zat-prompt` file at the root of this project.
+      Welcome to your bootstrap project. This is a template file, because it has the `.tmpl` extension. A template file will have any tokens it references, replaced by values supplied by the user when this template is processed. __project__ and __description__  are tokens used in this file. They are defined in the `.variables.zat-prompt` file at the root of this project.
+
+      ## Summary
+
+      $description$
+    "#;
+
+  const CONFIG_TMPL: &'static str =
+    r#"
+      //This file is an example of using tokens to generate a file name
     "#;
 
   pub fn process_bootstrap(bootstrap_project_args: BootstrapProjectArgs) -> ZatAction {
@@ -57,7 +66,8 @@ impl BootstrapProject {
       let template_files_dir = TemplateFilesDir::from(&repository_directory);
       let template_files_dir_path = Path::new(template_files_dir.path());
       Self::create_directory(template_files_dir_path)?;
-      Self::create_file(template_files_dir_path.join("README.md"), Self::README_MD)?;
+      Self::create_file(template_files_dir_path.join("README.md.tmpl"), Self::README_MD_TMPL)?;
+      Self::create_file(template_files_dir_path.join("$project__underscore$_config.conf.tmpl"), Self::CONFIG_TMPL)?;
 
       Logger::info(&s!("Run the bootstrap template with: `zat process --template-dir {} --target-dir <YOUR_TARGET_DIRECTORY>`", spath!(&repository_path)));
 

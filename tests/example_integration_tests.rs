@@ -90,7 +90,8 @@ fn runs_a_template_with_binary_files() -> Result<(), Box<dyn std::error::Error>>
 fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
 
   let variable_file = Path::new(".variables.zat-prompt");
-  let readme_file = Path::new("template").join("README.md");
+  let readme_file = Path::new("template").join("README.md.tmpl");
+  let readme_file = Path::new("template").join("$project__underscore$_config.conf.tmpl");
 
   let files_that_should_exist =
     [
