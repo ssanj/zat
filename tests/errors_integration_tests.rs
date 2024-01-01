@@ -185,6 +185,25 @@ fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error
   run_error_test(error_test_config)
 }
 
+#[test]
+fn error_message_on_bootstrap_repository_exists() -> Result<(), Box<dyn std::error::Error>> {
+
+  let working_directory = tempdir()?;
+  let repository_directory = working_directory.into_path().to_string_lossy().to_string();
+
+  let error_parts =
+    ErrorParts::new(
+      "There was an error running the bootstrap process".to_owned(),
+      s!("The repository directory '{}' should not exist. It will be created by the Zat bootstrap process.", repository_directory.as_str()),
+      s!("Please supply an empty directory for the repository.")
+    );
+
+  let bootstrap_error_config = BootstrapErrorTestConfig::new(repository_directory.as_str(), error_parts);
+
+  run_bootstrap_error_test(bootstrap_error_config)
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper Classes
 //----------------------------------------------------------------------------------------------------------------------
@@ -200,6 +219,12 @@ struct ErrorTestConfig<'a> {
   target_directory_should_exist: bool,
   error_parts: ErrorParts
 }
+
+struct BootstrapErrorTestConfig<'a> {
+  repository_directory: &'a str,
+  error_parts: ErrorParts
+}
+
 
 impl ErrorParts {
   fn new(error_type: String, error: String, fix: String) -> Self {
@@ -315,6 +340,16 @@ impl <'a> ErrorTestConfig<'a> {
 }
 
 
+impl <'a> BootstrapErrorTestConfig<'a> {
+
+  fn new(repository_directory: &'a str, error_parts: ErrorParts) -> Self {
+    Self {
+      repository_directory,
+      error_parts
+    }
+  }
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper functions
 //----------------------------------------------------------------------------------------------------------------------
@@ -331,7 +366,6 @@ fn get_source_directory(test_directory: &str) -> String {
 }
 
 fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::error::Error>> {
-
   let mut cmd = Command::cargo_bin("zat").unwrap();
   let working_directory = tempdir()?;
 
@@ -373,6 +407,34 @@ fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::
     assert!(std::path::Path::new(&target_directory).exists());
     println!("Target dir {} should not have been created", &target_directory);
   }
+
+  Ok(())
+}
+
+fn run_bootstrap_error_test(bootstrap_error_config: BootstrapErrorTestConfig<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+  let repository_directory =  bootstrap_error_config.repository_directory;
+  let error = bootstrap_error_config.error_parts;
+
+  let std_err_contains = |error: ErrorParts| {
+    predicate::function(move |out: &[u8]| {
+      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
+      let lines: Vec<&str> = output.split('\n').collect();
+      assert_error_message(&lines, error.clone())
+    })
+  };
+
+  let command =
+    cmd
+      .arg("bootstrap")
+      .arg("--repository-dir")
+      .arg(repository_directory);
+
+
+  command
+    .assert()
+    .failure()
+    .stderr(std_err_contains(error));
 
   Ok(())
 }
