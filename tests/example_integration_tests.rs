@@ -2,8 +2,8 @@ use assert_cmd::Command;
 use tempfile::tempdir;
 
 use crate::file_differ::print_changes;
-use predicates::{prelude::*, boolean};
-use std::{format as s, println as p, fs};
+use predicates::prelude::*;
+use std::{format as s, println as p};
 use std::path::Path;
 use ansi_term::Color::Red;
 

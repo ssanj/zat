@@ -10,7 +10,6 @@ pub use cli::ZatCommand;
 pub use cli::ProcessTemplatesArgs;
 pub use cli::BootstrapProjectArgs;
 pub use arg_supplier::ArgSupplier;
-use cli_arg_supplier::CliArgSupplier;
 use cli::Args;
 
 
