@@ -121,7 +121,6 @@ fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
 
 #[allow(dead_code)]
 enum AssertionType<'a> {
-  Equals(&'a str), // We are not using Equals just yet, but we probably will
   Contains(&'a[&'a str]),
 }
 
@@ -238,11 +237,6 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
       .success();
 
   match example_config.maybe_stdout_assertions {
-      Some(AssertionType::Equals(content)) => {
-        p!("stdout did not equal: {}", &content);
-        output.stdout(content.to_owned());
-      },
-
       Some(AssertionType::Contains(contents)) => {
         for content in contents {
           output = output.stdout(std_out_contains(content));
@@ -300,11 +294,6 @@ fn assert_run_bootstrap_example(bootstrap_example_config: BootstrapExampleTestCo
   }
 
   match bootstrap_example_config.maybe_stdout_assertions {
-    Some(AssertionType::Equals(content)) => {
-      p!("stdout did not equal: {}", &content);
-      output.stdout(content.to_owned());
-    },
-
     Some(AssertionType::Contains(contents)) => {
       for content in contents {
         output = output.stdout(std_out_contains(content));
