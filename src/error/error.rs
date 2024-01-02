@@ -183,7 +183,7 @@ impl ZatError {
         TemplateProcessingErrorReason::ReadingFileError(
           ReasonFileErrorReason::ReadingError(
             s!("Could not read template file '{}'.", path),
-            Some(error),
+            error,
             s!("Ensure the template file '{}' exists and has the necessary permissions for reading.", path)
           )
         )
@@ -197,7 +197,7 @@ impl ZatError {
         TemplateProcessingErrorReason::ReadingFileError(
           ReasonFileErrorReason::UnsupportedContentError(
             s!("Could not decode ReasonFileErrorReason::template file '{}' content to a string. Only text file templates are supported.", path),
-            Some(error),
+            error,
             s!("Ensure the template file '{}' is a text file and is not corrupted.", path)
           )
         )
@@ -211,7 +211,7 @@ impl ZatError {
         TemplateProcessingErrorReason::ReadingFileError(
           ReasonFileErrorReason::PrefixError(
             s!("Could not find base path {} in template file '{}'. The base path is needed to find the relative path at the output.", base_path, path),
-            Some(error),
+            error,
             s!("Ensure the template file '{}' is a text file and is not corrupted.", path)
           )
         )
@@ -224,7 +224,7 @@ impl ZatError {
       ProcessCommandErrorReason::TemplateProcessingError(
         TemplateProcessingErrorReason::WritingFileError(
           s!("Could not write output file '{}'.", path),
-          Some(error),
+          error,
           s!("Ensure the output file '{}' has the necessary permissions to be written and is a valid file name.", path)
         )
       )
@@ -236,7 +236,7 @@ impl ZatError {
       ProcessCommandErrorReason::TemplateProcessingError(
         TemplateProcessingErrorReason::DirectoryCreationError(
           s!("Could not create output directory '{}'.", path),
-          Some(error),
+          error,
           s!("Ensure the output directory '{}' has the necessary permissions to be created and has a valid directory name.", path)
         )
       )
@@ -253,7 +253,7 @@ impl ZatError {
       ProcessCommandErrorReason::PostProcessingError(
         PostProcessingErrorReason::ExecutionError(
           s!("Shell hook '{}' failed with an error.", path),
-          Some(error),
+          error,
           s!("Please ensure the shell hook file '{}' exists and is executable.", path))
       )
     )

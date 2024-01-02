@@ -102,7 +102,7 @@ mod tests {
           Err(
             ZatError::ProcessCommandError(
               ProcessCommandErrorReason::TemplateProcessingError(
-                TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", source_file), None, "".to_string())
+                TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", source_file), "".to_string(), "".to_string())
               )
             )
           )
@@ -118,7 +118,7 @@ mod tests {
           Err(
             ZatError::ProcessCommandError(
               ProcessCommandErrorReason::TemplateProcessingError(
-                TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", destination_directory), None, "".to_string())
+                TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", destination_directory), "".to_string(), "".to_string())
               )
             )
           )
@@ -198,7 +198,7 @@ mod tests {
       let expected_errors =
         ZatError::ProcessCommandError(
           ProcessCommandErrorReason::TemplateProcessingError(
-            TemplateProcessingErrorReason::WritingFileError("Could not write file: some/destination/dir2".to_owned(), None, "".to_string())
+            TemplateProcessingErrorReason::WritingFileError("Could not write file: some/destination/dir2".to_owned(), "".to_string(), "".to_string())
           )
         );
 
