@@ -50,7 +50,7 @@ impl BootstrapProject {
 
   const PROJECT_CONFIG_CONF: &'static str =
     r#"
-      //The $project__underscore$ token will be replace in this file's name when the template is processed. Note this is not a template file and as such any tokens defined within the file will not be replaced.
+      //The $project__underscore$ token will be replace in this file's name when the template is processed. Note this is not a template file and as such any tokens defined within the file will not be replaced; Tokens in file and directory names will always get replaced irrespectively.
     "#;
 
   pub fn process_bootstrap(bootstrap_project_args: BootstrapProjectArgs) -> ZatAction {
@@ -67,7 +67,7 @@ impl BootstrapProject {
       let template_files_dir_path = Path::new(template_files_dir.path());
       Self::create_directory(template_files_dir_path)?;
       Self::create_file(template_files_dir_path.join("README.md.tmpl"), Self::README_MD_TMPL)?;
-      Self::create_file(template_files_dir_path.join("$project__underscore$_config.conf.tmpl"), Self::PROJECT_CONFIG_CONF)?;
+      Self::create_file(template_files_dir_path.join("$project__underscore$_config.conf"), Self::PROJECT_CONFIG_CONF)?;
 
       Logger::info(&s!("Run the bootstrap template with: `zat process --template-dir {} --target-dir <YOUR_TARGET_DIRECTORY>`", spath!(&repository_path)));
 
