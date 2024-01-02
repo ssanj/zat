@@ -1,6 +1,6 @@
 use super::ConfigShellHookStatus;
 use super::TargetDir;
-use super::TemplateDir;
+use super::RepositoryDir;
 use super::TemplateFilesDir;
 use super::Filters;
 use super::IgnoredFiles;
@@ -9,7 +9,7 @@ use std::{format as s};
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct UserConfig {
-  pub template_dir: TemplateDir,
+  pub repository_dir: RepositoryDir,
   pub template_files_dir: TemplateFilesDir,
   pub target_dir: TargetDir,
   pub filters: Filters,
@@ -22,7 +22,7 @@ impl Lines for UserConfig {
   fn lines(&self) -> Vec<String> {
     vec!
       [
-        s!("Template directory: {}", self.template_dir.path()),
+        s!("Template directory: {}", self.repository_dir.path()),
         s!("Template files directory: {}", self.template_files_dir.path()),
         s!("Target directory: {}", self.target_dir.path),
         s!("Filters used: {}", self.filters),
@@ -41,11 +41,11 @@ impl UserConfig {
 
   #[cfg(test)]
   pub fn new(source_dir: &str, destination_dir: &str) -> Self {
-    let template_dir = TemplateDir::new(source_dir);
-    let template_files_dir = TemplateFilesDir::from(&template_dir);
+    let repository_dir = RepositoryDir::new(source_dir);
+    let template_files_dir = TemplateFilesDir::from(&repository_dir);
 
     Self {
-      template_dir,
+      repository_dir,
       template_files_dir,
       target_dir: TargetDir::new(destination_dir),
       filters: Default::default(),

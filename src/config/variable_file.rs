@@ -1,5 +1,5 @@
 use std::path::Path;
-use super::TemplateDir;
+use super::RepositoryDir;
 
 #[derive(Debug, Clone)]
 pub struct VariableFile {
@@ -19,8 +19,8 @@ impl VariableFile {
   }
 }
 
-impl From<TemplateDir> for VariableFile {
-  fn from(template_dir: TemplateDir) -> Self {
+impl From<RepositoryDir> for VariableFile {
+  fn from(template_dir: RepositoryDir) -> Self {
       let variables_file = template_dir.join(DOT_VARIABLES_PROMPT);
       VariableFile {
         path: variables_file.display().to_string()

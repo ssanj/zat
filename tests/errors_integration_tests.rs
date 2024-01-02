@@ -15,8 +15,8 @@ fn error_message_on_missing_template_dir() -> Result<(), Box<dyn std::error::Err
   let error_parts =
     ErrorParts::new(
       "Got a configuration error".to_owned(),
-      s!("The Zat template directory '{}' does not exist. It should exist so Zat can read the templates configuration.", source_directory),
-      s!("Please create the Zat template directory '{}' with the Zat template folder structure. See `zat -h` for more.", source_directory),
+      s!("The Zat repository directory '{}' does not exist. It should exist so Zat can read the template configuration.", source_directory),
+      s!("Please create the Zat repository directory '{}' with the Zat folder structure. See `zat --help` for more.", source_directory),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -33,7 +33,7 @@ fn error_message_on_missing_template_files_dir() -> Result<(), Box<dyn std::erro
     ErrorParts::new(
       "Got a configuration error".to_owned(),
       s!("The Zat template files directory '{}/template' does not exist. It should exist so Zat can read the template files.", source_directory),
-      s!("Please create the Zat template files directory '{}/template' with the necessary template files. See `zat -h` for more details.", source_directory),
+      s!("Please create the Zat template files directory '{}/template' with the necessary template files. See `zat --help` for more details.", source_directory),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -49,7 +49,7 @@ fn error_message_on_missing_variables_file() -> Result<(), Box<dyn std::error::E
     ErrorParts::new(
       "Got an error processing variables".to_owned(),
       s!("Variable file '{}/.variables.zat-prompt' does not exist. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", source_directory),
-      s!("Please create the variable file '{}/.variables.zat-prompt' with the required tokens. See `zat -h` for more details.", source_directory),
+      s!("Please create the variable file '{}/.variables.zat-prompt' with the required tokens. See `zat --help` for more details.", source_directory),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -65,7 +65,7 @@ fn error_message_on_non_json_variables_file() -> Result<(), Box<dyn std::error::
     ErrorParts::new(
       "Got an error processing variables".to_owned(),
       s!("Variable file '{}/.variables.zat-prompt' could not be decoded as JSON into the expected format. It failed decoding with this error: invalid type: integer `123`, expected a sequence at line 1 column 3. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", source_directory),
-      s!("Make the variable file '{}/.variables.zat-prompt' is a valid JSON file in the format required by Zat. See `zat -h` for more details on the format", source_directory),
+      s!("Make the variable file '{}/.variables.zat-prompt' is a valid JSON file in the format required by Zat. See `zat --help` for more details on the format", source_directory),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -389,7 +389,7 @@ fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::
   let command =
     cmd
       .arg("process")
-      .arg("--template-dir")
+      .arg("--repository-dir")
       .arg(source_directory)
       .arg("--target-dir")
       .arg(&target_directory);

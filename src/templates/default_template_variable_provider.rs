@@ -18,7 +18,7 @@ impl DefaultTemplateVariableProvider {
 // That would make it easier to test and lead to more reuse of code
 impl TemplateVariableProvider for DefaultTemplateVariableProvider {
   fn get_tokens(&self, user_config: UserConfig) -> ZatResult<TemplateVariables> {
-    let variables_file: VariableFile = VariableFile::from(user_config.template_dir);
+    let variables_file: VariableFile = VariableFile::from(user_config.repository_dir);
     let variable_file_path = variables_file.get_path().to_owned();
 
     if variables_file.does_exist() {

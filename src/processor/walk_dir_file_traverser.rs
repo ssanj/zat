@@ -52,7 +52,7 @@ mod tests {
     use std::collections::HashSet;
     use std::fs::File;
     use std::io::{self, Write};
-    use crate::config::TemplateDir;
+    use crate::config::RepositoryDir;
 
     use super::*;
     use pretty_assertions::assert_eq;
@@ -176,7 +176,7 @@ mod tests {
       F: FnOnce(TemplateDirectory, InputDirectory, OutputDirectory, WorkingDirectory) -> Vec<TemplateFile>
     {
       let temp_dir = tempdir()?; // create a temporary working directory
-      let template_files_dir = TemplateFilesDir::from(&TemplateDir::from(temp_dir.path())); // template files directory
+      let template_files_dir = TemplateFilesDir::from(&RepositoryDir::from(temp_dir.path())); // template files directory
 
       std::fs::create_dir(template_files_dir.as_ref()).expect("Could not create temporary template directory"); // create template files directory
 

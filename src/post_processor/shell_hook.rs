@@ -140,7 +140,7 @@ mod tests {
 
     fn config_with_shell_hook(config: UserConfig) -> UserConfig {
         UserConfig {
-          shell_hook_status: ConfigShellHookStatus::RunShellHook(spath!(config.template_dir.join("some-script.sh")).to_owned()),
+          shell_hook_status: ConfigShellHookStatus::RunShellHook(spath!(config.repository_dir.join("some-script.sh")).to_owned()),
           ..config
         }
     }

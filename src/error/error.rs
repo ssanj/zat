@@ -73,9 +73,9 @@ impl ZatError {
   pub fn template_dir_does_not_exist(path: &str) -> ZatError {
     ZatError::ProcessCommandError(
       ProcessCommandErrorReason::UserConfigError(
-        UserConfigErrorReason::TemplateDirDoesNotExist(
-          s!("The Zat template directory '{}' does not exist. It should exist so Zat can read the templates configuration.", path),
-          s!("Please create the Zat template directory '{}' with the Zat template folder structure. See `zat -h` for more.", path)
+        UserConfigErrorReason::RepositoryDirDoesNotExist(
+          s!("The Zat repository directory '{}' does not exist. It should exist so Zat can read the template configuration.", path),
+          s!("Please create the Zat repository directory '{}' with the Zat folder structure. See `zat --help` for more.", path)
         )
       )
     )
@@ -86,7 +86,7 @@ impl ZatError {
       ProcessCommandErrorReason::UserConfigError(
         UserConfigErrorReason::TemplateFilesDirDoesNotExist(
           s!("The Zat template files directory '{}' does not exist. It should exist so Zat can read the template files.", path),
-          s!("Please create the Zat template files directory '{}' with the necessary template files. See `zat -h` for more details.", path)
+          s!("Please create the Zat template files directory '{}' with the necessary template files. See `zat --help` for more details.", path)
         )
       )
     )
@@ -112,7 +112,7 @@ impl ZatError {
       ProcessCommandErrorReason::VariableFileError(
         VariableFileErrorReason::VariableFileNotFound(
           s!("Variable file '{}' does not exist. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path),
-          s!("Please create the variable file '{}' with the required tokens. See `zat -h` for more details.", path)
+          s!("Please create the variable file '{}' with the required tokens. See `zat --help` for more details.", path)
         )
       )
     )
@@ -156,7 +156,7 @@ impl ZatError {
       ProcessCommandErrorReason::VariableFileError(
         VariableFileErrorReason::VariableDecodeError(
           s!("Variable file '{}' could not be decoded as JSON into the expected format. It failed decoding with this error: {}. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path, reason),
-          s!("Make the variable file '{}' is a valid JSON file in the format required by Zat. See `zat -h` for more details on the format", path)
+          s!("Make the variable file '{}' is a valid JSON file in the format required by Zat. See `zat --help` for more details on the format", path)
         )
       )
     )

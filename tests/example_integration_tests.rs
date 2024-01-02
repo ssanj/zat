@@ -223,7 +223,7 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
 
   cmd
     .arg("process")
-    .arg("--template-dir")
+    .arg("--repository-dir")
     .arg(&source_directory)
     .arg("--target-dir")
     .arg(&target_directory);

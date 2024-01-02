@@ -4,7 +4,7 @@ use std::format as s;
 
 use crate::args::BootstrapProjectArgs;
 use crate::error::{ZatError, ZatAction};
-use crate::config::{TemplateDir, DOT_VARIABLES_PROMPT, TemplateFilesDir};
+use crate::config::{RepositoryDir, DOT_VARIABLES_PROMPT, TemplateFilesDir};
 use crate::logging::Logger;
 use crate::spath;
 
@@ -54,7 +54,7 @@ impl BootstrapProject {
     "#;
 
   pub fn process_bootstrap(bootstrap_project_args: BootstrapProjectArgs) -> ZatAction {
-    let repository_directory = TemplateDir::new(&bootstrap_project_args.repository_dir);
+    let repository_directory = RepositoryDir::new(&bootstrap_project_args.repository_dir);
 
     if repository_directory.does_exist() {
       Err(ZatError::bootstrap_repository_dir_should_not_exist(&bootstrap_project_args.repository_dir))

@@ -17,9 +17,9 @@ pub enum ZatCommand {
 
 #[derive(SubArgs, Debug, Clone)]
 pub struct ProcessTemplatesArgs {
-   /// The location of the template
+   /// The location of the Zat repository
    #[clap(long, value_parser)]
-   pub template_dir: String,
+   pub repository_dir: String,
 
    /// Where to extract the template to. This should directory should not exist.
    #[clap(long, value_parser)]
