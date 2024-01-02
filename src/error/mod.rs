@@ -4,12 +4,12 @@ pub mod user_config_error_reason;
 pub mod variable_file_error_reason;
 pub mod template_processing_error_reason;
 pub mod post_processing_error_reason;
+pub mod bootstrap_command_error_reason;
 
 pub use error::ZatAction;
 pub use error::ZatError;
 pub use error::ZatResult;
 pub use error::ProcessCommandErrorReason;
-
 
 use error_format::ErrorFormat;
 use user_config_error_reason::UserConfigErrorReason;
@@ -17,3 +17,4 @@ use variable_file_error_reason::VariableFileErrorReason;
 use template_processing_error_reason::TemplateProcessingErrorReason;
 use template_processing_error_reason::ReasonFileErrorReason;
 use post_processing_error_reason::PostProcessingErrorReason;
+use bootstrap_command_error_reason::BootstrapCommandErrorReason;

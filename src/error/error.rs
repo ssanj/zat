@@ -5,6 +5,7 @@ use super::VariableFileErrorReason;
 use super::TemplateProcessingErrorReason;
 use super::ReasonFileErrorReason;
 use super::PostProcessingErrorReason;
+use super::BootstrapCommandErrorReason;
 use ansi_term::Color::Yellow;
 
 pub type ZatResult<A> = Result<A, ZatError>;
@@ -22,29 +23,6 @@ pub enum ProcessCommandErrorReason {
   VariableFileError(VariableFileErrorReason),
   TemplateProcessingError(TemplateProcessingErrorReason),
   PostProcessingError(PostProcessingErrorReason),
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum BootstrapCommandErrorReason {
-  RepositoryDirectoryShouldNotExist(String, String),
-  CouldNotCreateRepositoryDirectory(String, String),
-  CouldNotCreateFile(String, String),
-}
-
-impl From<&BootstrapCommandErrorReason> for ErrorFormat {
-  fn from(error: &BootstrapCommandErrorReason) -> Self {
-    let (error, fix) = match error {
-        BootstrapCommandErrorReason::RepositoryDirectoryShouldNotExist(error, fix) => (error, fix),
-        BootstrapCommandErrorReason::CouldNotCreateRepositoryDirectory(error, fix) => (error, fix),
-        BootstrapCommandErrorReason::CouldNotCreateFile(error, fix) => (error, fix),
-    };
-
-    ErrorFormat {
-      error_reason: error.to_owned(),
-      exception: None,
-      remediation: Some(fix.to_owned())
-    }
-  }
 }
 
 
@@ -317,6 +295,7 @@ impl ZatError {
     ZatError::BootstrapCommandError(
       BootstrapCommandErrorReason::CouldNotCreateRepositoryDirectory(
           s!("The repository directory '{}' could not be created.", path),
+          e.to_string(),
           s!("Please ensure the path supplied for the repository directory '{}' is writable by the current user", path)
       )
     )
@@ -326,6 +305,7 @@ impl ZatError {
     ZatError::BootstrapCommandError(
       BootstrapCommandErrorReason::CouldNotCreateFile(
           s!("The bootstrap file '{}' could not be created.", path),
+          e.to_string(),
           s!("Please ensure the file '{}' is writable by the current user", path)
       )
     )
