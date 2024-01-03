@@ -4,6 +4,16 @@ A simple templating system to prevent copy-pasta overload. Zat is inspired by [G
 
 ## Installation
 
+### Downloading a Release
+
+Download the latest [release](https://github.com/ssanj/zat/releases) for your operating system (linux or macos).
+Make it executable with:
+
+`chmod +x <ZAT_EXEC>`
+
+Copy executable to a directory on your path.
+
+
 ### Building from Source
 
 Ensure you have Cargo and Rust installed.
@@ -18,67 +28,86 @@ Copy binary file from target/release/zat to a directory on your path.
 
 ## Usage
 
+`zat -h`:
+
 ```
-zat 0.3.1
-Sanj Sahayam
 A simple templating system to prevent copy-pasta overload
 
-USAGE:
-    zat [OPTIONS] --template-dir <TEMPLATE_DIR> --target-dir <TARGET_DIR>
+Usage: zat <COMMAND>
 
-OPTIONS:
-    -h, --help
-            Print help information
+Commands:
+  process    Process templates defined in a Zat repository
+  bootstrap  Generate a minimal bootstrap Zat repository
+  help       Print this message or the help of the given subcommand(s)
 
-        --ignores <IGNORES>
-            One or more files ignore. Supply multiple times for different files or folders. The
-            files '.variables.zat-prompt' and '.git' are always specified. Accepts any valid regular
-            expressions
-
-        --target-dir <TARGET_DIR>
-            Where to extract the template to
-
-        --template-dir <TEMPLATE_DIR>
-            The location of the template
-
-    -V, --version
-            Print version information
-
+Options:
+  -h, --help     Print help (see more with '--help')
+  -V, --version  Print version
 ```
 
+Use `zat --help` for additional usage information.
+
+## Getting Started
+
+To get started generate a bootstrap project and follow the instructions.
+
+General repository structure:
+
+- All Zat configuration files go in the root of the Zat repository. These include the '.variables.zat-prompt' configuration file and the 'shell-hook.zat-exec' shell hook file. The '.variables.zat-prompt' defines any tokens you want replaced. The values for these tokens will be requested from the user when the template is processed. The optional 'shell-hook.zat-exec' file should be an executable file (chmod +x). It will get invoked after the repository has been processed, with single argument of the target directory path. Use this file to handle any post-processing tasks.
+
+- All templated files go in the 'templates' folder under the Zat repository folder. This can include regular files, files and folders with tokenised names and templates.
+
+**Regular files**: Plain old files without any tokens in their name or in their content. These will get copied "as is" to the target directory when the repository is processed. **Note:**
+ attributes of a file will not be copied. If you need some attributes maintained for a file, you can do that through a shell hook file.
+
+**Files and folders with tokenised names**: Files and folders with tokens in their name but not in their content. Eg. '$project$_README.md'. These tokens will be replaced when the repository is processed and files and folders will be written to the target directory with the updated names.
+
+**Templates**: Are files that end with a '.tmpl'. Eg. 'README.md.tmpl'. They can have tokens in their name and in their content. The tokens in their names and content will get replaced when the repository is processed. The '.tmpl' suffix is removed when the processed template is written to the target directory.
+
+To create simple bootstrap project run:
+
+```
+zat bootstrap --repository-dir <ZAT_REPOSITORY>
+```
+
+Once the repository is created, you can run it with:
+
+```
+zat process --repository-dir  <ZAT_REPOSITORY> --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>
+```
+
+Have a look at the [example tests](https://github.com/ssanj/zat/tree/main/tests/examples) for some sample Zat repositories.
+
+Additional templates can be found in the [Example Templates](#example-templates) section.
 
 ## Defining a template
 
 ### Folder Structure
 
-Templates should live in a `template` folder under the supplied *--template-dir* source directory supplied to `zat`.
+Templates should live in a `template` sub folder within the Zat repository.
 
-For example, if your *--template-dir* directory was `MyCoolTemplate`, then `zat` expects the following structure:
+For example, given a Zat repository of `MyCoolTemplate` with the following structure:
 
 ```
 MyCoolTemplate /
-  .varables.zat-prompt  <-- defines any variables that should be used in rendering the template, the values of which will be supplied by the user.
-  other-file1.ext  -|
-  other-file2.ext   |
-  other-folder1/    |> These files and folders will not be rendered at the destination.
-  other-folder2/    |
-  README.md        -|
+  .variables.zat-prompt  <-- defines tokens.
+  shell-hook.zat-exec    <-- This should be executable and will be run after the repository has been processed successfully.
 
-  template / <-- folder that contains all template files that should be rendered at the destination
-    template-file-1.ext
-    template-file-2.ext
-    template-file-n.ext
-    $project$.ext       <-- variable placeholders in this file name will be replaced by values supplied by the user in conjunction with the contents of .varables.zat-prompt
-    $resource__snake$/  <-- variable placeholders in this folder name will be replaced by values supplied by the user in conjunction with the contents of .varables.zat-prompt
-    README.md.tmpl <-- variable placeholders in this file will be replaced by values supplied by the user in conjunction with the contents of .varables.zat-prompt
+  template /            <-- folder that contains all template files that should be rendered at the destination
+    template-file-1.ext <-- Copied as is
+    $project$.ext       <-- Token in this file name will be replaced by values supplied by the user.
+    $resource__snake$/  <-- Token in this folder name will be replaced by values supplied by the user.
+    README.md.tmpl      <-- Tokens in this template file will be replaced by values supplied by the user.
 ```
 
 
-### variables prompt
+### Defining tokens or variables
 
-Define a file named `.variables.zat-prompt` in the root of your template folder. This file will determine the variables that can be used within the project, either as variable substitutions for file and directory names or file content with a files with the `.tmpl` suffix.
+Define a file named `.variables.zat-prompt` in the root of your Zat repository. This file will determine the tokens that can be used within the project, either as variable substitutions for file and directory names or file content with a files with the `.tmpl` suffix (templates).
 
-When you run use template you will be prompted to enter the values of the defined variables.
+When you `process` the Zat repository, you will be prompted to enter the values of the defined variables.
+
+[Minimal Json schema](dot-variables.schema.json)
 
 Here's the structure of entries in the `variables.prompt` file:
 
@@ -88,14 +117,20 @@ Here's the structure of entries in the `variables.prompt` file:
 | variable_name | Name of the variable to define |
 | description |  The description of the variable |
 | prompt |What to show the user when prompting for this variable |
-| filters | [Optional], The list of *filter*s available to the variable |
+| filters | [Optional], The list of [filters](#structure-of-a-filter) available to the variable |
 | default_value | [Optional] a default value to use, which the user can override if required |
 
 #### Structure of a filter
 
+A filter is some type of [formatting](#supported-filters) that is applied to the user-supplied value. An example is `Pascal` which converts the value into camel case with all the spaces removed.
+
+`"My variable NAME" -> "MyVariableName"`
+
+See [Supported Filters](#supported-filters) for a full list of supported formats.
+
 | Field | What is it |
 | ----- | ---------- |
-| name| Name of the filter. **__default__** is used for when this should be the default filter applied |
+| name| Name of the filter. `__default__` is used for when this should be the default filter applied. A default filter will not have the filter name appended to the variable name at the usage point. It can simply use the variable name. |
 | filter | one of the support filters (see below) |
 
 <details>
@@ -129,11 +164,11 @@ Here's the structure of entries in the `variables.prompt` file:
 ##### Template that uses the above variables:
 
 ```
-# $project$
+# $project$ <-- default filter for `project`
 
-$description$
+$description$ <-- variable without filters
 
-Folders will be like: $project__underscore$
+Folders will be like: $project__underscore$  <-- variable using the 'underscore' filter on the `project` value, which applies the `Snake` format.
 ```
 
 Assuming the user supplied the following values for the variables:
@@ -176,7 +211,7 @@ Filters modify the user-supplied variables. You can think of a filter as a funct
 
 #### Filter usage
 
-Filters can be used in the following:
+Variables can be used in the following:
 
 - File name (eg. ` $project$.sublime-settings`)
 - Directory name (eg. `/models/$project$/scaffold.rs`)
@@ -189,6 +224,8 @@ A variable with a filter can be used in the following format:
 Given a variable named "project" and a filter named "python", we can use it as:
 
 `$project__python$.py.tmpl`
+
+As noted above, if the one of the filter names is `__default__` you can simply use the `variable_name` without appending the filter name.
 
 ### Example templates
 

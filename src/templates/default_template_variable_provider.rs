@@ -1,5 +1,5 @@
 use crate::error::*;
-use crate::TemplateVariableProvider;
+use super::TemplateVariableProvider;
 use crate::config::UserConfig;
 use crate::config::VariableFile;
 use super::{TemplateVariable, TemplateVariables};
@@ -18,7 +18,7 @@ impl DefaultTemplateVariableProvider {
 // That would make it easier to test and lead to more reuse of code
 impl TemplateVariableProvider for DefaultTemplateVariableProvider {
   fn get_tokens(&self, user_config: UserConfig) -> ZatResult<TemplateVariables> {
-    let variables_file: VariableFile = VariableFile::from(user_config.template_dir);
+    let variables_file: VariableFile = VariableFile::from(user_config.repository_dir);
     let variable_file_path = variables_file.get_path().to_owned();
 
     if variables_file.does_exist() {
@@ -162,7 +162,7 @@ mod tests {
     let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
 
     match template_config_provider.get_tokens(user_config) {
-      Err(ZatError::VariableFileError(VariableFileErrorReason::VariableDecodeError(..))) => assert!(true),
+      Err(ZatError::ProcessCommandError(ProcessCommandErrorReason::VariableFileError(VariableFileErrorReason::VariableDecodeError(..)))) => assert!(true),
       Err(other_error) => assert!(false, "Expected ZatError::VariableDecodeError but got different error : {}", other_error.to_string()),
       Ok(value) => assert!(false, "Expected ZatError::VariableDecodeError but got success with: {:?}", value)
     }
@@ -184,7 +184,7 @@ mod tests {
     let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
 
     match template_config_provider.get_tokens(user_config) {
-      Err(ZatError::VariableFileError(VariableFileErrorReason::VariableFileNotFound(..))) => assert!(true),
+      Err(ZatError::ProcessCommandError(ProcessCommandErrorReason::VariableFileError(VariableFileErrorReason::VariableFileNotFound(..)))) => assert!(true),
       Err(other_error) => assert!(false, "Expected ZatError::VariableFileNotFound but got different error : {}", other_error.to_string()),
       Ok(value) => assert!(false, "Expected ZatError::VariableFileNotFound but got success with: {:?}", value)
     }
@@ -215,7 +215,7 @@ mod tests {
     let user_config = UserConfig::new(&template_dir_path, &target_dir_path);
 
     match template_config_provider.get_tokens(user_config) {
-      Err(ZatError::VariableFileError(VariableFileErrorReason::VariableFileHasNoVariableDefinitions(..))) => assert!(true),
+      Err(ZatError::ProcessCommandError(ProcessCommandErrorReason::VariableFileError(VariableFileErrorReason::VariableFileHasNoVariableDefinitions(..)))) => assert!(true),
       Err(other_error) => assert!(false, "Expected ZatError::VariableFileHasNoVariableDefinitions but got different error : {}", other_error.to_string()),
       Ok(value) => assert!(false, "Expected ZatError::VariableFileHasNoVariableDefinitions but got success with: {:?}", value)
     }

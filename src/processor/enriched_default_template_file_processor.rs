@@ -48,7 +48,7 @@ mod tests {
     use super::super::DestinationFile;
     use pretty_assertions::assert_eq;
     use crate::error::template_processing_error_reason::TemplateProcessingErrorReason;
-    use crate::error::error::ZatError;
+    use crate::error::error::{ZatError, ProcessCommandErrorReason};
     use std::{format as s};
 
     struct Succeeding;
@@ -100,8 +100,10 @@ mod tests {
       fn write_source_to_destination(&self, source_file: &SourceFile, _destination_file: &DestinationFile, _token_replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
         if self.source_files.contains(&source_file) {
           Err(
-            ZatError::TemplateProcessingError(
-              TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", source_file), None, "".to_string())
+            ZatError::ProcessCommandError(
+              ProcessCommandErrorReason::TemplateProcessingError(
+                TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", source_file), "".to_string(), "".to_string())
+              )
             )
           )
         } else {
@@ -114,8 +116,10 @@ mod tests {
       fn create_directory(&self, destination_directory: &DestinationFile, _replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
         if self.destination_files.contains(&destination_directory) {
           Err(
-            ZatError::TemplateProcessingError(
-              TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", destination_directory), None, "".to_string())
+            ZatError::ProcessCommandError(
+              ProcessCommandErrorReason::TemplateProcessingError(
+                TemplateProcessingErrorReason::WritingFileError(s!("Could not write file: {}", destination_directory), "".to_string(), "".to_string())
+              )
             )
           )
         } else {
@@ -192,8 +196,10 @@ mod tests {
       let result = template_processor.process_enriched_template_files(&enriched_templates, &token_replacer);
 
       let expected_errors =
-        ZatError::TemplateProcessingError(
-            TemplateProcessingErrorReason::WritingFileError("Could not write file: some/destination/dir2".to_owned(), None, "".to_string())
+        ZatError::ProcessCommandError(
+          ProcessCommandErrorReason::TemplateProcessingError(
+            TemplateProcessingErrorReason::WritingFileError("Could not write file: some/destination/dir2".to_owned(), "".to_string(), "".to_string())
+          )
         );
 
       assert_eq!(result, Err(expected_errors))

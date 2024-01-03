@@ -1,5 +1,5 @@
 use std::path::Path;
-use super::TemplateDir;
+use super::RepositoryDir;
 
 pub static TEMPLATE_FILES_DIR: &str = "template";
 
@@ -25,8 +25,8 @@ impl TemplateFilesDir {
   }
 }
 
-impl From<&TemplateDir> for TemplateFilesDir {
-    fn from(template_dir: &TemplateDir) -> Self {
+impl From<&RepositoryDir> for TemplateFilesDir {
+    fn from(template_dir: &RepositoryDir) -> Self {
       TemplateFilesDir::new(&template_dir.join(TEMPLATE_FILES_DIR).to_string_lossy().to_string())
     }
 }

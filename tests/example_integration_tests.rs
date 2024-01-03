@@ -86,13 +86,42 @@ fn runs_a_template_with_binary_files() -> Result<(), Box<dyn std::error::Error>>
   assert_run_example(example_test_config)
 }
 
+#[test]
+fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
+
+  let variable_file = Path::new(".variables.zat-prompt");
+  let readme_file = Path::new("template").join("README.md.tmpl");
+  let readme_file = Path::new("template").join("$project__underscore$_config.conf");
+
+  let files_that_should_exist =
+    [
+      variable_file,
+      readme_file.as_path()
+    ];
+
+    let working_directory_path = tempdir()?.into_path();
+    let repository_directory =
+      &working_directory_path.join("example-bootstrap-dir").to_string_lossy().to_string();
+
+  let output_message_1 = s!("Run the bootstrap template with: `zat process --template-dir {} --target-dir <YOUR_TARGET_DIRECTORY>`", &repository_directory);
+  let output_messages =
+    [
+      output_message_1.as_str(),
+      "Zat completed successfully.",
+    ];
+
+  let bootstrap_test_config =
+    BootstrapExampleTestConfig::new(&repository_directory, &files_that_should_exist, &output_messages);
+
+  assert_run_bootstrap_example(bootstrap_test_config)
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper classes
 //----------------------------------------------------------------------------------------------------------------------
 
 #[allow(dead_code)]
 enum AssertionType<'a> {
-  Equals(&'a str), // We are not using Equals just yet, but we probably will
   Contains(&'a[&'a str]),
 }
 
@@ -142,6 +171,24 @@ impl <'a> ExampleTestConfig<'a> {
   }
 }
 
+struct BootstrapExampleTestConfig<'a> {
+  repository_directory: &'a str,
+  files_that_should_exist: &'a[&'a Path],
+  maybe_stdout_assertions: Option<AssertionType<'a>>,
+}
+
+impl <'a> BootstrapExampleTestConfig<'a> {
+
+  fn new(repository: &'a str, files_that_should_exist: &'a [&'a Path], output_messages: &'a[&'a str]) -> Self {
+    BootstrapExampleTestConfig {
+      repository_directory: repository,
+      files_that_should_exist,
+      maybe_stdout_assertions: Some(AssertionType::Contains(output_messages))
+    }
+  }
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper functions
 //----------------------------------------------------------------------------------------------------------------------
@@ -175,7 +222,8 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
   assert!(Path::new(&source_directory).exists(), "{}", Red.paint(s!("Source directory `{}` does not exist: ", &source_directory)));
 
   cmd
-    .arg("--template-dir")
+    .arg("process")
+    .arg("--repository-dir")
     .arg(&source_directory)
     .arg("--target-dir")
     .arg(&target_directory);
@@ -190,11 +238,6 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
       .success();
 
   match example_config.maybe_stdout_assertions {
-      Some(AssertionType::Equals(content)) => {
-        p!("stdout did not equal: {}", &content);
-        output.stdout(content.to_owned());
-      },
-
       Some(AssertionType::Contains(contents)) => {
         for content in contents {
           output = output.stdout(std_out_contains(content));
@@ -216,6 +259,50 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
   print_changes(&expected_target_directory, &target_directory);
 
   assert!(!dir_diff::is_different(&target_directory, expected_target_directory).unwrap());
+
+  Ok(())
+}
+
+fn assert_run_bootstrap_example(bootstrap_example_config: BootstrapExampleTestConfig) -> Result<(), Box<dyn std::error::Error>> {
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+
+  let working_directory_path = bootstrap_example_config.repository_directory;
+  p!("repository directory: {}", &working_directory_path);
+
+  let std_out_contains = |expected:&str| {
+    let owned_expected = expected.to_owned();
+    predicate::function(move |out: &[u8]| {
+      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
+      p!("Could not validate stdout contains: {}", &owned_expected);
+      output.contains(&owned_expected)
+    })
+  };
+
+  cmd
+    .arg("bootstrap")
+    .arg("--repository-dir")
+    .arg(&working_directory_path);
+
+  let mut output =
+    cmd
+      .assert()
+      .success();
+
+
+  for expected_file in bootstrap_example_config.files_that_should_exist {
+    let file = Path::new(&working_directory_path).join(expected_file);
+    assert!(file.exists(), "{}", Red.paint(s!("Expected file `{}` does not exist: ", file.to_string_lossy())));
+  }
+
+  match bootstrap_example_config.maybe_stdout_assertions {
+    Some(AssertionType::Contains(contents)) => {
+      for content in contents {
+        output = output.stdout(std_out_contains(content));
+      }
+    },
+
+    None => ()
+  }
 
   Ok(())
 }

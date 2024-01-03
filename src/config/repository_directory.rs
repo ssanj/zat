@@ -4,13 +4,13 @@ use std::path::Path;
 use super::SHELL_HOOK_FILE;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct TemplateDir {
+pub struct RepositoryDir {
   path: String
 }
 
-impl TemplateDir {
+impl RepositoryDir {
   pub fn new(path: &str) -> Self {
-    TemplateDir {
+    RepositoryDir {
       path: path.to_owned()
     }
   }
@@ -35,19 +35,19 @@ impl TemplateDir {
 }
 
 
-impl AsRef<Path> for TemplateDir {
+impl AsRef<Path> for RepositoryDir {
   fn as_ref(&self) -> &Path {
       &Path::new(&self.path)
   }
 }
 
-impl From<&Path> for TemplateDir {
+impl From<&Path> for RepositoryDir {
   fn from(path: &Path) -> Self {
       Self::new(&path.to_string_lossy().to_string())
   }
 }
 
-impl Default for TemplateDir {
+impl Default for RepositoryDir {
   fn default() -> Self {
     Self {
       path: "".to_owned()

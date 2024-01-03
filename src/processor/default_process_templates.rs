@@ -111,22 +111,22 @@ impl DefaultProcessTemplates {
 
 #[cfg(test)]
 mod tests {
-  use crate::config::{TemplateDir, TemplateFilesDir};
+  use crate::config::{RepositoryDir, TemplateFilesDir};
 
 use super::*;
 
   #[test]
   fn has_template_files_returns_false_if_there_are_no_files() {
-      let td = TemplateDir::new(".");
-      let tfd = TemplateFilesDir::from(&td);
+      let rd = RepositoryDir::new(".");
+      let tfd = TemplateFilesDir::from(&rd);
       let has_files = DefaultProcessTemplates.has_template_files(&[], &tfd);
       assert!(!has_files)
   }
 
   #[test]
   fn has_template_files_returns_false_if_only_file_is_the_template_files_directory() {
-      let td = TemplateDir::new(".");
-      let tfd = TemplateFilesDir::from(&td);
+      let rd = RepositoryDir::new(".");
+      let tfd = TemplateFilesDir::from(&rd);
 
       let root_dir = TemplateFile::Dir(tfd.path().to_owned());
       let template_files = &[&root_dir];
@@ -137,8 +137,8 @@ use super::*;
 
   #[test]
   fn has_template_files_returns_false_if_theres_only_a_dot_keep_file_in_the_template_files_directory() {
-      let td = TemplateDir::new(".");
-      let tfd = TemplateFilesDir::from(&td);
+      let rd = RepositoryDir::new(".");
+      let tfd = TemplateFilesDir::from(&rd);
 
       let keep_file = TemplateFile::File(s!("{}/.keep", tfd.path()));
       let root_dir = TemplateFile::Dir(tfd.path().to_owned());
@@ -150,8 +150,8 @@ use super::*;
 
   #[test]
   fn has_template_files_returns_true_if_there_are_any_other_directories() {
-      let td = TemplateDir::new(".");
-      let tfd = TemplateFilesDir::from(&td);
+      let rd = RepositoryDir::new(".");
+      let tfd = TemplateFilesDir::from(&rd);
       let tf = TemplateFile::Dir("some-directory".to_owned());
       let has_files = DefaultProcessTemplates.has_template_files(&[&tf], &tfd);
       assert!(has_files)
@@ -159,8 +159,8 @@ use super::*;
 
   #[test]
   fn has_template_files_returns_true_if_there_are_any_other_files() {
-      let td = TemplateDir::new(".");
-      let tfd = TemplateFilesDir::from(&td);
+      let rd = RepositoryDir::new(".");
+      let tfd = TemplateFilesDir::from(&rd);
       let tf = TemplateFile::File("some-file".to_owned());
       let has_files = DefaultProcessTemplates.has_template_files(&[&tf], &tfd);
       assert!(has_files)
