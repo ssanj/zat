@@ -31,7 +31,10 @@ pub enum ZatCommand {
   Process(ProcessTemplatesArgs),
 
   /// Generate a minimal bootstrap Zat repository
-  Bootstrap(BootstrapProjectArgs)
+  Bootstrap(BootstrapProjectArgs),
+
+  /// Process templates defined in a remote Zat repository
+  ProcessRemote(ProcessRemoteTemplatesArgs),
 }
 
 #[derive(SubArgs, Debug, Clone)]
@@ -62,6 +65,29 @@ pub struct BootstrapProjectArgs {
    #[arg(long, value_parser)]
    pub repository_dir: String,
 }
+
+#[derive(SubArgs, Debug, Clone)]
+pub struct ProcessRemoteTemplatesArgs {
+
+  /// Remote http(s) URL of a Git repository.
+  #[arg(long, value_parser)]
+  pub repository_url: String,
+
+   /// Where to extract the template to. This should directory should not exist.
+   #[arg(long, value_parser)]
+   pub target_dir: String,
+
+   /// One or more files ignore. Supply multiple times for different files or folders.
+   /// The files '.variables.zat-prompt' and '.git' are always specified.
+   /// Accepts any valid regular expressions.
+   #[arg(long, value_parser,)]
+   pub ignores: Vec<String>,
+
+   /// Verbose debug logging
+   #[arg(long)]
+   pub verbose: bool
+}
+
 
 pub fn get_cli_args() -> Args {
   Args::parse()

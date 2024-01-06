@@ -21,7 +21,9 @@ impl Workflow {
 
       ZatCommand::Bootstrap(bootstrap_project_args) => {
         BootstrapProject::process_bootstrap(bootstrap_project_args)
-      }
+      },
+
+      ZatCommand::ProcessRemote(_) => todo!(),
     }
   }
 
