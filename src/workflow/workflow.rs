@@ -26,8 +26,7 @@ impl Workflow {
       },
 
       ZatCommand::ProcessRemote(process_remote_template_args) => {
-        let repository_dir = ProcessRemoteTemplates::process_remote(process_remote_template_args)?;
-        todo!()
+        ProcessRemoteTemplates::process_remote(config_provider, process_remote_template_args)
       },
     }
   }

@@ -3,14 +3,16 @@ use std::todo;
 
 use crate::config::RepositoryDir;
 use crate::error::{ZatAction, ZatError, ZatResult};
-use crate::args::ProcessRemoteTemplatesArgs;
+use crate::args::{ProcessRemoteTemplatesArgs, ProcessTemplatesArgs, UserConfigProvider};
 use crate::logging::Logger;
 use std::process::Command;
 use std::format as s;
 use dirs::home_dir;
 use url::Url;
-use std::fs::{self, FileType, Metadata};
+use std::fs::{self, Metadata};
 use crate::spath;
+
+use super::ProcessTemplates;
 
 
 pub struct ProcessRemoteTemplates;
@@ -22,7 +24,7 @@ enum RepositoryDirType {
 
 impl ProcessRemoteTemplates {
 
-  pub fn process_remote(process_remote_template_args : ProcessRemoteTemplatesArgs) -> ZatAction {
+  pub fn process_remote(config_provider: impl UserConfigProvider, process_remote_template_args : ProcessRemoteTemplatesArgs) -> ZatAction {
     let home_dir = Self::get_home_directory()?;
     let repository_dir_status = Self::create_repository_directory(&home_dir, &process_remote_template_args.repository_url)?;
 
@@ -34,10 +36,9 @@ impl ProcessRemoteTemplates {
         },
     };
 
-    // Create ProcessTemplateArgs
-    // Call ProcessTemplates::process(..)
-
-    todo!()
+    // Invoke the regular ProcessTemplates::process at this point
+    let process_template_args = create_process_templates_args(repository_directory, process_remote_template_args);
+    ProcessTemplates::process(config_provider, process_template_args)
   }
 
   fn get_home_directory() -> ZatResult<String> {
@@ -82,6 +83,15 @@ impl ProcessRemoteTemplates {
           RepositoryDirType::Created(RepositoryDir::new(&repository_path))
         })
     }
+  }
+}
+
+fn create_process_templates_args(repository_directory: RepositoryDir, process_remote_templates_args: ProcessRemoteTemplatesArgs) -> ProcessTemplatesArgs {
+  ProcessTemplatesArgs {
+    repository_dir: repository_directory.path().to_owned(),
+    target_dir: process_remote_templates_args.target_dir,
+    ignores: process_remote_templates_args.ignores,
+    verbose: process_remote_templates_args.verbose
   }
 }
 
