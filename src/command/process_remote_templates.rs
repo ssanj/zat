@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, MAIN_SEPARATOR};
 use std::todo;
 
 use crate::config::RepositoryDir;
@@ -12,6 +12,7 @@ use url::Url;
 use std::fs::{self, FileType, Metadata};
 use crate::spath;
 
+
 pub struct ProcessRemoteTemplates;
 
 enum RepositoryDirType {
@@ -23,7 +24,7 @@ impl ProcessRemoteTemplates {
 
   pub fn process_remote(process_remote_template_args : ProcessRemoteTemplatesArgs) -> ZatAction {
     let home_dir = Self::create_home_directory()?;
-    let repository_dir_status = Self::create_repository_directory(&process_remote_template_args.repository_url)?;
+    let repository_dir_status = Self::create_repository_directory(&home_dir, &process_remote_template_args.repository_url)?;
 
     let repository_directory = match repository_dir_status {
         RepositoryDirType::Existing(repository_dir) => RepositoryDir::new(&repository_dir),
@@ -56,14 +57,19 @@ impl ProcessRemoteTemplates {
     }
   }
 
-  fn create_repository_directory(repository_url: &str) -> ZatResult<RepositoryDirType> {
+  fn create_repository_directory(home_dir: &str, repository_url: &str) -> ZatResult<RepositoryDirType> {
     let url = Url::parse(repository_url)
       .map_err(|e| ZatError::invalid_remote_repository_url(e.to_string(), repository_url))?;
 
-    let hostname = &url.host().ok_or_else(|| ZatError::unsupported_hostname(&url.as_str()))?;
+    let hostname = &url.host_str().ok_or_else(|| ZatError::unsupported_hostname(&url.as_str()))?;
     let path = &url.path();
 
-    let repository_path = s!("{}{}", hostname, path);
+    println!("{}, {}, {}", home_dir, &hostname, &path);
+
+    // We can't use Path to join the pieces here, because the 'path' segment has a leading '/' which
+    // clears the rest of the path. This is documented in Path.join.
+    let repository_path = s!("{}{}{}{}{}{}", home_dir, MAIN_SEPARATOR, ".zat", MAIN_SEPARATOR, &hostname, &path);
+
     // We may want to Git pull on this directory in the future, maybe based on a flag.
     // For the moment we just use it as a cache.
     if Path::new(&repository_path).exists() {
@@ -90,6 +96,4 @@ fn clone_git_repository(process_remote_template_args: &ProcessRemoteTemplatesArg
   //       .expect("clone failed");
   todo!()
 }
-
-
 
