@@ -342,6 +342,14 @@ impl ZatError {
   pub fn could_not_create_local_repository_directory(error: String, path: &str) -> ZatError {
     panic!("Could not checkout remote repository locally '{}', reason: {}", path, error)
   }
+
+  pub fn git_clone_error(error: String, path: &str) -> ZatError {
+    panic!("Could not clone remote repository '{}', reason: {}", path, error)
+  }
+
+  pub fn git_clone_status_error(error_code: Option<i32>, path: &str) -> ZatError {
+    panic!("Could not clone remote repository '{}', error_code: {}", path, error_code.map_or_else(|| "Unknown".to_owned(), |ec| ec.to_string()))
+  }
 }
 
 

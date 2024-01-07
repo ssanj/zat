@@ -16,21 +16,21 @@ use crate::spath;
 pub struct ProcessRemoteTemplates;
 
 enum RepositoryDirType {
-  Existing(String),
-  Created(String)
+  Existing(RepositoryDir),
+  Created(RepositoryDir)
 }
 
 impl ProcessRemoteTemplates {
 
   pub fn process_remote(process_remote_template_args : ProcessRemoteTemplatesArgs) -> ZatAction {
-    let home_dir = Self::create_home_directory()?;
+    let home_dir = Self::get_home_directory()?;
     let repository_dir_status = Self::create_repository_directory(&home_dir, &process_remote_template_args.repository_url)?;
 
     let repository_directory = match repository_dir_status {
-        RepositoryDirType::Existing(repository_dir) => RepositoryDir::new(&repository_dir),
+        RepositoryDirType::Existing(repository_dir) => repository_dir,
         RepositoryDirType::Created(repository_dir) => {
           clone_git_repository(&process_remote_template_args, &repository_dir)?;
-          RepositoryDir::new(&repository_dir)
+          repository_dir
         },
     };
 
@@ -40,7 +40,7 @@ impl ProcessRemoteTemplates {
     todo!()
   }
 
-  fn create_home_directory() -> ZatResult<String> {
+  fn get_home_directory() -> ZatResult<String> {
     let home_dir = home_dir().ok_or_else(|| ZatError::home_directory_does_not_exist())?;
 
     // We choose not to create the home_dir if it does not exist. It seems a bit much to create
@@ -73,27 +73,37 @@ impl ProcessRemoteTemplates {
     // We may want to Git pull on this directory in the future, maybe based on a flag.
     // For the moment we just use it as a cache.
     if Path::new(&repository_path).exists() {
-      Ok(RepositoryDirType::Existing(repository_path))
+      Ok(RepositoryDirType::Existing(RepositoryDir::new(&repository_path)))
     } else {
       fs::create_dir_all(&repository_path)
         .or_else(|e| Err(ZatError::could_not_create_local_repository_directory(e.to_string(), &repository_path)))
         .map(|_| {
           Logger::info(&s!("Created local checkout '{}' for remote repository '{}'", &repository_path, &repository_url));
-          RepositoryDirType::Created(repository_path)
+          RepositoryDirType::Created(RepositoryDir::new(&repository_path))
         })
     }
   }
 }
 
-fn clone_git_repository(process_remote_template_args: &ProcessRemoteTemplatesArgs, repository_dir: &str) -> ZatAction {
-  // let status =
-  //   Command::new("git")
-  //       .env("GIT_TERMINAL_PROMPT" , "0")
-  //       .arg("clone")
-  //       .arg(&process_remote_template_args.repository_url)
-  //       .arg(s!("/Users/sanj/ziptemp/test-zat-templates/checked-out/{}", &process_remote_template_args.repository_url)) //TODO: where do we extract this out to?
-  //       .status()
-  //       .expect("clone failed");
-  todo!()
+fn clone_git_repository(process_remote_template_args: &ProcessRemoteTemplatesArgs, repository_dir: &RepositoryDir) -> ZatAction {
+  let status_result =
+    Command::new("git")
+        .env("GIT_TERMINAL_PROMPT" , "0")
+        .arg("clone")
+        .arg(&process_remote_template_args.repository_url)
+        .arg(repository_dir.path())
+        .status();
+
+  let status = status_result.map_err(|e| {
+    ZatError::git_clone_error(e.to_string(), &process_remote_template_args.repository_url)
+  })?;
+
+  if !status.success() {
+    Err(
+      ZatError::git_clone_status_error(status.code(), &process_remote_template_args.repository_url)
+    )
+  } else {
+    Ok(())
+  }
 }
 
