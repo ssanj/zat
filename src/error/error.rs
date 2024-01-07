@@ -1,3 +1,5 @@
+use std::todo;
+
 use format as s;
 use super::ErrorFormat;
 use super::UserConfigErrorReason;
@@ -62,6 +64,7 @@ impl ZatError {
   fn heading(heading: &str) -> String {
     s!("{}:", Yellow.paint(heading))
   }
+
 }
 
 impl ZatError {
@@ -309,6 +312,35 @@ impl ZatError {
           s!("Please ensure the file '{}' is writable by the current user", path)
       )
     )
+  }
+
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // Process Remote Errors
+  // -------------------------------------------------------------------------------------------------------------------
+
+  pub fn home_directory_does_not_exist() -> ZatError {
+    panic!("home directory does not exit")
+  }
+
+  pub fn could_not_get_home_directory_metadata(error: String, path: &str) -> ZatError {
+    panic!("home directory {}, could not be read: {}", path, error)
+  }
+
+  pub fn home_directory_is_not_a_directory(path: &str) -> ZatError {
+    panic!("home directory is not a directory '{}'", path)
+  }
+
+  pub fn invalid_remote_repository_url(error: String, url: &str) -> ZatError {
+    panic!("Invalid remote repository url '{}', reason: {}", url, error)
+  }
+
+  pub fn unsupported_hostname(url: &str) -> ZatError {
+    panic!("Unsupported hostname in remote url '{}'", url)
+  }
+
+  pub fn could_not_create_local_repository_directory(error: String, path: &str) -> ZatError {
+    panic!("Could not checkout remote repository locally '{}', reason: {}", path, error)
   }
 }
 

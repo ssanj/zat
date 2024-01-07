@@ -1,6 +1,8 @@
+use std::todo;
+
 use crate::args::{ArgSupplier, DefaultUserConfigProvider, ZatCommand};
 use crate::args::cli_arg_supplier::CliArgSupplier;
-use crate::command::{BootstrapProject, ProcessTemplates};
+use crate::command::{BootstrapProject, ProcessTemplates, ProcessRemoteTemplates};
 use crate::error::ZatAction;
 
 
@@ -23,7 +25,10 @@ impl Workflow {
         BootstrapProject::process_bootstrap(bootstrap_project_args)
       },
 
-      ZatCommand::ProcessRemote(_) => todo!(),
+      ZatCommand::ProcessRemote(process_remote_template_args) => {
+        let repository_dir = ProcessRemoteTemplates::process_remote(process_remote_template_args)?;
+        todo!()
+      },
     }
   }
 
