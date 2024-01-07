@@ -38,6 +38,20 @@ fn runs_a_simple_template() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 
+// To test if a folder that matches one of the default ignores (.variables.zat-prompt, .git) fails.
+// It should only use ignores "within" a the repository directory, not "on"  the repository directory.
+#[test]
+fn runs_a_template_with_github_in_folder_name() -> Result<(), Box<dyn std::error::Error>> {
+  let example_test_config =
+    ExampleTestConfig::with_input(
+      "with.github.com.in.folder.name",
+      &["YouOnlyLiveOnce", "", "y"]
+    );
+
+  assert_run_example(example_test_config)
+}
+
+
 #[test]
 fn runs_a_simple_template_with_shell_hook() -> Result<(), Box<dyn std::error::Error>> {
   let working_directory = tempdir()?;
