@@ -227,6 +227,14 @@ Given a variable named "project" and a filter named "python", we can use it as:
 
 As noted above, if the one of the filter names is `__default__` you can simply use the `variable_name` without appending the filter name.
 
+#### Ignore usage
+
+You can ignore specified files from your `templates` folder using a regular expression. By default any `^.git` files are ignored. You can specify multiple ignored files are directories as:
+
+```
+zat process --ignore '^folderX/.*' --ignore '^never.txt' ....
+```
+
 ### Example templates
 
 | Template | Description |
