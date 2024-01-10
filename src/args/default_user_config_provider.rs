@@ -90,10 +90,10 @@ impl UserConfigProvider for DefaultUserConfigProvider {
       DefaultUserConfigProvider::get_shell_hook_status(&repository_dir);
 
 
-    let default_ignores = vec![DOT_VARIABLES_PROMPT.to_owned(), ".git".to_owned()];
+
 
     let ignores_with_defaults =
-      default_ignores
+      IgnoredFiles::default_ignores()
         .into_iter()
         .chain(args.ignores.into_iter()); // use default ignores with user-supplied ignores
 
