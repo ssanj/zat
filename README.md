@@ -235,8 +235,12 @@ You can ignore specified files from your `templates` folder using a regular expr
 zat process --ignore '^folderX/.*' --ignore '^never.txt' ....
 ```
 
+Ignored files will not be processed and copied over to the target directory.
+
 ### Example templates
 
 | Template | Description |
 | ----- | ---------- |
 | [Sublime Text Plugin Template](https://github.com/ssanj/st-plugin-zat) | Simple Sublime Text Plugin template |
+
+Also have a look at the [example tests](https://github.com/ssanj/zat/tree/main/tests/examples) for some sample Zat repositories.
