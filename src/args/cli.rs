@@ -47,8 +47,8 @@ pub struct ProcessTemplatesArgs {
    #[arg(long, value_parser)]
    pub target_dir: String,
 
-   /// One or more files ignore. Supply multiple times for different files or folders.
-   /// The files '.variables.zat-prompt' and '.git' are always specified.
+   /// One or more files to ignore within the 'template' directory. Supply multiple times for different files or folders.
+   /// '.git' are always specified.
    /// Accepts any valid regular expressions.
    #[arg(long, value_parser,)]
    pub ignores: Vec<String>,
