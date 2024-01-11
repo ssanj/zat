@@ -5,7 +5,6 @@ use super::UserConfigProvider;
 use super::cli::ProcessTemplatesArgs;
 use crate::config::UserConfig;
 use crate::config::IgnoredFiles;
-use crate::config::DOT_VARIABLES_PROMPT;
 use crate::config::Filters;
 use crate::config::TargetDir;
 use crate::config::RepositoryDir;
@@ -85,12 +84,8 @@ impl UserConfigProvider for DefaultUserConfigProvider {
         TemplateDirTemplateFileStatus::DoesNotExist
       };
 
-
     let shell_hook_file_status =
       DefaultUserConfigProvider::get_shell_hook_status(&repository_dir);
-
-
-
 
     let ignores_with_defaults =
       IgnoredFiles::default_ignores()

@@ -2,6 +2,7 @@ use assert_cmd::Command;
 use tempfile::tempdir;
 
 use crate::file_differ::print_changes;
+use crate::file_differ::list_directory_contents;
 use predicates::prelude::*;
 use std::{format as s, println as p};
 use std::path::Path;
@@ -63,7 +64,6 @@ fn runs_a_simple_template_with_shell_hook() -> Result<(), Box<dyn std::error::Er
 
   let shell_created_dir = target_directory.join("created-by-shell-hook");
   let shell_created_dir_path = shell_created_dir.as_path();
-  let expected_files = [shell_created_dir_path];
 
   let example_test_config =
     ExampleTestConfig::with_expected_output_and_files(
@@ -71,7 +71,34 @@ fn runs_a_simple_template_with_shell_hook() -> Result<(), Box<dyn std::error::Er
       &["Something Cool", "", "y"],
       AssertionType::Contains(&shell_assertions),
       target_directory.as_path(),
-      &expected_files
+    );
+
+  assert_run_example(example_test_config)
+}
+
+#[test]
+fn runs_template_with_ignores() -> Result<(), Box<dyn std::error::Error>> {
+  let working_directory = tempdir()?;
+  let target_directory = working_directory.into_path().join("example-template-with-ignores");
+
+  let ignores = ["^do-not-include.txt", "^wip/.*.txt"];
+  let output = ["Zat completed successfully"];
+
+  let unexpected_files =
+    [
+      Path::new("do-not-include.txt"),
+      &Path::new("wip").join("sample.txt"),
+      &Path::new("wip").join("scratch.txt")
+    ];
+
+  let example_test_config =
+    ExampleTestConfig::with_ignores_and_expected_output_and_files(
+      "template-with-ignores",
+      &["YouOnlyLiveOnce", "", "y"],
+      AssertionType::Contains(&output),
+      target_directory.as_path(),
+      &ignores,
+      &unexpected_files
     );
 
   assert_run_example(example_test_config)
@@ -105,12 +132,13 @@ fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
 
   let variable_file = Path::new(".variables.zat-prompt");
   let readme_file = Path::new("template").join("README.md.tmpl");
-  let readme_file = Path::new("template").join("$project__underscore$_config.conf");
+  let config_file = Path::new("template").join("$project__underscore$_config.conf");
 
   let files_that_should_exist =
     [
       variable_file,
-      readme_file.as_path()
+      readme_file.as_path(),
+      config_file.as_path()
     ];
 
     let working_directory_path = tempdir()?.into_path();
@@ -144,8 +172,8 @@ struct ExampleTestConfig<'a> {
   maybe_input: Option<&'a[&'a str]>,
   maybe_target_directory: Option<&'a Path>,
   maybe_stdout_assertions: Option<AssertionType<'a>>,
-  files_that_should_exist: &'a[&'a Path],
   files_that_should_not_exist: &'a[&'a Path],
+  ignores: &'a[&'a str]
 }
 
 impl <'a> ExampleTestConfig<'a> {
@@ -154,33 +182,50 @@ impl <'a> ExampleTestConfig<'a> {
     let maybe_input = Some(input);
     let maybe_stdout_assertions = None;
     let maybe_target_directory = None;
-    let files_that_should_exist = &[];
     let files_that_should_not_exist = &[];
+    let ignores = &[];
 
     Self {
       test_directory,
       maybe_input,
       maybe_target_directory,
       maybe_stdout_assertions,
-      files_that_should_exist,
       files_that_should_not_exist,
+      ignores
     }
   }
 
-  fn with_expected_output_and_files(test_directory: &'a str, input: &'a[&'a str], expected_output: AssertionType<'a>, target_dir: &'a Path, files_that_should_exist: &'a[&'a Path]) -> Self {
+  fn with_expected_output_and_files(test_directory: &'a str, input: &'a[&'a str], expected_output: AssertionType<'a>, target_dir: &'a Path) -> Self {
 
     let maybe_input = Some(input);
     let maybe_target_directory = Some(target_dir);
     let maybe_stdout_assertions = Some(expected_output);
     let files_that_should_not_exist = &[];
+    let ignores = &[];
 
     Self {
       test_directory,
       maybe_input,
       maybe_target_directory,
       maybe_stdout_assertions,
-      files_that_should_exist,
       files_that_should_not_exist,
+      ignores
+    }
+  }
+
+  fn with_ignores_and_expected_output_and_files(test_directory: &'a str, input: &'a[&'a str], expected_output: AssertionType<'a>, target_dir: &'a Path, ignores: &'a[&'a str], files_that_should_not_exist: &'a[&'a Path]) -> Self {
+
+    let maybe_input = Some(input);
+    let maybe_target_directory = Some(target_dir);
+    let maybe_stdout_assertions = Some(expected_output);
+
+    Self {
+      test_directory,
+      maybe_input,
+      maybe_target_directory,
+      maybe_stdout_assertions,
+      files_that_should_not_exist,
+      ignores
     }
   }
 }
@@ -242,6 +287,12 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
     .arg("--target-dir")
     .arg(&target_directory);
 
+    for ig in example_config.ignores {
+      cmd
+        .arg("--ignores")
+        .arg(ig);
+    }
+
     if let Some(input) = example_config.maybe_input {
       cmd.write_stdin(stdin(input));
     }
@@ -252,22 +303,33 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
       .success();
 
   match example_config.maybe_stdout_assertions {
-      Some(AssertionType::Contains(contents)) => {
-        for content in contents {
-          output = output.stdout(std_out_contains(content));
-        }
-      },
+    Some(AssertionType::Contains(contents)) => {
+      for content in contents {
+        output = output.stdout(std_out_contains(content));
+      }
+    },
 
-      None => ()
+    None => ()
   }
 
   assert!(Path::new(&target_directory).exists(), "{}", Red.paint(s!("target directory `{}` does not exist", &target_directory)));
-  for expected_file in example_config.files_that_should_exist {
-    assert!(Path::new(expected_file).exists(), "{}", Red.paint(s!("Expected file `{}` does not exist: ", &expected_file.to_string_lossy())));
+
+  // Files that should not exist; might be ignore or deleted via a shell hook
+  for unexpected_file in example_config.files_that_should_not_exist {
+    let fullpath = Path::new(&target_directory).join(unexpected_file);
+    assert!(!fullpath.exists(), "{}", Red.paint(s!("Unexpected file `{}` exists", fullpath.to_string_lossy())));
   }
 
-  for unexpected_file in example_config.files_that_should_not_exist {
-    assert!(!Path::new(unexpected_file).exists(), "{}", Red.paint(s!("Unexpected file `{}` exists", &unexpected_file.to_string_lossy())));
+  println!("Target Directory {} contents", &target_directory);
+  println!();
+  for f in list_directory_contents(&target_directory) {
+    println!("{}", f);
+  }
+
+  println!("Expected Target {} Directory contents", &expected_target_directory);
+  println!();
+  for f in list_directory_contents(&expected_target_directory) {
+    println!("{}", f);
   }
 
   print_changes(&expected_target_directory, &target_directory);
