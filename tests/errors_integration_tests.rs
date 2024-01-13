@@ -187,7 +187,6 @@ fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error
 
 #[test]
 fn error_message_on_bootstrap_repository_exists() -> Result<(), Box<dyn std::error::Error>> {
-
   let working_directory = tempdir()?;
   let repository_directory = working_directory.into_path().to_string_lossy().to_string();
 
@@ -201,6 +200,24 @@ fn error_message_on_bootstrap_repository_exists() -> Result<(), Box<dyn std::err
   let bootstrap_error_config = BootstrapErrorTestConfig::new(repository_directory.as_str(), error_parts);
 
   run_bootstrap_error_test(bootstrap_error_config)
+}
+
+#[test]
+fn error_message_on_invalid_remote_url() -> Result<(), Box<dyn std::error::Error>> {
+  let url = "this/is/not/a/url";
+  let working_directory = tempdir()?;
+  let repository_directory = working_directory.into_path().to_string_lossy().to_string();
+  let error_parts =
+    ErrorParts::with_exception(
+      "There was an error running a remote processing command".to_owned(),
+      s!("The remote repository URL supplied '{}' is invalid. Zat needs a valid URL to checkout this repository.", url),
+      "relative URL without a base".to_owned(),
+      "Please ensure the remote repository URL supplied is valid.".to_owned()
+    );
+
+  let process_remote_config = ErrorRemoteTestConfig::source_no_input_directory_not_exists(url, repository_directory.as_str(), error_parts);
+
+  run_remote_error_test(process_remote_config)
 }
 
 
@@ -217,6 +234,13 @@ struct ErrorTestConfig<'a> {
   maybe_input: Option<&'a[&'a str]>,
   maybe_target_directory: Option<&'a str>,
   target_directory_should_exist: bool,
+  error_parts: ErrorParts
+}
+
+struct ErrorRemoteTestConfig<'a> {
+  url: &'a str,
+  test_directory: &'a str,
+  maybe_target_directory: Option<&'a str>,
   error_parts: ErrorParts
 }
 
@@ -250,18 +274,17 @@ impl <'a> ErrorTestConfig<'a> {
 
   /// Source error test, without input and without a target directory getting created.
   fn source_no_input_directory_not_exists(test_directory: &'a str, error_parts: ErrorParts) -> Self {
+    let maybe_input = None;
+    let maybe_target_directory = None;
+    let target_directory_should_exist = false;
 
-  let maybe_input = None;
-  let maybe_target_directory = None;
-  let target_directory_should_exist = false;
-
-    Self {
-      test_directory,
-      maybe_input,
-      maybe_target_directory,
-      target_directory_should_exist,
-      error_parts
-    }
+      Self {
+        test_directory,
+        maybe_input,
+        maybe_target_directory,
+        target_directory_should_exist,
+        error_parts
+      }
   }
 
   /// Source error test, with input and without a target directory getting created.
@@ -350,6 +373,21 @@ impl <'a> BootstrapErrorTestConfig<'a> {
   }
 }
 
+impl <'a> ErrorRemoteTestConfig<'a> {
+  /// Source error test, without input and without a target directory getting created.
+  fn source_no_input_directory_not_exists(url: &'a str, test_directory: &'a str, error_parts: ErrorParts) -> Self {
+    let maybe_target_directory = None;
+
+      Self {
+        url,
+        test_directory,
+        maybe_target_directory,
+        error_parts
+      }
+  }
+
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper functions
 //----------------------------------------------------------------------------------------------------------------------
@@ -407,6 +445,48 @@ fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::
     assert!(std::path::Path::new(&target_directory).exists());
     println!("Target dir {} should not have been created", &target_directory);
   }
+
+  Ok(())
+}
+
+fn run_remote_error_test(error_remote_config: ErrorRemoteTestConfig<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+  let working_directory = tempdir()?;
+
+  let target_directory = match error_remote_config.maybe_target_directory {
+    Some(target_dir) => target_dir.to_owned(),
+    None => working_directory.into_path().join(s!("errors-remote-{}", error_remote_config.test_directory)).to_string_lossy().to_string(),
+  };
+
+  let error = error_remote_config.error_parts;
+
+  let std_err_contains = |error: ErrorParts| {
+    predicate::function(move |out: &[u8]| {
+      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
+      let lines: Vec<&str> = output.split('\n').collect();
+      assert_error_message(&lines, error.clone())
+    })
+  };
+
+  let url = error_remote_config.url;
+
+  let command =
+    cmd
+      .arg("process-remote")
+      .arg("--repository-url")
+      .arg(url)
+      .arg("--target-dir")
+      .arg(&target_directory);
+
+  command
+    .assert()
+    .failure()
+    .stderr(std_err_contains(error));
+
+  // if error_remote_config.target_directory_should_exist {
+  //   assert!(std::path::Path::new(&target_directory).exists());
+  //   println!("Target dir {} should not have been created", &target_directory);
+  // }
 
   Ok(())
 }
