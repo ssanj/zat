@@ -65,8 +65,6 @@ impl ProcessRemoteTemplates {
     let hostname = &url.host_str().ok_or_else(|| ZatError::unsupported_hostname(&url.as_str()))?;
     let path = &url.path();
 
-    println!("{}, {}, {}", home_dir, &hostname, &path);
-
     // We can't use Path to join the pieces here, because the 'path' segment has a leading '/' which
     // clears the rest of the path. This is documented in Path.join.
     let repository_path = s!("{}{}{}{}{}{}", home_dir, MAIN_SEPARATOR, ".zat", MAIN_SEPARATOR, &hostname, &path);
@@ -77,7 +75,7 @@ impl ProcessRemoteTemplates {
       Ok(RepositoryDirType::Existing(RepositoryDir::new(&repository_path)))
     } else {
       fs::create_dir_all(&repository_path)
-        .or_else(|e| Err(ZatError::could_not_create_local_repository_directory(e.to_string(), &repository_path)))
+        .or_else(|e| Err(ZatError::could_not_create_local_repository_directory(e.to_string(), &repository_path, &url)))
         .map(|_| {
           Logger::info(&s!("Created local checkout '{}' for remote repository '{}'", &repository_path, &repository_url));
           RepositoryDirType::Created(RepositoryDir::new(&repository_path))
