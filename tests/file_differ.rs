@@ -1,4 +1,4 @@
-use std::{path::Path, collections::HashSet, fmt, println, eprint, format};
+use std::{path::Path, collections::HashSet, fmt, println, format};
 
 use walkdir::{WalkDir, DirEntry};
 use similar::{ChangeTag, TextDiff};

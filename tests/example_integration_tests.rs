@@ -62,9 +62,6 @@ fn runs_a_simple_template_with_shell_hook() -> Result<(), Box<dyn std::error::Er
   let shell_output = "running shell hook";
   let shell_assertions = [shell_output, &args_string];
 
-  let shell_created_dir = target_directory.join("created-by-shell-hook");
-  let shell_created_dir_path = shell_created_dir.as_path();
-
   let example_test_config =
     ExampleTestConfig::with_expected_output_and_files(
       "simple-with-shell-hook",

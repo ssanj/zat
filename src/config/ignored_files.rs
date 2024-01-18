@@ -1,5 +1,4 @@
 use std::{collections::HashSet, fmt::Display, fmt};
-use super::DOT_VARIABLES_PROMPT;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IgnoredFiles {
