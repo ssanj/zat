@@ -220,6 +220,23 @@ fn error_message_on_invalid_remote_url() -> Result<(), Box<dyn std::error::Error
   run_remote_error_test(process_remote_config)
 }
 
+#[test]
+fn error_message_on_unsupported_hostname() -> Result<(), Box<dyn std::error::Error>> {
+  let url = "data:text/plain, Stuff";
+  let working_directory = tempdir()?;
+  let repository_directory = working_directory.into_path().to_string_lossy().to_string();
+  let error_parts =
+    ErrorParts::new(
+      "There was an error running a remote processing command".to_owned(),
+      s!("The remote repository URL supplied '{}' has an invalid hostname. Zat needs the hostname to be a domain name or IP address. IPv6 addresses should be supplied within square braces.", url),
+      "Please ensure the remote repository URL hostname is a domain or an IP address.".to_owned()
+    );
+
+  let process_remote_config = ErrorRemoteTestConfig::source_no_input_directory_not_exists(url, repository_directory.as_str(), error_parts);
+
+  run_remote_error_test(process_remote_config)
+}
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Helper Classes

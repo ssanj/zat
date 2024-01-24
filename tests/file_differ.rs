@@ -108,7 +108,7 @@ pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: 
 
 pub fn print_diff(actual_content: &str, expected_content: &str) {
   if expected_content != actual_content {
-    println!("Changes found.\nexpected content:\n{}\n\nactual content:\n{}", expected_content, actual_content);
+    println!("\n>>>\nChanges found:\n>>>\n");
     let text_diff = TextDiff::from_lines(expected_content, actual_content);
     for change in text_diff.iter_all_changes() {
         let sign = match change.tag() {
@@ -117,6 +117,7 @@ pub fn print_diff(actual_content: &str, expected_content: &str) {
             ChangeTag::Equal => Colour::RGB(128, 128, 128).paint("|").to_string(),
         };
         print!("  {}{}", sign, change);
+        println!(">>>")
     }
   }
 }
