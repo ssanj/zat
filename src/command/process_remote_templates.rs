@@ -98,16 +98,16 @@ fn clone_git_repository(process_remote_template_args: &ProcessRemoteTemplatesArg
         .env("GIT_TERMINAL_PROMPT" , "0")
         .arg("clone")
         .arg(&process_remote_template_args.repository_url)
-        .arg(repository_dir.path())
+        .arg(&repository_dir.path())
         .status();
 
   let status = status_result.map_err(|e| {
-    ZatError::git_clone_error(e.to_string(), &process_remote_template_args.repository_url)
+    ZatError::git_clone_error(e.to_string(), &process_remote_template_args.repository_url, &repository_dir.path())
   })?;
 
   if !status.success() {
     Err(
-      ZatError::git_clone_status_error(status.code(), &process_remote_template_args.repository_url)
+      ZatError::git_clone_status_error(status.code(), &process_remote_template_args.repository_url, &repository_dir.path())
     )
   } else {
     Ok(())

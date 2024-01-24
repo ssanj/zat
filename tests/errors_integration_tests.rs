@@ -3,7 +3,7 @@ use file_differ::print_diff;
 use tempfile::tempdir;
 use predicates::prelude::*;
 use format as s;
-use std::println;
+use std::{println, ops::Index};
 
 mod file_differ;
 
@@ -230,6 +230,24 @@ fn error_message_on_unsupported_hostname() -> Result<(), Box<dyn std::error::Err
       "There was an error running a remote processing command".to_owned(),
       s!("The remote repository URL supplied '{}' has an invalid hostname. Zat needs the hostname to be a domain name or IP address. IPv6 addresses should be supplied within square braces.", url),
       "Please ensure the remote repository URL hostname is a domain or an IP address.".to_owned()
+    );
+
+  let process_remote_config = ErrorRemoteTestConfig::source_no_input_directory_not_exists(url, repository_directory.as_str(), error_parts);
+
+  run_remote_error_test(process_remote_config)
+}
+
+#[test]
+fn error_message_on_git_clone_failure() -> Result<(), Box<dyn std::error::Error>> {
+  let url = "https://github.com/ssanj/does-not-exist";
+  let home_dir = dirs::home_dir().expect("Could not find home directory").join(".zat");
+  let working_directory = tempdir()?;
+  let repository_directory = working_directory.into_path().to_string_lossy().to_string();
+  let error_parts =
+    ErrorParts::new(
+      "There was an error running a remote processing command".to_owned(),
+      s!("Zat could not could not clone remote repository '{}' to local path '{}/github.com/ssanj/does-not-exist' because it returned an exit code of '128'.", url, home_dir.to_string_lossy()),
+      "Please see clone output for possible issues.".to_owned()
     );
 
   let process_remote_config = ErrorRemoteTestConfig::source_no_input_directory_not_exists(url, repository_directory.as_str(), error_parts);
@@ -609,17 +627,34 @@ fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
     line10 &&
     line11
   } else {
-    assert_eq!(num_lines, 9, "expected 9 lines but got {}", num_lines);
 
-    let line0 = assert_line(0, lines[0], "");
-    let line1 = assert_line(1, lines[1], error_colour.paint("Zat failed an with error.").to_string().as_str());
-    let line2 = assert_line(2, lines[2], "",);
-    let line3 = assert_line(3, lines[3], s!("{}{}:", heading_indent, heading_colour.paint(error_type).to_string()).as_str());
-    let line4 = assert_line(4, lines[4], s!("{}{}", content_indent, error).as_str());
-    let line5 = assert_line(5, lines[5], "");
-    let line6 = assert_line(6, lines[6], s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string()).as_str());
-    let line7 = assert_line(7, lines[7], s!("{}{}", content_indent, fix).as_str());
-    let line8 = assert_line(8, lines[8], "");
+    let first_line =
+      if num_lines > 9 {
+        // We have unexpected stdout lines.
+        // Find the "first" line; the line before : "Zat failed an with error."
+        lines
+          .iter()
+          .position(|line| line.contains("Zat failed an with error."))
+          .map_or(0, |n| n - 1)
+      } else {
+        0
+      };
+
+    let final_lines = first_line + 9;
+
+    println!("first line: {}, num lines: {}", first_line, num_lines);
+
+    assert_eq!(num_lines, final_lines, "expected 9 lines but got {}", num_lines);
+
+    let line0 = assert_line(0, lines[first_line], "");
+    let line1 = assert_line(1, lines[first_line + 1], error_colour.paint("Zat failed an with error.").to_string().as_str());
+    let line2 = assert_line(2, lines[first_line + 2], "",);
+    let line3 = assert_line(3, lines[first_line + 3], s!("{}{}:", heading_indent, heading_colour.paint(error_type).to_string()).as_str());
+    let line4 = assert_line(4, lines[first_line + 4], s!("{}{}", content_indent, error).as_str());
+    let line5 = assert_line(5, lines[first_line + 5], "");
+    let line6 = assert_line(6, lines[first_line + 6], s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string()).as_str());
+    let line7 = assert_line(7, lines[first_line + 7], s!("{}{}", content_indent, fix).as_str());
+    let line8 = assert_line(8, lines[first_line + 8], "");
 
     line0 &&
     line1 &&

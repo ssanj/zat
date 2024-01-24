@@ -8,6 +8,8 @@ pub enum ProcessRemoteCommandErrorReason {
   RemoteRepositoryUrlIsInvalid(String, String, String),
   RemoteRepositoryUrlHostnameIsInvalid(String, String),
   RemoteRepositoryCouldNotCreateLocalCheckoutDirectory(String, String, String),
+  GitCloneFailed(String, String, String),
+  GitCloneStatusError(String, String),
 }
 
 
@@ -22,6 +24,8 @@ impl From<&ProcessRemoteCommandErrorReason> for ErrorFormat {
             ProcessRemoteCommandErrorReason::RemoteRepositoryUrlIsInvalid(error, exception, remediation) => (error.to_owned(), Some(exception.to_owned()), Some(remediation.to_owned())),
             ProcessRemoteCommandErrorReason::RemoteRepositoryUrlHostnameIsInvalid(error, remediation) => (error.to_owned(), None, Some(remediation.to_owned())),
             ProcessRemoteCommandErrorReason::RemoteRepositoryCouldNotCreateLocalCheckoutDirectory(error, exception, remediation) => (error.to_owned(), Some(exception.to_owned()), Some(remediation.to_owned())),
+            ProcessRemoteCommandErrorReason::GitCloneFailed(error, exception, remediation) => (error.to_owned(), Some(exception.to_owned()), Some(remediation.to_owned())),
+            ProcessRemoteCommandErrorReason::GitCloneStatusError(error, remediation) => (error.to_owned(), None, Some(remediation.to_owned())),
         };
 
         ErrorFormat {

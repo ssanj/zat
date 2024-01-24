@@ -379,12 +379,24 @@ impl ZatError {
     )
   }
 
-  pub fn git_clone_error(error: String, path: &str) -> ZatError {
-    panic!("Could not clone remote repository '{}', reason: {}", path, error)
+  pub fn git_clone_error(error: String, url: &str, path: &str) -> ZatError {
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::GitCloneFailed(
+        s!("Zat could not could not clone remote repository '{}' to local path '{}'.", url, path),
+        error,
+        s!("Please ensure the remote repository is accessible and Zat has enough privileges to create a directory at '{}'.", path)
+      )
+    )
   }
 
-  pub fn git_clone_status_error(error_code: Option<i32>, path: &str) -> ZatError {
-    panic!("Could not clone remote repository '{}', error_code: {}", path, error_code.map_or_else(|| "Unknown".to_owned(), |ec| ec.to_string()))
+  pub fn git_clone_status_error(error_code: Option<i32>, url: &str, path: &str) -> ZatError {
+    let code = error_code.map_or_else(|| "Unknown".to_owned(), |ec| ec.to_string());
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::GitCloneStatusError(
+        s!("Zat could not could not clone remote repository '{}' to local path '{}' because it returned an exit code of '{}'.", url, path, code),
+        "Please see clone output for possible issues.".to_owned()
+      )
+    )
   }
 }
 
