@@ -22,3 +22,6 @@ pub use template_files_directory::TemplateFilesDir;
 pub use target_directory::TargetDir;
 pub use shell_hook_file::SHELL_HOOK_FILE;
 pub use config_shell_hook_status::ConfigShellHookStatus;
+
+#[cfg(test)]
+pub use template_files_directory::TEMPLATE_FILES_DIR;

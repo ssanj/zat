@@ -9,3 +9,6 @@ pub use default_template_variable_provider::DefaultTemplateVariableProvider;
 pub use template_config_validator::{TemplateConfigValidator, ValidConfig, TemplateVariableReview};
 pub use default_template_config_validator::DefaultTemplateConfigValidator;
 pub use variables::{FilterType, TemplateVariable, UserVariableKey, UserVariableValue, TemplateVariables};
+
+#[cfg(test)]
+pub use variables::VariableFilter;

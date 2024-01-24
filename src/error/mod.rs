@@ -19,3 +19,6 @@ use template_processing_error_reason::ReasonFileErrorReason;
 use post_processing_error_reason::PostProcessingErrorReason;
 use bootstrap_command_error_reason::BootstrapCommandErrorReason;
 use process_remote_command_error_reason::ProcessRemoteCommandErrorReason;
+
+#[cfg(test)]
+pub use error::ProcessCommandErrorReason;
