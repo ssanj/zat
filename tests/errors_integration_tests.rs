@@ -238,7 +238,7 @@ fn error_message_on_unsupported_hostname() -> Result<(), Box<dyn std::error::Err
 }
 
 #[test]
-fn error_message_on_git_clone_failure() -> Result<(), Box<dyn std::error::Error>> {
+fn error_message_on_git_clone_status_failure() -> Result<(), Box<dyn std::error::Error>> {
   let url = "https://github.com/ssanj/does-not-exist";
   let home_dir = dirs::home_dir().expect("Could not find home directory").join(".zat");
   let working_directory = tempdir()?;
