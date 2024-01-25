@@ -246,7 +246,7 @@ fn error_message_on_git_clone_status_failure() -> Result<(), Box<dyn std::error:
   let error_parts =
     ErrorParts::new(
       "There was an error running a remote processing command".to_owned(),
-      s!("Zat could not could not clone remote repository '{}' to local path '{}/github.com/ssanj/does-not-exist' because it returned an exit code of '128'.", url, home_dir.to_string_lossy()),
+      s!("Zat could not could not clone remote repository '{}' because it returned an exit code of '128'.", url),
       "Please see clone output for possible issues.".to_owned()
     );
 

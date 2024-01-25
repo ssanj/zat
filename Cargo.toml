@@ -17,6 +17,7 @@ regex = "1.7"
 ansi_term = "0.12"
 dirs = "5"
 url = "2.5"
+uuid = { version = "1.7.0", features = ["v1", "v3", "v4", "v5", "v6", "v7", "v8"] }
 
 [dev-dependencies]
 pretty_assertions = "1.0"

@@ -10,6 +10,7 @@ use dirs::home_dir;
 use url::Url;
 use std::fs::{self, Metadata};
 use crate::spath;
+use uuid::Uuid;
 
 use super::ProcessTemplates;
 
@@ -64,9 +65,11 @@ impl ProcessRemoteTemplates {
     let hostname = &url.host_str().ok_or_else(|| ZatError::unsupported_hostname(&url.as_str()))?;
     let path = &url.path();
 
+    let uuid = Uuid::new_v4();
+
     // We can't use Path to join the pieces here, because the 'path' segment has a leading '/' which
     // clears the rest of the path. This is documented in Path.join.
-    let repository_path = s!("{}{}{}{}{}{}", home_dir, MAIN_SEPARATOR, ".zat", MAIN_SEPARATOR, &hostname, &path);
+    let repository_path = s!("{}{}{}{}{}{}{}{}", home_dir, MAIN_SEPARATOR, ".zat", MAIN_SEPARATOR, uuid.to_string(), MAIN_SEPARATOR, &hostname, &path);
 
     // We may want to Git pull on this directory in the future, maybe based on a flag.
     // For the moment we just use it as a cache.
@@ -107,7 +110,7 @@ fn clone_git_repository(process_remote_template_args: &ProcessRemoteTemplatesArg
 
   if !status.success() {
     Err(
-      ZatError::git_clone_status_error(status.code(), &process_remote_template_args.repository_url, &repository_dir.path())
+      ZatError::git_clone_status_error(status.code(), &process_remote_template_args.repository_url)
     )
   } else {
     Ok(())

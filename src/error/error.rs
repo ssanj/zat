@@ -389,11 +389,11 @@ impl ZatError {
     )
   }
 
-  pub fn git_clone_status_error(error_code: Option<i32>, url: &str, path: &str) -> ZatError {
+  pub fn git_clone_status_error(error_code: Option<i32>, url: &str) -> ZatError {
     let code = error_code.map_or_else(|| "Unknown".to_owned(), |ec| ec.to_string());
     ZatError::ProcessRemoteCommandError(
       ProcessRemoteCommandErrorReason::GitCloneStatusError(
-        s!("Zat could not could not clone remote repository '{}' to local path '{}' because it returned an exit code of '{}'.", url, path, code),
+        s!("Zat could not could not clone remote repository '{}' because it returned an exit code of '{}'.", url, code),
         "Please see clone output for possible issues.".to_owned()
       )
     )
