@@ -1,13 +1,12 @@
 # Shell Hooks
 
-Sometimes it's useful to run a script at after the templates have been rendered to the target directory. It can then do
-things like making other scripts executable, invoking an API or any other post-rendered functionality that is required.
+Sometimes it's useful to run a script at after the templates have been rendered to the target directory. It can then do things like making other scripts executable, invoking an API or any other post-rendered functionality that is required.
 
 ## Chosen Option
 
 `Option - 2`.
 
-While `Option 2 - In the templates folder`, would be less work for the user, it's a little clumsy to implement.
+While `Option 3 - In the templates folder and auto executable`, would be less work for the user, it's a little clumsy to implement. `Option 1 - In the templates file folder` doesn't make sense in this instance as the shell script will be retained in the target folder.
 
 ## Option 1 - In the templates file folder
 
@@ -25,8 +24,7 @@ While `Option 2 - In the templates folder`, would be less work for the user, it'
 
 - More burden on the user has to make the file executable.
 - We have to copy this file in a special way to other files, in order to maintain its executable attribute.
-- The shell hook is part of the template files directory, and will be present in the target directory. Ideally the target directory
-  should only have files relating to the template - not infrastructure related files.
+- The shell hook is part of the template files directory, and will be present in the target directory. Ideally the target directory should only have files relating to the template - not infrastructure related files.
 
 ## Option 2 - In the templates folder
 
