@@ -1,88 +1,62 @@
-use std::path::{Path, MAIN_SEPARATOR};
-
 use crate::config::RepositoryDir;
 use crate::error::{ZatAction, ZatError, ZatResult};
 use crate::args::{ProcessRemoteTemplatesArgs, ProcessTemplatesArgs, UserConfigProvider};
 use crate::logging::Logger;
 use std::process::Command;
 use std::format as s;
-use dirs::home_dir;
+use tempfile::TempDir;
 use url::Url;
-use std::fs::{self, Metadata};
-use crate::spath;
-use uuid::Uuid;
-
+use std::fs;
 use super::ProcessTemplates;
 
 
 pub struct ProcessRemoteTemplates;
 
-enum RepositoryDirType {
-  Existing(RepositoryDir),
-  Created(RepositoryDir)
-}
 
 impl ProcessRemoteTemplates {
 
   pub fn process_remote(config_provider: impl UserConfigProvider, process_remote_template_args : ProcessRemoteTemplatesArgs) -> ZatAction {
-    let home_dir = Self::get_home_directory()?;
-    let repository_dir_status = Self::create_repository_directory(&home_dir, &process_remote_template_args.repository_url)?;
+    let checkout_directory: TempDir = Self::create_checkout_directory(&process_remote_template_args.repository_url)?;
 
-    let repository_directory = match repository_dir_status {
-        RepositoryDirType::Existing(repository_dir) => repository_dir,
-        RepositoryDirType::Created(repository_dir) => {
-          clone_git_repository(&process_remote_template_args, &repository_dir)?;
-          repository_dir
-        },
-    };
+    let checkout_directory_path = checkout_directory.path().to_string_lossy().to_string();
+    let repository_directory = RepositoryDir::new(&checkout_directory_path);
+    clone_git_repository(&process_remote_template_args, &repository_directory)?;
 
     // Invoke the regular ProcessTemplates::process at this point
     let process_template_args = create_process_templates_args(repository_directory, process_remote_template_args);
-    ProcessTemplates::process(config_provider, process_template_args)
+
+    let result = ProcessTemplates::process(config_provider, process_template_args);
+
+    checkout_directory
+      .close()
+      .unwrap_or_else(|e| Logger::warn(&s!("Could not remove temporary folder '{}', reason: {}", checkout_directory_path, e.to_string())));
+
+    result
   }
 
-  fn get_home_directory() -> ZatResult<String> {
-    let home_dir = home_dir().ok_or_else(|| ZatError::home_directory_does_not_exist())?;
 
-    // We choose not to create the home_dir if it does not exist. It seems a bit much to create
-    // a user's home directory for a simple tool.
-    let file_type =
-      fs::metadata(&home_dir)
-        .or_else(|e| Err(ZatError::could_not_get_home_directory_metadata(e.to_string(), spath!(home_dir))))
-        .map(|md: Metadata| md.file_type())?;
-
-    if file_type.is_dir() {
-      Ok(spath!(&home_dir).clone())
-    } else {
-      Err(ZatError::home_directory_is_not_a_directory(spath!(home_dir)))
-    }
-  }
-
-  fn create_repository_directory(home_dir: &str, repository_url: &str) -> ZatResult<RepositoryDirType> {
+  fn create_checkout_directory(repository_url: &str) -> ZatResult<TempDir> {
     let url = Url::parse(repository_url)
       .map_err(|e| ZatError::invalid_remote_repository_url(e.to_string(), repository_url))?;
 
     let hostname = &url.host_str().ok_or_else(|| ZatError::unsupported_hostname(&url.as_str()))?;
     let path = &url.path();
 
-    let uuid = Uuid::new_v4();
-
     // We can't use Path to join the pieces here, because the 'path' segment has a leading '/' which
     // clears the rest of the path. This is documented in Path.join.
-    let repository_path = s!("{}{}{}{}{}{}{}{}", home_dir, MAIN_SEPARATOR, ".zat", MAIN_SEPARATOR, uuid.to_string(), MAIN_SEPARATOR, &hostname, &path);
+    let repository_path = s!("zat-{}{}_", &hostname, &path.replace("/", "_"));
 
-    // We may want to Git pull on this directory in the future, maybe based on a flag.
-    // For the moment we just use it as a cache.
-    if Path::new(&repository_path).exists() {
-      Ok(RepositoryDirType::Existing(RepositoryDir::new(&repository_path)))
-    } else {
-      fs::create_dir_all(&repository_path)
-        .or_else(|e| Err(ZatError::could_not_create_local_repository_directory(e.to_string(), &repository_path, &url)))
-        .map(|_| {
-          Logger::info(&s!("Created local checkout '{}' for remote repository '{}'", &repository_path, &repository_url));
-          RepositoryDirType::Created(RepositoryDir::new(&repository_path))
-        })
-    }
+    let checkout_dir =
+      tempfile::Builder::new()
+        .prefix(&repository_path)
+        .tempdir()
+        .map_err(|e| ZatError::could_not_create_checkout_directory(e.to_string()))?;
+
+    fs::create_dir_all(checkout_dir.path())
+      .map_err(|e| ZatError::could_not_create_checkout_directory_structure(e.to_string(), &repository_path, &url))
+      .map(|_| {
+        checkout_dir
+      })
   }
 }
 

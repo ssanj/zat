@@ -3,7 +3,7 @@ use file_differ::print_diff;
 use tempfile::tempdir;
 use predicates::prelude::*;
 use format as s;
-use std::{println, ops::Index};
+use std::println;
 
 mod file_differ;
 
@@ -240,7 +240,6 @@ fn error_message_on_unsupported_hostname() -> Result<(), Box<dyn std::error::Err
 #[test]
 fn error_message_on_git_clone_status_failure() -> Result<(), Box<dyn std::error::Error>> {
   let url = "https://github.com/ssanj/does-not-exist";
-  let home_dir = dirs::home_dir().expect("Could not find home directory").join(".zat");
   let working_directory = tempdir()?;
   let repository_directory = working_directory.into_path().to_string_lossy().to_string();
   let error_parts =

@@ -322,33 +322,16 @@ impl ZatError {
   // Process Remote Errors
   // -------------------------------------------------------------------------------------------------------------------
 
-  pub fn home_directory_does_not_exist() -> ZatError {
+  pub fn could_not_create_checkout_directory(error: String) -> ZatError {
     ZatError::ProcessRemoteCommandError(
-      ProcessRemoteCommandErrorReason::HomeDirectoryDoesNotExist(
-        "Zat could not determine your home directory. Zat uses your home directory to create a '.zat' folder to store remote checkouts.".to_owned(),
-        "Your home directory can be found in the $HOME environment variable. On macOS this is usually under '/User/<YOUR USER NAME>' and on Linux it's under '/home/<YOUR USER NAME>'. If you a custom home directory in a different location, set the value of the $HOME environment variable to point to it.".to_owned()
-      )
-    )
-  }
-
-  pub fn could_not_get_home_directory_metadata(error: String, path: &str) -> ZatError {
-    ZatError::ProcessRemoteCommandError(
-      ProcessRemoteCommandErrorReason::HomeDirectoryCannotBeRead(
-        s!("Zat could not read your home directory '{}'. Zat uses your home directory to create a '.zat' folder to store remote checkouts.", path),
+      ProcessRemoteCommandErrorReason::CouldNotCreateCheckoutDirectory(
+        "Zat could not create a folder under your system's temporary directory. Zat needs to create a temporary local folder to checkout the remote repository.".to_owned(),
         error,
-        s!("Please ensure your home directory '{}' can has the necessary privileges to be read by user that is running Zat.", path)
+        "Please ensure the Zat user has enough privileges to create a temporary directory and that you are not out of disk space".to_owned()
       )
     )
   }
 
-  pub fn home_directory_is_not_a_directory(path: &str) -> ZatError {
-    ZatError::ProcessRemoteCommandError(
-      ProcessRemoteCommandErrorReason::HomeDirectoryPathIsNotADirectory(
-        s!("Your home directory path '{}' is not a directory. Zat uses your home directory to create a '.zat' folder to store remote checkouts.", path),
-        s!("Please ensure your home directory '{}' is a directory", path)
-      )
-    )
-  }
 
   pub fn invalid_remote_repository_url(error: String, url: &str) -> ZatError {
     ZatError::ProcessRemoteCommandError(
@@ -360,6 +343,7 @@ impl ZatError {
     )
   }
 
+
   pub fn unsupported_hostname(url: &str) -> ZatError {
     ZatError::ProcessRemoteCommandError(
       ProcessRemoteCommandErrorReason::RemoteRepositoryUrlHostnameIsInvalid(
@@ -369,9 +353,10 @@ impl ZatError {
     )
   }
 
-  pub fn could_not_create_local_repository_directory(error: String, path: &str, url: &Url) -> ZatError {
+
+  pub fn could_not_create_checkout_directory_structure(error: String, path: &str, url: &Url) -> ZatError {
     ZatError::ProcessRemoteCommandError(
-      ProcessRemoteCommandErrorReason::RemoteRepositoryCouldNotCreateLocalCheckoutDirectory(
+      ProcessRemoteCommandErrorReason::CouldNotCreateCheckoutDirectoryStructure(
         s!("Zat could not create the local checkout directory '{}'. Zat needs to create a local checkout directory for the remote repository '{}' before it clones it locally.", path, url),
         error,
         s!("Please ensure the Zat user has enough privileges to create a directory at '{}'.", path)
