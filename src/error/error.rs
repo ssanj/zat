@@ -364,22 +364,22 @@ impl ZatError {
     )
   }
 
-  pub fn git_clone_error(error: String, url: &str, path: &str) -> ZatError {
+  pub fn git_clone_error(error: String, program: &str, url: &str, path: &str) -> ZatError {
     ZatError::ProcessRemoteCommandError(
       ProcessRemoteCommandErrorReason::GitCloneFailed(
-        s!("Zat could not could not clone remote repository '{}' to local path '{}'.", url, path),
+        s!("Zat could not could not clone remote repository '{}' to local path '{}'. \n\n    Zat ran the following command to clone the remote repository: \n    '{}'", url, path, program),
         error,
-        s!("Please ensure the remote repository is accessible and Zat has enough privileges to create a directory at '{}'.", path)
+        s!("Please ensure you have Git installed and it's accessible on the PATH used by Zat. Please also ensure Zat has enough privileges to create a directory at '{}'.", path)
       )
     )
   }
 
-  pub fn git_clone_status_error(error_code: Option<i32>, url: &str) -> ZatError {
+  pub fn git_clone_status_error(error_code: Option<i32>, program: &str, url: &str) -> ZatError {
     let code = error_code.map_or_else(|| "Unknown".to_owned(), |ec| ec.to_string());
     ZatError::ProcessRemoteCommandError(
       ProcessRemoteCommandErrorReason::GitCloneStatusError(
         s!("Zat could not could not clone remote repository '{}' because it returned an exit code of '{}'.", url, code),
-        "Please ensure the repository URL is valid and that you have access rights to clone it. Please see the clone output for possible other issues.".to_owned()
+        s!("Please ensure the following command runs successfully external to Zat: '{}'. It should also not require a password as Zat does not support private repositories that are not accessible through your Git user. Please also see the clone output for possible other issues.", program)
       )
     )
   }

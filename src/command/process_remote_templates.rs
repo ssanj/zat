@@ -70,21 +70,26 @@ fn create_process_templates_args(repository_directory: RepositoryDir, process_re
 }
 
 fn clone_git_repository(process_remote_template_args: &ProcessRemoteTemplatesArgs, repository_dir: &RepositoryDir) -> ZatAction {
+
   let status_result =
     Command::new("git")
-        .env("GIT_TERMINAL_PROMPT" , "0")
-        .arg("clone")
-        .arg(&process_remote_template_args.repository_url)
-        .arg(&repository_dir.path())
-        .status();
+      .env("GIT_TERMINAL_PROMPT" , "0")
+      .arg("clone")
+      .arg(&process_remote_template_args.repository_url)
+      .arg(&repository_dir.path())
+      .status();
+
+  let program = s!("GIT_TERMINAL_PROMPT=0 git clone {} {}", &process_remote_template_args.repository_url, &repository_dir.path());
 
   let status = status_result.map_err(|e| {
-    ZatError::git_clone_error(e.to_string(), &process_remote_template_args.repository_url, &repository_dir.path())
+    ZatError::git_clone_error(e.to_string(), &program, &process_remote_template_args.repository_url, &repository_dir.path())
   })?;
+
+  let program_2 = s!("GIT_TERMINAL_PROMPT=0 git clone {}", &process_remote_template_args.repository_url);
 
   if !status.success() {
     Err(
-      ZatError::git_clone_status_error(status.code(), &process_remote_template_args.repository_url)
+      ZatError::git_clone_status_error(status.code(), &program_2, &process_remote_template_args.repository_url)
     )
   } else {
     Ok(())
