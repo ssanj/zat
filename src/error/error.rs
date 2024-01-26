@@ -379,7 +379,7 @@ impl ZatError {
     ZatError::ProcessRemoteCommandError(
       ProcessRemoteCommandErrorReason::GitCloneStatusError(
         s!("Zat could not could not clone remote repository '{}' because it returned an exit code of '{}'.", url, code),
-        "Please see clone output for possible issues.".to_owned()
+        "Please ensure the repository URL is valid and that you have access rights to clone it. Please see the clone output for possible other issues.".to_owned()
       )
     )
   }
