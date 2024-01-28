@@ -94,7 +94,7 @@ impl UserVariableValue {
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct VariableFilter {
   pub name: String,
-  pub filter: FilterType // make this an ADT
+  pub filter: FilterType
 }
 
 impl VariableFilter {
