@@ -30,9 +30,9 @@ impl UserInputProvider for Cli {
     fn get_user_input(&self, template_variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
       let stdin = std::io::stdin();
       let mut token_map = HashMap::new();
-      println!("");
 
       for v in template_variables.tokens {
+        p!("");
         let default_value = {
           match v.default_value {
             Some(default_value) => default_value,
