@@ -40,8 +40,8 @@ jobs:
     - name: copy-artifact
       id: copy-artifact
       run: |
-        run echo "RELEASE_ARTIFACT_NAME: ${{ steps.release-build.outputs.RELEASE_ARTIFACT_NAME }}"
-        run echo "ARTIFACT_NAME: ${{ steps.release-build.outputs.ARTIFACT_NAME }}"
+        echo "RELEASE_ARTIFACT_NAME: ${{ steps.release-build.outputs.RELEASE_ARTIFACT_NAME }}"
+        echo "ARTIFACT_NAME: ${{ steps.release-build.outputs.ARTIFACT_NAME }}"
         cp "${{ steps.release-build.outputs.RELEASE_ARTIFACT_NAME }}" "$${{ steps.release-build.outputs.ARTIFACT_NAME }}"
 
     - uses: softprops/action-gh-release@v1
