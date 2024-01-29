@@ -59,10 +59,21 @@ Use `zat --help` for additional usage information.
 
 To get started generate a `bootstrap` project and follow the instructions.
 
+![Creating a Bootstrap Project](docs/images/zat-bootstrap-monokai-2x-30rows.gif)
+
 To create simple bootstrap project run:
 
 ```
 zat bootstrap --repository-dir <ZAT_REPOSITORY>
+```
+
+The `ZAT_REPOSITORY` directory will have the following files:
+
+```{.terminal .scrollx}
+├── template
+│   ├── $project__underscore$_config.conf
+│   └── README.md.tmpl
+└── .variables.zat-prompt
 ```
 
 Once the repository is created, you can run it with:
@@ -71,9 +82,18 @@ Once the repository is created, you can run it with:
 zat process --repository-dir  <ZAT_REPOSITORY> --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>
 ```
 
-Have a look at the [example tests](https://github.com/ssanj/zat/tree/main/tests/examples) for some sample Zat repositories.
+Once the template is processed the `WHERE_TO_EXTRACT_THE_REPOSITORY` directory will have the following files:
 
-Additional templates can be found in the [Example Templates](#example-templates) section.
+```{.terminal .scrollx}
+├── my_cool_project_config.conf
+└── README.md
+```
+
+Have a look at the files before and after processing to get a feel for how Zat works. For more detailed information read the contents that follows.
+
+The [example tests](https://github.com/ssanj/zat/tree/main/tests/examples) are a good source of some sample Zat repositories.
+
+Additional templates can also be found in the [Example Templates](#example-templates) section.
 
 ## Repository Structure
 
