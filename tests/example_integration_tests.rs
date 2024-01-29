@@ -142,7 +142,7 @@ fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
     let repository_directory =
       &working_directory_path.join("example-bootstrap-dir").to_string_lossy().to_string();
 
-  let output_message_1 = s!("Run the bootstrap template with: `zat process --template-dir {} --target-dir <YOUR_TARGET_DIRECTORY>`", &repository_directory);
+  let output_message_1 = s!("Run the bootstrap template with: `zat process --repository-dir {} --target-dir <YOUR_TARGET_DIRECTORY>`", &repository_directory);
   let output_messages =
     [
       output_message_1.as_str(),
