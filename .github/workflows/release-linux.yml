@@ -34,18 +34,18 @@ jobs:
         cargo -V
         cargo build --release
         ZAT_VERSION=$(target/release/zat -V | cut -d' ' -f2)
-        echo "RELEASE_ARTIFACT_NAME=target/release/zat" >> "$GITHUB_ENV"
-        echo "ARTIFACT_NAME=target/release/zat-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
+        echo "ARTIFACT_NAME=target/release/zat" >> "$GITHUB_ENV"
+        echo "RELEASE_ARTIFACT_NAME=target/release/zat-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
 
     - name: copy-artifact
       id: copy-artifact
       run: |
         echo "RELEASE_ARTIFACT_NAME: $RELEASE_ARTIFACT_NAME"
         echo "ARTIFACT_NAME: $ARTIFACT_NAME"
-        cp "$RELEASE_ARTIFACT_NAME" "$ARTIFACT_NAME"
+        cp "$ARTIFACT_NAME" "$RELEASE_ARTIFACT_NAME"
 
     - uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        files: "$ARTIFACT_NAME"
+        files: "$RELEASE_ARTIFACT_NAME"
