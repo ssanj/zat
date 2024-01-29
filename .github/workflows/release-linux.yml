@@ -48,4 +48,4 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        files: "$RELEASE_ARTIFACT_NAME"
+        files: ${{ env.RELEASE_ARTIFACT_NAME }}
