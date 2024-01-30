@@ -1,4 +1,4 @@
-use crate::args::{ArgSupplier, DefaultUserConfigProvider, ZatCommand};
+use crate::args::{ArgSupplier, DefaultUserConfigProvider, ZatCommand, UserConfigProvider};
 use crate::args::cli_arg_supplier::CliArgSupplier;
 use crate::command::{BootstrapProject, ProcessTemplates, ProcessRemoteTemplates};
 use crate::error::ZatAction;
@@ -16,7 +16,8 @@ impl Workflow {
 
     match config.command {
       ZatCommand::Process(process_templates_args) => {
-        ProcessTemplates::process(config_provider, process_templates_args)
+        let user_config = config_provider.get_user_config(process_templates_args)?;
+        ProcessTemplates::process(user_config)
       },
 
       ZatCommand::Bootstrap(bootstrap_project_args) => {

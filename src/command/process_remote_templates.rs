@@ -24,8 +24,8 @@ impl ProcessRemoteTemplates {
 
     // Invoke the regular ProcessTemplates::process at this point
     let process_template_args = create_process_templates_args(repository_directory, process_remote_template_args);
-
-    let result = ProcessTemplates::process(config_provider, process_template_args);
+    let user_config = config_provider.get_user_config(process_template_args)?;
+    let result = ProcessTemplates::process(user_config);
 
     checkout_directory
       .close()
@@ -85,6 +85,7 @@ fn clone_git_repository(process_remote_template_args: &ProcessRemoteTemplatesArg
     ZatError::git_clone_error(e.to_string(), &program, &process_remote_template_args.repository_url, &repository_dir.path())
   })?;
 
+  // TODO: Write a function to generate this from Command.
   let program_2 = s!("GIT_TERMINAL_PROMPT=0 git clone {}", &process_remote_template_args.repository_url);
 
   if !status.success() {

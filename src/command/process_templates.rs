@@ -1,4 +1,3 @@
-use crate::args::{UserConfigProvider, ProcessTemplatesArgs};
 use crate::error::ZatAction;
 use crate::logging::{VerboseLogger, Logger};
 use crate::post_processor::{PostProcessingHook, ShellHook};
@@ -7,6 +6,7 @@ use crate::templates::{TemplateVariableProvider, DefaultTemplateVariableProvider
 use crate::templates::{TemplateConfigValidator, DefaultTemplateConfigValidator};
 use crate::templates::TemplateVariableReview;
 use crate::token_expander::{ExpandFilters, DefaultExpandFilters};
+use crate::config::UserConfig;
 use std::format as s;
 
 
@@ -14,8 +14,7 @@ pub struct ProcessTemplates;
 
 impl ProcessTemplates {
 
-  pub fn process(config_provider: impl UserConfigProvider, process_templates: ProcessTemplatesArgs) -> ZatAction {
-    let user_config = config_provider.get_user_config(process_templates)?;
+  pub fn process(user_config: UserConfig) -> ZatAction {
     VerboseLogger::log_user_config(&user_config);
 
     // Reads the .variables.zat-prompt file into TemplateVariables
