@@ -260,7 +260,28 @@ fn error_message_on_git_clone_status_failure() -> Result<(), Box<dyn std::error:
 //----------------------------------------------------------------------------------------------------------------------
 
 #[derive(Clone)]
-struct ErrorParts(String, String, Option<String>, String);
+enum AssertionType {
+  Equals(String),
+  Contains(String),
+}
+
+impl AssertionType {
+  fn map<F:FnOnce(String) -> String>(self, f: F) -> Self {
+    match self {
+      AssertionType::Equals(value) => AssertionType::Equals(f(value)),
+      AssertionType::Contains(value) => AssertionType::Contains(f(value)),
+    }
+  }
+}
+
+
+#[derive(Clone)]
+struct ErrorParts {
+  error_type: AssertionType,
+  error: AssertionType,
+  maybe_exception: Option<AssertionType>,
+  fix: AssertionType
+}
 
 
 struct ErrorTestConfig<'a> {
@@ -271,12 +292,14 @@ struct ErrorTestConfig<'a> {
   error_parts: ErrorParts
 }
 
+
 struct ErrorRemoteTestConfig<'a> {
   url: &'a str,
   test_directory: &'a str,
   maybe_target_directory: Option<&'a str>,
   error_parts: ErrorParts
 }
+
 
 struct BootstrapErrorTestConfig<'a> {
   repository_directory: &'a str,
@@ -286,23 +309,24 @@ struct BootstrapErrorTestConfig<'a> {
 
 impl ErrorParts {
   fn new(error_type: String, error: String, fix: String) -> Self {
-    ErrorParts(
-      error_type,
-      error,
-      None,
-      fix
-    )
+    ErrorParts {
+      error_type: AssertionType::Equals(error_type),
+      error: AssertionType::Equals(error),
+      maybe_exception: None,
+      fix: AssertionType::Equals(fix)
+    }
   }
 
   fn with_exception(error_type: String, error: String, exception: String, fix: String) -> Self {
-    ErrorParts(
-      error_type,
-      error,
-      Some(exception),
-      fix
-    )
+    ErrorParts {
+      error_type: AssertionType::Equals(error_type),
+      error: AssertionType::Equals(error),
+      maybe_exception: Some(AssertionType::Equals(exception)),
+      fix: AssertionType::Equals(fix)
+    }
   }
 }
+
 
 impl <'a> ErrorTestConfig<'a> {
 
@@ -584,7 +608,7 @@ fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
   let heading_colour = ansi_term::Color::Yellow;
   let heading_indent = "  ";
   let content_indent = "    ";
-  let ErrorParts(error_type, error, maybe_exception, fix) = error_parts;
+  let ErrorParts { error_type, error, maybe_exception, fix } = error_parts;
 
   let num_lines = lines.len();
 
@@ -596,22 +620,21 @@ fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
   if let Some(exception) = maybe_exception {
     assert_eq!(num_lines, 12, "expected 12 lines but got {}", num_lines);
 
-    let line0 = assert_line(0, lines[0], "");
-    let line1 = assert_line(1, lines[1], error_colour.paint("Zat failed an with error.").to_string().as_str());
-    let line2 = assert_line(2, lines[2], "",);
+    let line0 = assert_line(0, lines[0], AssertionType::Equals("".to_owned()));
+    let line1 = assert_line(1, lines[1], AssertionType::Equals(error_colour.paint("Zat failed an with error.").to_string()));
 
-    let line3 = assert_line(3, lines[3], s!("{}{}:", heading_indent, heading_colour.paint(error_type).to_string()).as_str());
-    let line4 = assert_line(4, lines[4], s!("{}{}", content_indent, error).as_str());
-    let line5 = assert_line(5, lines[5], "");
+    let line2 = assert_line(2, lines[2], AssertionType::Equals("".to_owned()));
+    let line3 = assert_line(3, lines[3], error_type.map(|et| s!("{}{}:", heading_indent, heading_colour.paint(et).to_string())));
+    let line4 = assert_line(4, lines[4], error.map(|e| s!("{}{}", content_indent, e)));
 
-    let line6 = assert_line(6, lines[6], s!("{}{}:", heading_indent, heading_colour.paint("Exception").to_string()).as_str());
-    let line7 = assert_line(7, lines[7], s!("{}{}", content_indent, exception).as_str());
-    let line8 = assert_line(8, lines[8], "");
+    let line5 = assert_line(5, lines[5], AssertionType::Equals("".to_owned()));
+    let line6 = assert_line(6, lines[6], AssertionType::Equals(s!("{}{}:", heading_indent, heading_colour.paint("Exception").to_string())));
+    let line7 = assert_line(7, lines[7], exception.map(|e| s!("{}{}", content_indent, e)));
 
-
-    let line9 = assert_line(9, lines[9], s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string()).as_str());
-    let line10 = assert_line(10, lines[10], s!("{}{}", content_indent, fix).as_str());
-    let line11 = assert_line(11, lines[11], "");
+    let line8 = assert_line(8, lines[8], AssertionType::Equals("".to_owned()));
+    let line9 = assert_line(9, lines[9], AssertionType::Equals(s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string())));
+    let line10 = assert_line(10, lines[10], fix.map(|f| s!("{}{}", content_indent, f)));
+    let line11 = assert_line(11, lines[11], AssertionType::Equals("".to_owned()));
 
     line0  &&
     line1  &&
@@ -645,15 +668,18 @@ fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
 
     assert_eq!(num_lines, final_lines, "expected 9 lines but got {}", num_lines);
 
-    let line0 = assert_line(0, lines[first_line], "");
-    let line1 = assert_line(1, lines[first_line + 1], error_colour.paint("Zat failed an with error.").to_string().as_str());
-    let line2 = assert_line(2, lines[first_line + 2], "",);
-    let line3 = assert_line(3, lines[first_line + 3], s!("{}{}:", heading_indent, heading_colour.paint(error_type).to_string()).as_str());
-    let line4 = assert_line(4, lines[first_line + 4], s!("{}{}", content_indent, error).as_str());
-    let line5 = assert_line(5, lines[first_line + 5], "");
-    let line6 = assert_line(6, lines[first_line + 6], s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string()).as_str());
-    let line7 = assert_line(7, lines[first_line + 7], s!("{}{}", content_indent, fix).as_str());
-    let line8 = assert_line(8, lines[first_line + 8], "");
+    let line0 = assert_line(0, lines[first_line], AssertionType::Equals("".to_owned()));
+    let line1 = assert_line(1, lines[first_line + 1], AssertionType::Equals(error_colour.paint("Zat failed an with error.").to_string()));
+
+    let line2 = assert_line(2, lines[first_line + 2], AssertionType::Equals("".to_owned()));
+    let line3 = assert_line(3, lines[first_line + 3], error_type.map(|et| s!("{}{}:", heading_indent, heading_colour.paint(et).to_string())));
+    let line4 = assert_line(4, lines[first_line + 4], error.map(|e| s!("{}{}", content_indent, e)));
+
+    let line5 = assert_line(5, lines[first_line + 5], AssertionType::Equals("".to_owned()));
+    let line6 = assert_line(6, lines[first_line + 6], AssertionType::Equals(s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string())));
+    let line7 = assert_line(7, lines[first_line + 7], fix.map(|f| s!("{}{}", content_indent, f)));
+
+    let line8 = assert_line(8, lines[first_line + 8], AssertionType::Equals("".to_owned()));
 
     line0 &&
     line1 &&
@@ -668,13 +694,26 @@ fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
 }
 
 fn assert_line(
-  _number: u8, actual: &str, expected: &str) -> bool {
-  if actual != expected {
-    print_diff(actual, expected);
-    false
-  } else {
-    true
-  }
+  _number: u8, actual: &str, assertion_type: AssertionType) -> bool {
+  match assertion_type {
+    AssertionType::Equals(expected) => {
+      if actual != expected {
+        print_diff(actual, &expected);
+        false
+      } else {
+        true
+      }
+    },
+    AssertionType::Contains(expected) => {
+      if !actual.contains(&expected) {
+        print_diff(actual, &expected);
+        false
+      } else {
+        true
+      }
+    },
+}
+
 }
 
 
