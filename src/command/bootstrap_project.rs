@@ -69,7 +69,8 @@ impl BootstrapProject {
       Self::create_file(template_files_dir_path.join("README.md.tmpl"), Self::README_MD_TMPL)?;
       Self::create_file(template_files_dir_path.join("$project__underscore$_config.conf"), Self::PROJECT_CONFIG_CONF)?;
 
-      Logger::info(&s!("Run the bootstrap template with: `zat process --repository-dir {} --target-dir <YOUR_TARGET_DIRECTORY>`", spath!(&repository_path)));
+      Logger::info(&s!("Zat created a bootstrap repository at `{}`.", spath!(&repository_path)));
+      Logger::info(&s!("Process the bootstrap repository with: `zat process --repository-dir {} --target-dir <YOUR_TARGET_DIRECTORY>`", spath!(&repository_path)));
 
       Ok(())
     }
