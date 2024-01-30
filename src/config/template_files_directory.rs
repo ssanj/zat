@@ -1,5 +1,7 @@
 use std::path::Path;
 use super::RepositoryDir;
+use std::format as s;
+use crate::spath;
 
 pub static TEMPLATE_FILES_DIR: &str = "template";
 
@@ -22,6 +24,14 @@ impl TemplateFilesDir {
 
   pub fn does_exist(&self) -> bool {
     Path::new(&self.path).exists()
+  }
+
+  pub fn relative_path(&self, file: &str) -> String {
+    let template_files_dir_path = Path::new(self.path());
+    let file_path = Path::new(file);
+    // TODO: Should we raise this as an ZatError?
+    let relative = file_path.strip_prefix(template_files_dir_path).expect(&s!("Could not strip path prefix '{}' from path '{}'", self.path(), file));
+    spath!(relative).clone()
   }
 }
 

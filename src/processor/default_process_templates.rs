@@ -29,7 +29,7 @@ impl ProcessTemplates for DefaultProcessTemplates {
           .collect();
 
       // Choose files to include by respecting ignores
-      let file_chooser = RegExFileChooser::new(&ignores).expect("Could not create file chooser");
+      let file_chooser = RegExFileChooser::new(&user_config.template_files_dir, &ignores).expect("Could not create file chooser");
       let file_traverser = WalkDirFileTraverser::new(Box::new(file_chooser));
       let template_files_dir = &user_config.template_files_dir;
       let files_to_process = file_traverser.traverse_files(&template_files_dir);

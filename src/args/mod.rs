@@ -9,6 +9,7 @@ pub use default_user_config_provider::DefaultUserConfigProvider;
 pub use cli::ZatCommand;
 pub use cli::ProcessTemplatesArgs;
 pub use cli::BootstrapProjectArgs;
+pub use cli::ProcessRemoteTemplatesArgs;
 pub use arg_supplier::ArgSupplier;
 use cli::Args;
 

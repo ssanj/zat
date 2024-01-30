@@ -1,4 +1,6 @@
+
 use format as s;
+use url::Url;
 use super::ErrorFormat;
 use super::UserConfigErrorReason;
 use super::VariableFileErrorReason;
@@ -6,6 +8,7 @@ use super::TemplateProcessingErrorReason;
 use super::ReasonFileErrorReason;
 use super::PostProcessingErrorReason;
 use super::BootstrapCommandErrorReason;
+use super::ProcessRemoteCommandErrorReason;
 use ansi_term::Color::Yellow;
 
 pub type ZatResult<A> = Result<A, ZatError>;
@@ -14,7 +17,9 @@ pub type ZatAction = Result<(), ZatError>;
 #[derive(Debug, PartialEq, Clone)]
 pub enum ZatError {
   ProcessCommandError(ProcessCommandErrorReason),
-  BootstrapCommandError(BootstrapCommandErrorReason)
+  BootstrapCommandError(BootstrapCommandErrorReason),
+  ProcessRemoteCommandError(ProcessRemoteCommandErrorReason)
+
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -62,6 +67,7 @@ impl ZatError {
   fn heading(heading: &str) -> String {
     s!("{}:", Yellow.paint(heading))
   }
+
 }
 
 impl ZatError {
@@ -310,18 +316,87 @@ impl ZatError {
       )
     )
   }
+
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // Process Remote Errors
+  // -------------------------------------------------------------------------------------------------------------------
+
+  pub fn could_not_create_checkout_directory(error: String) -> ZatError {
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::CouldNotCreateCheckoutDirectory(
+        "Zat could not create a folder under your system's temporary directory. Zat needs to create a temporary local folder to checkout the remote repository.".to_owned(),
+        error,
+        "Please ensure the Zat user has enough privileges to create a temporary directory and that you are not out of disk space".to_owned()
+      )
+    )
+  }
+
+
+  pub fn invalid_remote_repository_url(error: String, url: &str) -> ZatError {
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::RemoteRepositoryUrlIsInvalid(
+        s!("The remote repository URL supplied '{}' is invalid. Zat needs a valid URL to checkout this repository.", url),
+        error,
+        "Please ensure the remote repository URL supplied is valid.".to_owned()
+      )
+    )
+  }
+
+
+  pub fn unsupported_hostname(url: &str) -> ZatError {
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::RemoteRepositoryUrlHostnameIsInvalid(
+        s!("The remote repository URL supplied '{}' has an invalid hostname. Zat needs the hostname to be a domain name or IP address. IPv6 addresses should be supplied within square braces.", url),
+        "Please ensure the remote repository URL hostname is a domain or an IP address.".to_owned()
+      )
+    )
+  }
+
+
+  pub fn could_not_create_checkout_directory_structure(error: String, path: &str, url: &Url) -> ZatError {
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::CouldNotCreateCheckoutDirectoryStructure(
+        s!("Zat could not create the local checkout directory '{}'. Zat needs to create a local checkout directory for the remote repository '{}' before it clones it locally.", path, url),
+        error,
+        s!("Please ensure the Zat user has enough privileges to create a directory at '{}'.", path)
+      )
+    )
+  }
+
+  pub fn git_clone_error(error: String, program: &str, url: &str, path: &str) -> ZatError {
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::GitCloneFailed(
+        s!("Zat could not could not clone remote repository '{}' to local path '{}'. \n\n    Zat ran the following command to clone the remote repository: \n    '{}'", url, path, program),
+        error,
+        s!("Please ensure you have Git installed and it's accessible on the PATH used by Zat. Please also ensure Zat has enough privileges to create a directory at '{}'.", path)
+      )
+    )
+  }
+
+  pub fn git_clone_status_error(error_code: Option<i32>, program: &str, url: &str) -> ZatError {
+    let code = error_code.map_or_else(|| "Unknown".to_owned(), |ec| ec.to_string());
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::GitCloneStatusError(
+        s!("Zat could not could not clone remote repository '{}' because it returned an exit code of '{}'.", url, code),
+        s!("Please ensure the following command runs successfully external to Zat: '{}'. It should also not require a password as Zat does not support private repositories that are not accessible through your Git user. Please also see the clone output for possible other issues.", program)
+      )
+    )
+  }
 }
 
 
 impl std::fmt::Display for ZatError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
       let string_rep = match self {
-        ZatError::ProcessCommandError(ProcessCommandErrorReason::UserConfigError(error))          => ZatError::print_formatted_error("Got a configuration error", error),
-        ZatError::ProcessCommandError(ProcessCommandErrorReason::VariableFileError(error))        => ZatError::print_formatted_error("Got an error processing variables", error),
-        ZatError::ProcessCommandError(ProcessCommandErrorReason::TemplateProcessingError(error))  => ZatError::print_formatted_error("There was an error running the template", error),
-        ZatError::ProcessCommandError(ProcessCommandErrorReason::PostProcessingError(error))      => ZatError::print_formatted_error("There was an error running the post processor", error),
-        ZatError::BootstrapCommandError(error)                                                    =>
+        ZatError::ProcessCommandError(ProcessCommandErrorReason::UserConfigError(error))                => ZatError::print_formatted_error("Got a configuration error", error),
+        ZatError::ProcessCommandError(ProcessCommandErrorReason::VariableFileError(error))              => ZatError::print_formatted_error("Got an error processing variables", error),
+        ZatError::ProcessCommandError(ProcessCommandErrorReason::TemplateProcessingError(error))        => ZatError::print_formatted_error("There was an error running the template", error),
+        ZatError::ProcessCommandError(ProcessCommandErrorReason::PostProcessingError(error))            => ZatError::print_formatted_error("There was an error running the post processor", error),
+        ZatError::BootstrapCommandError(error)                                                          =>
           ZatError::print_formatted_error("There was an error running the bootstrap process", error),
+       ZatError::ProcessRemoteCommandError(error)                                                       =>
+          ZatError::print_formatted_error("There was an error running a remote processing command", error),
       };
 
       write!(f, "{}", string_rep)

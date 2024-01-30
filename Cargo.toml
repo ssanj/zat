@@ -1,6 +1,6 @@
 [package]
 name = "zat"
-version = "0.7.0"
+version = "0.9.5-3"
 edition = "2021"
 authors = ["Sanj Sahayam"]
 
@@ -15,10 +15,12 @@ convert_case = "0.5"
 clap = { version = "4.4", features = ["derive", "cargo", "env", "unicode"] }
 regex = "1.7"
 ansi_term = "0.12"
+dirs = "5"
+url = "2.5"
+tempfile = "3.3"
 
 [dev-dependencies]
 pretty_assertions = "1.0"
-tempfile = "3.3"
 assert_cmd = "2.0"
 dir-diff="0.3"
 similar="2.2"

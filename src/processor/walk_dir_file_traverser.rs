@@ -4,11 +4,11 @@ use super::{FileChooser, FileTraverser, TemplateFile};
 use crate::config::TemplateFilesDir;
 use walkdir::{WalkDir, DirEntry};
 
-pub struct WalkDirFileTraverser {
-  file_chooser: Box<dyn FileChooser>
+pub struct WalkDirFileTraverser<'a> {
+  file_chooser: Box<dyn FileChooser + 'a>
 }
 
-impl FileTraverser for WalkDirFileTraverser {
+impl FileTraverser for WalkDirFileTraverser<'_> {
     fn traverse_files(&self, template_files_dir: &TemplateFilesDir) -> Vec<TemplateFile> {
       WalkDir::new(template_files_dir)
           .into_iter()
@@ -24,8 +24,8 @@ impl FileTraverser for WalkDirFileTraverser {
     }
 }
 
-impl WalkDirFileTraverser {
-  pub fn new(file_chooser: Box<dyn FileChooser>) -> Self {
+impl <'a> WalkDirFileTraverser<'a> {
+  pub fn new(file_chooser: Box<dyn FileChooser+ 'a>) -> Self {
     Self {
       file_chooser
     }
@@ -56,6 +56,7 @@ mod tests {
 
     use super::*;
     use pretty_assertions::assert_eq;
+    use std::format as s;
 
     /// Models files in the multiple folders, template, input, output, working dirs
     /// The code that interprets this enum will create the appropriate folders and the specified directories
@@ -126,6 +127,12 @@ mod tests {
 
     #[test]
     fn should_respect_ignores() -> io::Result<()> {
+
+      // Describe which files and folders should be created under the 'template' directory.
+      // TemplateDirFile -> 'template' folder
+      // InputDirFilel   -> 'template/<random input>' folder
+      // OutputDirFile   -> 'template/<random output>' folder
+      // WorkingDirFile  -> 'template/<random working>' folder
       let source_files =
         [
           InputFileType::TemplateDirFile("blee.txt".to_owned(), "I said blee".to_owned()),
@@ -139,16 +146,19 @@ mod tests {
           InputFileType::WorkingDirFile("output2.wip".to_owned(), "{}".to_owned()),
         ];
 
+      // These files should be ignored and not present in the target folder.
       let ignores =
-        |_template_dir_path: TemplateDirectory, _input_dir_path: InputDirectory, _output_dir_path: OutputDirectory, working_dir_path: WorkingDirectory| {
+        |template_dir_path: TemplateDirectory, _input_dir_path: InputDirectory, _output_dir_path: OutputDirectory, working_dir_path: WorkingDirectory| {
+          let relative_working_dir = Path::new(&working_dir_path.0).strip_prefix(&template_dir_path.0).expect("Could not remove prefix").to_string_lossy();
           vec![
-            r"\.variables".to_owned(),
+            r"^\.variables".to_owned(),
             r"input1\.json".to_owned(),
             r"output1\.json".to_owned(),
-            working_dir_path.0.to_owned()
+            s!("^{}", relative_working_dir)
           ]
       };
 
+      // These are the files we expect at the target folder.
       let expected_files =
         |template_dir_path: TemplateDirectory, input_dir_path: InputDirectory, output_dir_path: OutputDirectory, _: WorkingDirectory| {
 
@@ -157,13 +167,14 @@ mod tests {
           let output_dir_path_string = output_dir_path.0;
 
         vec![
-          TemplateFile::Dir(format!("{}", template_dir_path_string)),
-          TemplateFile::Dir(format!("{}", input_dir_path_string)),
-          TemplateFile::File(format!("{}/input2.json", input_dir_path_string)),
-          TemplateFile::Dir(format!("{}", output_dir_path_string)),
-          TemplateFile::File(format!("{}/output2.json", output_dir_path_string)),
-          TemplateFile::File(format!("{}/blee.txt", template_dir_path_string)),
-          TemplateFile::File(format!("{}/blah.txt", template_dir_path_string)),
+            TemplateFile::Dir(format!("{}", template_dir_path_string)),
+            TemplateFile::Dir(format!("{}", input_dir_path_string)),
+            TemplateFile::Dir(format!("{}", output_dir_path_string)),
+
+            TemplateFile::File(format!("{}/blee.txt", template_dir_path_string)),
+            TemplateFile::File(format!("{}/blah.txt", template_dir_path_string)),
+            TemplateFile::File(format!("{}/input2.json", input_dir_path_string)),
+            TemplateFile::File(format!("{}/output2.json", output_dir_path_string)),
         ]
       };
 
@@ -171,14 +182,14 @@ mod tests {
     }
 
 
-    fn assert_ignores<G, F>(source_files: &[InputFileType], ignores: G, expected_files: F) -> io::Result<()> where
+    fn assert_ignores<G, F>(source_files: &[InputFileType], ignores_fn: G, expected_files_fn: F) -> io::Result<()> where
       G: FnOnce(TemplateDirectory, InputDirectory, OutputDirectory, WorkingDirectory) -> Vec<String>,
       F: FnOnce(TemplateDirectory, InputDirectory, OutputDirectory, WorkingDirectory) -> Vec<TemplateFile>
     {
       let temp_dir = tempdir()?; // create a temporary working directory
-      let template_files_dir = TemplateFilesDir::from(&RepositoryDir::from(temp_dir.path())); // template files directory
+      let template_files_dir = TemplateFilesDir::from(&RepositoryDir::from(temp_dir.path())); // template directory
 
-      std::fs::create_dir(template_files_dir.as_ref()).expect("Could not create temporary template directory"); // create template files directory
+      std::fs::create_dir(template_files_dir.as_ref()).expect("Could not create temporary template directory"); // create template directory
 
       let template_files_dir_path = template_files_dir.as_ref();
 
@@ -210,8 +221,9 @@ mod tests {
       let output_dir_path_string = output_dir_path.to_string_lossy().to_string();
       let working_dir_path_string = working_dir_path.to_string_lossy().to_string();
 
+      // Get all the ignored files
       let ignored =
-        ignores(
+        ignores_fn(
           TemplateDirectory(templat_dir_path_string.to_owned()),
           InputDirectory(input_dir_path_string.to_owned()),
           OutputDirectory(output_dir_path_string.to_owned()),
@@ -224,35 +236,80 @@ mod tests {
           .map(|v| v.as_str())
           .collect();
 
-      let regex_patterns = RegExFileChooser::new(&ignored_refs).expect("Could not create regex patterns");
-
+      // Execute traversal
+      let regex_patterns = RegExFileChooser::new(&template_files_dir, &ignored_refs).expect("Could not create regex patterns");
       let file_chooser = Box::new(regex_patterns);
       let traverser = WalkDirFileTraverser::new(file_chooser);
-
       let matches = traverser.traverse_files(&template_files_dir);
 
-      println!("templat_dir_path_string: {}", &templat_dir_path_string);
-      println!("input_dir_path: {}", &input_dir_path_string);
-      println!("output_dir_path: {}", &output_dir_path_string);
-      println!("working_dir: {}", &working_dir_path_string);
+      eprintln!("template_dir_path_string: {}", &templat_dir_path_string);
+      eprintln!("input_dir_path: {}", &input_dir_path_string);
+      eprintln!("output_dir_path: {}", &output_dir_path_string);
+      eprintln!("working_dir: {}", &working_dir_path_string);
 
+      // Get the expected files
       let expected_matches =
-        expected_files(
+        expected_files_fn(
           TemplateDirectory(templat_dir_path_string.to_owned()),
           InputDirectory(input_dir_path_string.to_owned()),
           OutputDirectory(output_dir_path_string.to_owned()),
           WorkingDirectory(working_dir_path_string.to_owned())
         );
 
+      // Clean up working directory, as we have all the results we need.
       temp_dir.close()?;
 
-      let matches_set: HashSet<TemplateFile> = HashSet::from_iter(matches);
-      let expected_matches_set: HashSet<TemplateFile> = HashSet::from_iter(expected_matches);
+      let matches_strings: Vec<_> =
+        matches
+          .into_iter()
+          .map(|t| match t {
+            TemplateFile::File(file) => file,
+            TemplateFile::Dir(dir) => dir,
+          })
+          .collect();
 
-      println!("matches_set: {:?}", &matches_set);
-      println!("expected_matches_set: {:?}", &expected_matches_set);
+      let expected_matches_strings: Vec<_> =
+        expected_matches
+          .into_iter()
+          .map(|t| match t {
+            TemplateFile::File(file) => file,
+            TemplateFile::Dir(dir) => dir,
+          })
+          .collect();
 
-      assert_eq!(matches_set, expected_matches_set, "Expected the same number of items");
+      let matches_set: HashSet<String> = HashSet::from_iter(matches_strings);
+      let expected_matches_set: HashSet<String> = HashSet::from_iter(expected_matches_strings);
+
+      let mut sorted_matches: Vec<_> = matches_set.intersection(&expected_matches_set).collect();
+      sorted_matches.sort();
+
+      eprintln!("Expected files found");
+      for f in sorted_matches {
+        eprintln!("{}", f)
+      }
+
+      let mut missing_sorted_set: Vec<_> = matches_set.difference(&expected_matches_set).collect();
+      missing_sorted_set.sort();
+
+      eprintln!();
+      eprintln!("Other files");
+      for f in missing_sorted_set {
+        eprintln!("{}", f)
+      }
+
+      let mut sorted_matches: Vec<_> = matches_set.into_iter().collect();
+      sorted_matches.sort();
+
+      eprintln!();
+      eprintln!("All files at the destination");
+      for f in &sorted_matches {
+        eprintln!("{}", f)
+      }
+
+      let mut sorted_expected_matches: Vec<_> = expected_matches_set.into_iter().collect();
+      sorted_expected_matches.sort();
+
+      assert_eq!(sorted_matches, sorted_expected_matches, "Expected the same number of items");
 
       Ok(())
     }

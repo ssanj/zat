@@ -1,4 +1,4 @@
-use std::{path::Path, collections::HashSet, fmt, println, eprint};
+use std::{path::Path, collections::HashSet, fmt, println, format};
 
 use walkdir::{WalkDir, DirEntry};
 use similar::{ChangeTag, TextDiff};
@@ -38,6 +38,7 @@ struct Changes {
 pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: S, target_directory: D) {
   let changes = diff(&expected_target_directory, &target_directory);
 
+  println!();
   if !changes.only_in_source.is_empty() {
     println!("Files only in expected render");
     for source in changes.only_in_source {
@@ -107,7 +108,7 @@ pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: 
 
 pub fn print_diff(actual_content: &str, expected_content: &str) {
   if expected_content != actual_content {
-    println!("Changes found.\nexpected content:\n{}\n\nactual content:\n{}", expected_content, actual_content);
+    println!("\n>>>\nChanges found:\n>>>\n");
     let text_diff = TextDiff::from_lines(expected_content, actual_content);
     for change in text_diff.iter_all_changes() {
         let sign = match change.tag() {
@@ -116,6 +117,7 @@ pub fn print_diff(actual_content: &str, expected_content: &str) {
             ChangeTag::Equal => Colour::RGB(128, 128, 128).paint("|").to_string(),
         };
         print!("  {}{}", sign, change);
+        println!(">>>")
     }
   }
 }
@@ -182,3 +184,10 @@ fn categorise_files(dir_entry: &DirEntry, path: &Path) -> Option<FileType> {
     }
 }
 
+pub fn list_directory_contents<P: AsRef<Path>>(location: P) -> Vec<String> {
+  WalkDir::new(&location.as_ref())
+    .into_iter()
+    .filter_map(|re| re.ok())
+    .map(|f| format!("{}", f.into_path().to_string_lossy()))
+    .collect()
+}

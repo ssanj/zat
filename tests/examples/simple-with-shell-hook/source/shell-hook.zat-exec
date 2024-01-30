@@ -3,4 +3,5 @@
 echo "shell hook received args: $1"
 echo "running shell hook"
 
-touch "$1"/created-by-shell-hook
+echo "Created by a shellhook" > "$1"/created-by-shell-hook
+

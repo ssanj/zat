@@ -1,6 +1,6 @@
 use crate::args::{ArgSupplier, DefaultUserConfigProvider, ZatCommand};
 use crate::args::cli_arg_supplier::CliArgSupplier;
-use crate::command::{BootstrapProject, ProcessTemplates};
+use crate::command::{BootstrapProject, ProcessTemplates, ProcessRemoteTemplates};
 use crate::error::ZatAction;
 
 
@@ -21,7 +21,11 @@ impl Workflow {
 
       ZatCommand::Bootstrap(bootstrap_project_args) => {
         BootstrapProject::process_bootstrap(bootstrap_project_args)
-      }
+      },
+
+      ZatCommand::ProcessRemote(process_remote_template_args) => {
+        ProcessRemoteTemplates::process_remote(config_provider, process_remote_template_args)
+      },
     }
   }
 
