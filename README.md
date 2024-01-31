@@ -102,7 +102,7 @@ Once the template is processed the `WHERE_TO_EXTRACT_THE_REPOSITORY` directory w
 └── README.md
 ```
 
-![Creating a Bootstrap Project](docs/images/zat-process-bootstrap.gif)
+![Processing a Bootstrap Project](docs/images/zat-process-bootstrap.gif)
 
 Have a look at the files in `ZAT_REPOSITORY` and how they they are different in `WHERE_TO_EXTRACT_THE_REPOSITORY` to get a feel for how Zat works. For more detailed information read the contents that follows.
 
@@ -143,6 +143,8 @@ Remote repositories can be processed by the `process-remote` command. Remote rep
 zat process-remote --repository-url <YOUR_REMOTE_REPOSITORY> --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>
 ```
 
+
+![Processing a Remote Project](docs/images/zat-process-remote.gif)
 
 ## Defining a Template
 
