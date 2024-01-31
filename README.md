@@ -72,8 +72,6 @@ Use `zat --help` for additional usage information.
 
 To get started generate a `bootstrap` project and follow the instructions.
 
-![Creating a Bootstrap Project](docs/images/zat-bootstrap-monokai-2x-30rows.gif)
-
 To create simple bootstrap project run:
 
 ```
@@ -89,6 +87,8 @@ The `ZAT_REPOSITORY` directory will have the following files:
 └── .variables.zat-prompt
 ```
 
+![Creating a Bootstrap Project](docs/images/zat-bootstrap.gif)
+
 Once the repository is created, you can run it with:
 
 ```
@@ -101,6 +101,8 @@ Once the template is processed the `WHERE_TO_EXTRACT_THE_REPOSITORY` directory w
 ├── my_cool_project_config.conf
 └── README.md
 ```
+
+![Creating a Bootstrap Project](docs/images/zat-process-bootstrap.gif)
 
 Have a look at the files in `ZAT_REPOSITORY` and how they they are different in `WHERE_TO_EXTRACT_THE_REPOSITORY` to get a feel for how Zat works. For more detailed information read the contents that follows.
 
