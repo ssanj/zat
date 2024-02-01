@@ -232,7 +232,7 @@ See [Supported Filters](#supported-filters) for a full list of supported formats
 ##### Template that uses the above variables:
 
 ```
-# $project$ <-- default filter for `project`
+# $project$ <-- default filter for `project`, which applies the `Pascal` format.
 
 $description$ <-- variable without filters
 
