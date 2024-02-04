@@ -100,4 +100,22 @@ mod tests {
       assert!(!file_chooser.is_ignored(TemplateFile::new_dir("/some/path/template/included")));
       assert!(!file_chooser.is_ignored(TemplateFile::new_file("/some/path/template/excluded/nested/some_file.pdf")));
     }
+
+    #[test]
+    fn handles_default_ignores() {
+      let filters =
+        crate::config::IgnoredFiles::DEFAULT_IGNORES;
+
+      let repository_directory = RepositoryDir::new("/some/path");
+      let template_files_dir: TemplateFilesDir = (&repository_directory).into();
+      let file_chooser = RegExFileChooser::new(&template_files_dir, &filters).unwrap();
+
+      // .git files should be ignored
+      assert!(file_chooser.is_ignored(TemplateFile::new_file("/some/path/template/.git/description")));
+      assert!(file_chooser.is_ignored(TemplateFile::new_file("/some/path/template/.git/hooks/README.sample")));
+      assert!(file_chooser.is_ignored(TemplateFile::new_file("/some/path/template/.git/index")));
+
+      // .gitignore should not be ignored
+      assert!(!file_chooser.is_ignored(TemplateFile::new_file("/some/path/template/.gitignore")));
+    }
 }
