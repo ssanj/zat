@@ -152,16 +152,23 @@ fn error_message_on_binary_template() -> Result<(), Box<dyn std::error::Error>> 
 fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "non-zero-post-processing-shell-hook-result";
   let source_directory = get_source_directory(test_directory);
+  let temp_dir = tempdir()?;
+  let target_dir_path = temp_dir.path().to_owned();
+  let target_dir = target_dir_path.to_string_lossy().to_string();
+
+  // delete temp dir so we can use it as the target dir (which should not exist)
+  drop(temp_dir);
 
   let error_parts =
     ErrorParts::new(
       "There was an error running the post processor".to_owned(),
-      s!("Shell hook '{}/shell-hook.zat-exec' failed with status code 1. The shell hook failed with a non-zero error code signifying an error.", source_directory),
-      s!("Please check the logs above for why the shell hook failed. Try running the shell hook file '{}/shell-hook.zat-exec' manually by itself on the output to iterate on the error.", source_directory),
+      s!("Shell hook '{}/shell-hook.zat-exec {}' failed with status code 1. The shell hook failed with a non-zero error code signifying an error.", source_directory, target_dir),
+      s!("Please check the logs above for why the shell hook failed. Try running the shell hook file '{}/shell-hook.zat-exec' with argument '{}' manually to iterate on the error.", source_directory, target_dir),
     );
 
+
   let input = &["YouOnlyLiveOnce", "y"];
-  let error_test_config = ErrorTestConfig::run_template(test_directory, input, error_parts);
+  let error_test_config = ErrorTestConfig::source_with_input_and_target_directory(test_directory, input, &target_dir, false, error_parts);
 
   run_error_test(error_test_config)
 }
@@ -371,11 +378,12 @@ impl <'a> ErrorTestConfig<'a> {
         maybe_input,
         maybe_target_directory,
         target_directory_should_exist,
-        error_parts
+        error_parts,
       }
   }
 
   /// Source error test, with input and with a specific a target directory, which may or may not exist.
+
   #[allow(dead_code)]
   fn source_with_input_and_target_directory(test_directory: &'a str, input: &'a[&'a str], target_directory: &'a str, target_directory_should_exist: bool, error_parts: ErrorParts) -> Self {
     let maybe_input = Some(input);

@@ -265,12 +265,12 @@ impl ZatError {
     )
   }
 
-  pub fn post_processing_hook_completed_with_non_zero_status(path: &str, status: i32) -> ZatError {
+  pub fn post_processing_hook_completed_with_non_zero_status(path: &str, arg: &str, status: i32) -> ZatError {
     ZatError::ProcessCommandError(
       ProcessCommandErrorReason::PostProcessingError(
         PostProcessingErrorReason::NonZeroStatusCode(
-          s!("Shell hook '{}' failed with status code {}. The shell hook failed with a non-zero error code signifying an error.", path, status),
-          s!("Please check the logs above for why the shell hook failed. Try running the shell hook file '{}' manually by itself on the output to iterate on the error.", path))
+          s!("Shell hook '{} {}' failed with status code {}. The shell hook failed with a non-zero error code signifying an error.", path, arg, status),
+          s!("Please check the logs above for why the shell hook failed. Try running the shell hook file '{}' with argument '{}' manually to iterate on the error.", path, arg))
       )
     )
   }

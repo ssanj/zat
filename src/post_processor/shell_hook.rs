@@ -1,6 +1,7 @@
 use crate::config::{UserConfig, ConfigShellHookStatus, TargetDir};
 use crate::error::{ZatAction, ZatError};
-use crate::logging::VerboseLogger;
+use crate::logging::{VerboseLogger, Logger};
+use crate::spath;
 
 use super::PostProcessingHook;
 use std::process::Command;
@@ -20,11 +21,12 @@ impl PostProcessingHook for ShellHook {
 }
 
 fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatError> {
-    VerboseLogger::log_header(&user_config, "Executing Shellhook");
+    Logger::info("Executing Shellhook");
     VerboseLogger::log_content(&user_config, &s!("Running shellhook: {}", shell_hook));
 
+    let target_dir_path = <TargetDir as AsRef<Path>>::as_ref(&user_config.target_dir).as_ref();
     Command::new(shell_hook)
-      .arg::<&Path>(<TargetDir as AsRef<Path>>::as_ref(&user_config.target_dir).as_ref())
+      .arg::<&Path>(target_dir_path)
       .status()
       .map_err(|e| ZatError::post_processing_hook_failed(shell_hook, e.to_string()))
       .and_then(|exit|{
@@ -33,7 +35,7 @@ fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatE
             VerboseLogger::log_content(&user_config, "Shell hook exited successfully");
             Ok(())
           },
-          Some(other) => Err(ZatError::post_processing_hook_completed_with_non_zero_status(shell_hook, other)),
+          Some(other) => Err(ZatError::post_processing_hook_completed_with_non_zero_status(shell_hook, spath!(target_dir_path), other)),
           None => Err(ZatError::post_processing_hook_was_shutdown(shell_hook))
         }
       })
