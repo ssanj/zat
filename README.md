@@ -310,6 +310,7 @@ Ignored files will not be processed or copied over to the target directory.
 | Template | Description |
 | ----- | ---------- |
 | [Sublime Text Plugin Template](https://github.com/ssanj/st-plugin-zat) | Simple Sublime Text Plugin template |
+| [Rust CLI Template](https://github.com/ssanj/rust-cli-zat) | A template for creating CLI applications in Rust |
 
 Also have a look at the [example tests](https://github.com/ssanj/zat/tree/main/tests/examples) for some sample Zat repositories.
 
