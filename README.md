@@ -311,6 +311,7 @@ Ignored files will not be processed or copied over to the target directory.
 | ----- | ---------- |
 | [Sublime Text Plugin Template](https://github.com/ssanj/st-plugin-zat) | Simple Sublime Text Plugin template |
 | [Rust CLI Template](https://github.com/ssanj/rust-cli-zat) | A template for creating CLI applications in Rust |
+| [Basic Scala 3 Template](https://github.com/ssanj/basic-scala3-zat) | A template for creating applications in Scala 3 |
 
 Also have a look at the [example tests](https://github.com/ssanj/zat/tree/main/tests/examples) for some sample Zat repositories.
 
