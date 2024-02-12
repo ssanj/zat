@@ -23,15 +23,13 @@ impl Default for PluginRunStatus {
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct PluginRunResult {
-  pub replacement_value: String,
-  pub display_value: String,
+  pub result: String,
 }
 
 impl PluginRunResult {
-  pub fn new(replacement_value: &str, display_value: &str) -> Self {
+  pub fn new(result: &str) -> Self {
     Self {
-      replacement_value: replacement_value.to_owned(),
-      display_value: display_value.to_owned()
+      result: result.to_owned()
     }
   }
 }

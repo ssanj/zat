@@ -62,7 +62,7 @@ impl UserInputProvider for Cli {
 
         let plugin_value_string =
           if let Some(ref plugin_result) = plugin_result_value {
-            s!(". Press {} to accept the plugin result value of: {}.", Style::new().underline().paint("enter"), Green.paint(&plugin_result.display_value))
+            s!(". Press {} to accept the plugin result value of: {}.", Style::new().underline().paint("enter"), Green.paint(&plugin_result.result))
 
           } else {
             "".to_owned()
@@ -84,11 +84,10 @@ impl UserInputProvider for Cli {
           if read_count > 0 { //read at least one character
             let _ = variable_value.pop(); // remove newline
             if !variable_value.is_empty() {
-              // If a plugin result is available, switch to that?
               token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(variable_value));
             } else {
               if let Some(ref plugin_result) = plugin_result_value {
-                token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(plugin_result.clone().replacement_value));
+                token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(plugin_result.clone().result));
               } else if !default_value.is_empty() {
                 // check for default value
                 token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(default_value));

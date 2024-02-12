@@ -410,8 +410,8 @@ impl ZatError {
     todo!()
   }
 
-  pub fn plugin_return_error(program: &str, error: &str, exception: &str, fix: &str) -> ZatError {
-    println!("program:{}\nerror:{}\nexception:{}\nfix:{}", program, error, exception, fix);
+  pub fn plugin_return_error(plugin: &str, error: &str, exception: &str, fix: &str) -> ZatError {
+    println!("plugin:{}\nerror:{}\nexception:{}\nfix:{}", plugin, error, exception, fix);
     todo!()
   }
 

@@ -18,12 +18,11 @@ pub enum PluginResult {
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct PluginSuccess {
   result: String,
-  display_result: String
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct PluginError {
-  header: String,
+  plugin_name: String,
   error: String,
   exception: Option<String>,
   fix: String
@@ -46,14 +45,15 @@ impl PluginRunner for DefaultPluginRunner {
         let variable_name = tv.clone().variable_name;
         let run_result = DefaultPluginRunner::run_plugin(plugin.clone());
         match run_result {
-          Ok(PluginResult::Success(success)) => {
-            plugin_hash.insert(variable_name.clone(), success);
+          Ok(PluginResult::Success(plugin_success)) => {
+            plugin_hash.insert(variable_name.clone(), plugin_success);
           },
           Ok(PluginResult::Error(error)) => {
-            let zerr = ZatError::plugin_return_error("blah", &error.error, &error.exception.unwrap_or("<No Exception>".to_owned()).as_str(), &error.fix);
+            let exception = &error.exception.unwrap_or("<No Exception>".to_owned());
+            let zerr = ZatError::plugin_return_error(&error.plugin_name, &error.error, exception, &error.fix);
             return Err(zerr)
           },
-          Err(error) =>  return Err(error),
+          Err(error) => return Err(error),
         }
 
         template_variable_hash.insert(variable_name.clone(), tv);
@@ -72,8 +72,7 @@ impl PluginRunner for DefaultPluginRunner {
           .plugin
           .into_iter()
           .for_each(|plugin| {
-            let new_result = PluginRunStatus::Run(PluginRunResult::new(&plugin_result.result, &plugin_result.display_result));
-
+            let new_result = PluginRunStatus::Run(PluginRunResult::new(&plugin_result.result));
 
             let mut new_plugin = plugin.clone();
             new_plugin.result = new_result;
@@ -88,6 +87,7 @@ impl PluginRunner for DefaultPluginRunner {
       }
     }
 
+    // TODO: Make this a debug output
     println!("---------------> {:?}", results_vec.clone());
 
     let result = TemplateVariables {
