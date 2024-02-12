@@ -1,7 +1,8 @@
 use serde::Deserialize;
 
 use crate::logging::Lines;
-use std::{format as s};
+use std::format as s;
+use super::plugin::Plugin;
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct TemplateVariables {
@@ -48,7 +49,9 @@ pub struct TemplateVariable {
   pub filters: Vec<VariableFilter>,
 
   #[serde(default)] // use default value if not found in the input
-  pub default_value: Option<String>
+  pub default_value: Option<String>,
+
+  pub plugin: Option<Plugin>
 }
 
 impl TemplateVariable {
@@ -60,7 +63,8 @@ impl TemplateVariable {
       description:description.to_owned(),
       prompt: prompt.to_owned(),
       filters: Vec::from_iter(filters.iter().map(|v| v.clone())),
-      default_value: default_value.map(|v| v.to_owned())
+      default_value: default_value.map(|v| v.to_owned()),
+      plugin: None
     }
   }
 }
@@ -173,6 +177,7 @@ mod test {
         description: "Name of project".to_owned(),
         prompt: "Please enter your project name".to_owned(),
         default_value: Some("Some Project".to_owned()),
+        plugin: None,
         filters: vec![
           VariableFilter {
             name: "python".to_owned(),
@@ -194,6 +199,7 @@ mod test {
         description: "Explain what your plugin is about".to_owned(),
         prompt: "Please enter your plugin description".to_owned(),
         default_value: None,
+        plugin: None,
         filters: vec![]
      };
 

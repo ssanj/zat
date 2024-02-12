@@ -4,6 +4,7 @@ use std::io::BufRead;
 use super::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
 use super::{UserVariableValue, UserVariableKey, TemplateVariables};
 use crate::config::UserConfig;
+use crate::templates::PluginRunResult;
 use ansi_term::Colour::{Yellow, Green, Blue};
 use ansi_term::Style;
 use std::{println as p, format as s};
@@ -40,6 +41,18 @@ impl UserInputProvider for Cli {
           }
         };
 
+        let plugin_result_value: Option<PluginRunResult> =
+          v
+            .plugin
+            .and_then(|pl| {
+              match pl.result {
+                crate::templates::PluginRunStatus::NotRun => None,
+                crate::templates::PluginRunStatus::Run(run_result) => Some(run_result),
+              }
+            });
+
+
+        // TODO: Refactor the plugin and default value handling
         let default_string =
           if default_value.is_empty() {
             "".to_owned()
@@ -47,7 +60,25 @@ impl UserInputProvider for Cli {
             s!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(&default_value))
           };
 
-        p!("{}{}", Yellow.paint(v.prompt), default_string);
+        let plugin_value_string =
+          if let Some(ref plugin_result) = plugin_result_value {
+            s!(". Press {} to accept the plugin result value of: {}.", Style::new().underline().paint("enter"), Green.paint(&plugin_result.display_value))
+
+          } else {
+            "".to_owned()
+          };
+
+        // Default values are mutually exclusive to plugin values.
+        // Plugin values take precedence.
+        if plugin_result_value.is_some() {
+          p!("{}{}", Yellow.paint(v.prompt), plugin_value_string);
+        } else if !default_value.is_empty() {
+          p!("{}{}", Yellow.paint(v.prompt), default_string);
+        } else {
+          p!("{}", Yellow.paint(v.prompt));
+        }
+
+
         let mut variable_value = String::new();
         if let Ok(read_count) = stdin.read_line(&mut variable_value) {
           if read_count > 0 { //read at least one character
@@ -55,9 +86,13 @@ impl UserInputProvider for Cli {
             if !variable_value.is_empty() {
               token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(variable_value));
             } else {
-              // check for default value
-              if !default_value.is_empty() {
+              if let Some(ref plugin_result) = plugin_result_value {
+                token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(plugin_result.clone().replacement_value));
+              } else if !default_value.is_empty() {
+                // check for default value
                 token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(default_value));
+              } else {
+                println!("here2")
               }
             }
           }
@@ -80,6 +115,7 @@ impl UserTemplateVariableValidator for Cli {
         }
     }
 }
+
 
 impl Cli {
 
@@ -219,6 +255,7 @@ mod tests {
       description: String::default(),
       prompt: String::default(),
       default_value: None,
+      plugin: None,
       filters: Vec::default(),
     }
   }

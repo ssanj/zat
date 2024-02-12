@@ -67,7 +67,6 @@ impl ZatError {
   fn heading(heading: &str) -> String {
     s!("{}:", Yellow.paint(heading))
   }
-
 }
 
 impl ZatError {
@@ -383,6 +382,39 @@ impl ZatError {
       )
     )
   }
+
+
+  // -------------------------------------------------------------------------------------------------------------------
+  // Process Remote Errors
+  // -------------------------------------------------------------------------------------------------------------------
+
+  pub fn could_not_run_plugin(program: &str, exception: String) -> ZatError {
+    println!("program:{}\nexception:{}", program, exception);
+    todo!()
+  }
+
+
+  pub fn could_not_decode_plugin_result_to_UTF8(program: &str, exception: String) -> ZatError {
+    println!("program:{}\nexception:{}", program, exception);
+    todo!()
+  }
+
+
+  pub fn could_not_decode_plugin_stderr_to_UTF8(program: &str, exception: String) -> ZatError {
+    println!("program:{}\nexception:{}", program, exception);
+    todo!()
+  }
+
+  pub fn could_not_decode_plugin_result_to_JSON(program: &str, exception: String, std_err: &str) -> ZatError {
+    println!("program:{}\nexception:{}\nstderr:{}", program, exception, std_err);
+    todo!()
+  }
+
+  pub fn plugin_return_error(program: &str, error: &str, exception: &str, fix: &str) -> ZatError {
+    println!("program:{}\nerror:{}\nexception:{}\nfix:{}", program, error, exception, fix);
+    todo!()
+  }
+
 }
 
 
