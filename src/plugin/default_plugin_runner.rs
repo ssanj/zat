@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::process::Command;
 
 use super::PluginRunner;
-use crate::logging::Logger;
+use crate::config::UserConfig;
+use crate::logging::{Logger, verbose_logger};
 use crate::templates::{TemplateVariable, TemplateVariables, Plugin, PluginArg, PluginRunResult, PluginRunStatus};
 use crate::error::{ZatResult, ZatError};
 use std::{println as p, format as s};
@@ -31,7 +32,7 @@ pub struct PluginError {
 impl PluginRunner for DefaultPluginRunner {
   // TODO: We need to maintain template definition order.
   // TODO: should template_variables be mut?
-  fn run_plugins(&self, template_variables: TemplateVariables) -> ZatResult<TemplateVariables> {
+  fn run_plugins(&self, user_config: &UserConfig, template_variables: TemplateVariables) -> ZatResult<TemplateVariables> {
 
     // Store results of running plugins against the variable name in the template.
     let mut plugin_hash: HashMap<String, PluginSuccess> = HashMap::new();
@@ -87,12 +88,13 @@ impl PluginRunner for DefaultPluginRunner {
       }
     }
 
-    // TODO: Make this a debug output
-    println!("---------------> {:?}", results_vec.clone());
-
     let result = TemplateVariables {
       tokens: results_vec
     };
+
+    if user_config.verbose {
+      verbose_logger::VerboseLogger::log_template_variables(user_config, &result)
+    }
 
     Ok(result)
   }

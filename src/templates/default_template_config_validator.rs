@@ -26,6 +26,14 @@ enum UserVariablesValidity {
 
 struct Cli;
 
+enum DynamicValueType {
+  DefaultValue(String, String),
+  PluginValue(String, String),
+  Neither,
+}
+
+struct DynamicPair(String, String);
+
 
 impl UserInputProvider for Cli {
     fn get_user_input(&self, template_variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
@@ -53,29 +61,39 @@ impl UserInputProvider for Cli {
 
 
         // TODO: Refactor the plugin and default value handling
-        let default_string =
+        let default_type =
           if default_value.is_empty() {
-            "".to_owned()
+            None
           } else {
-            s!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(&default_value))
+            Some(
+              DynamicPair(s!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(&default_value)),
+              default_value.to_owned()
+              )
+            )
           };
 
-        let plugin_value_string =
+        let plugin_type =
           if let Some(ref plugin_result) = plugin_result_value {
-            s!(". Press {} to accept the plugin result value of: {}.", Style::new().underline().paint("enter"), Green.paint(&plugin_result.result))
-
+            Some(
+              DynamicPair(s!(". Press {} to accept the plugin result value of: {}.", Style::new().underline().paint("enter"), Green.paint(&plugin_result.result)),
+               plugin_result.clone().result
+              )
+            )
           } else {
-            "".to_owned()
+            None
           };
 
-        // Default values are mutually exclusive to plugin values.
-        // Plugin values take precedence.
-        if plugin_result_value.is_some() {
-          p!("{}{}", Yellow.paint(v.prompt), plugin_value_string);
-        } else if !default_value.is_empty() {
-          p!("{}{}", Yellow.paint(v.prompt), default_string);
-        } else {
-          p!("{}", Yellow.paint(v.prompt));
+        let dynamic_value = match (default_type, plugin_type) {
+          (Some(DynamicPair(dstring, dvalue)), None) => DynamicValueType::DefaultValue(dstring, dvalue),
+          (None, Some(DynamicPair(pstring, pvalue))) => DynamicValueType::PluginValue(pstring, pvalue.to_owned()),
+          (Some(_), Some(DynamicPair(pstring, pvalue))) => DynamicValueType::PluginValue(pstring, pvalue.to_owned()), // plugin overrides default
+          (None, None) => DynamicValueType::Neither,
+        };
+
+        match &dynamic_value {
+          DynamicValueType::DefaultValue(dstring, _) => p!("{}{}", Yellow.paint(v.prompt), dstring),
+          DynamicValueType::PluginValue(pstring, _) => p!("{}{}", Yellow.paint(v.prompt), pstring),
+          DynamicValueType::Neither => p!("{}", Yellow.paint(v.prompt)),
         }
 
 
@@ -86,12 +104,15 @@ impl UserInputProvider for Cli {
             if !variable_value.is_empty() {
               token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(variable_value));
             } else {
-              if let Some(ref plugin_result) = plugin_result_value {
-                token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(plugin_result.clone().result));
-              } else if !default_value.is_empty() {
-                // check for default value
-                token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(default_value));
-              } else { }
+              match dynamic_value {
+                DynamicValueType::DefaultValue(_, dvalue) => {
+                  token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(dvalue));
+                },
+                DynamicValueType::PluginValue(_, pvalue) => {
+                  token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(pvalue));
+                },
+                DynamicValueType::Neither => (),
+              }
             }
           }
         }

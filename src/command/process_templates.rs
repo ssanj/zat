@@ -26,7 +26,7 @@ impl ProcessTemplates {
     // TODO: Insert plugin running code here? We could process the plugin definitions and set the value from
     // each into the "default_value" field for each by updating the `template_variables`?
     let plugin_runner = DefaultPluginRunner::new();
-    let updated_template_variables = plugin_runner.run_plugins(template_variables)?;
+    let updated_template_variables = plugin_runner.run_plugins(&user_config, template_variables)?;
 
     // Ask for the user for the value of each variable
     // Then verify all the variables supplied are correct
