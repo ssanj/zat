@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use std::io::BufRead;
+use std::io::{BufRead, stdin};
 
-use super::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
+use super::{TemplateConfigValidator, TemplateVariableReview, ValidConfig, TemplateVariable, Plugin};
 use super::{UserVariableValue, UserVariableKey, TemplateVariables};
 use crate::config::UserConfig;
 use crate::templates::PluginRunResult;
@@ -37,85 +37,23 @@ struct DynamicPair(String, String);
 
 impl UserInputProvider for Cli {
     fn get_user_input(&self, template_variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
-      let stdin = std::io::stdin();
       let mut token_map = HashMap::new();
 
       for v in template_variables.tokens {
         p!("");
-        let default_value = {
-          match v.default_value {
-            Some(default_value) => default_value,
-            None  => "".to_owned()
-          }
-        };
 
-        let plugin_result_value: Option<PluginRunResult> =
-          v
-            .plugin
-            .and_then(|pl| {
-              match pl.result {
-                crate::templates::PluginRunStatus::NotRun => None,
-                crate::templates::PluginRunStatus::Run(run_result) => Some(run_result),
-              }
-            });
-
-
-        // TODO: Refactor the plugin and default value handling
-        let default_type =
-          if default_value.is_empty() {
-            None
-          } else {
-            Some(
-              DynamicPair(s!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(&default_value)),
-              default_value.to_owned()
-              )
-            )
-          };
-
-        let plugin_type =
-          if let Some(ref plugin_result) = plugin_result_value {
-            Some(
-              DynamicPair(s!(". Press {} to accept the plugin result value of: {}.", Style::new().underline().paint("enter"), Green.paint(&plugin_result.result)),
-               plugin_result.clone().result
-              )
-            )
-          } else {
-            None
-          };
-
-        let dynamic_value = match (default_type, plugin_type) {
-          (Some(DynamicPair(dstring, dvalue)), None) => DynamicValueType::DefaultValue(dstring, dvalue),
-          (None, Some(DynamicPair(pstring, pvalue))) => DynamicValueType::PluginValue(pstring, pvalue.to_owned()),
-          (Some(_), Some(DynamicPair(pstring, pvalue))) => DynamicValueType::PluginValue(pstring, pvalue.to_owned()), // plugin overrides default
-          (None, None) => DynamicValueType::Neither,
-        };
+        let default_value = Cli::get_default_value(v.default_value.as_deref());
+        let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
+          );
+        let dynamic_value = Cli::get_dynamic_values(&default_value, plugin_result_value.as_ref());
 
         match &dynamic_value {
-          DynamicValueType::DefaultValue(dstring, _) => p!("{}{}", Yellow.paint(v.prompt), dstring),
-          DynamicValueType::PluginValue(pstring, _) => p!("{}{}", Yellow.paint(v.prompt), pstring),
-          DynamicValueType::Neither => p!("{}", Yellow.paint(v.prompt)),
+          DynamicValueType::DefaultValue(dstring, _) => p!("{}{}", Yellow.paint(&v.prompt), dstring),
+          DynamicValueType::PluginValue(pstring, _) => p!("{}{}", Yellow.paint(&v.prompt), pstring),
+          DynamicValueType::Neither => p!("{}", Yellow.paint(&v.prompt)),
         }
 
-
-        let mut variable_value = String::new();
-        if let Ok(read_count) = stdin.read_line(&mut variable_value) {
-          if read_count > 0 { //read at least one character
-            let _ = variable_value.pop(); // remove newline
-            if !variable_value.is_empty() {
-              token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(variable_value));
-            } else {
-              match dynamic_value {
-                DynamicValueType::DefaultValue(_, dvalue) => {
-                  token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(dvalue));
-                },
-                DynamicValueType::PluginValue(_, pvalue) => {
-                  token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(pvalue));
-                },
-                DynamicValueType::Neither => (),
-              }
-            }
-          }
-        }
+        Cli::read_user_input(&mut token_map, &v, &dynamic_value);
       }
 
       token_map
@@ -165,6 +103,76 @@ impl Cli {
     match &line[..] {
       "y" => UserVariablesValidity::Valid,
       _ => UserVariablesValidity::Invalid,
+    }
+  }
+
+  fn get_dynamic_values(default_value: &str, plugin_run_result: Option<&PluginRunResult>) -> DynamicValueType {
+
+    let default_type: Option<DynamicPair> =
+      if default_value.is_empty() {
+        None
+      } else {
+          let default_prompt = s!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(default_value));
+          Some(
+            DynamicPair(default_prompt, default_value.to_owned())
+          )
+      };
+
+    let plugin_type: Option<DynamicPair> =
+      if let Some(plugin_result) = plugin_run_result {
+        let plugin_prompt = s!(". Press {} to accept the plugin result value of: {}.", Style::new().underline().paint("enter"), Green.paint(&plugin_result.result));
+        Some(
+          DynamicPair(plugin_prompt, plugin_result.clone().result)
+        )
+      } else {
+        None
+      };
+
+    let dynamic_value = match (default_type, plugin_type) {
+      (Some(DynamicPair(dprompt, dvalue)), None) => DynamicValueType::DefaultValue(dprompt, dvalue),
+      (None, Some(DynamicPair(pprompt, pvalue))) => DynamicValueType::PluginValue(pprompt, pvalue.to_owned()),
+      (Some(_), Some(DynamicPair(pprompt, pvalue))) => DynamicValueType::PluginValue(pprompt, pvalue.to_owned()), // plugin value overrides default value
+      (None, None) => DynamicValueType::Neither,
+    };
+
+    dynamic_value
+  }
+
+  fn read_user_input(token_map: &mut HashMap<UserVariableKey, UserVariableValue>, template_variable: &TemplateVariable, dynamic_value: &DynamicValueType) {
+
+    let mut variable_value = String::new();
+
+    if let Ok(read_count) = stdin().read_line(&mut variable_value) {
+      if read_count > 0 { // Read at least one character
+        let _ = variable_value.pop(); // Remove newline
+        if !variable_value.is_empty() { // User entered a value
+          token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(variable_value));
+        } else { // User pressed enter
+          match dynamic_value {
+            DynamicValueType::DefaultValue(_, dvalue) => { // Default Value
+              token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(dvalue.to_owned()));
+            },
+            DynamicValueType::PluginValue(_, pvalue) => { // Plugin Vaue
+              token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(pvalue.to_owned()));
+            },
+            // TODO: This allows us to skip entering values for a variable. We should ask for the input again.
+            DynamicValueType::Neither => (), // No plugin or default value, so do nothing
+          }
+        }
+      }
+    }
+  }
+
+  fn get_default_value(opt_default_value: Option<&str>) -> String {
+    opt_default_value.map_or_else(|| "".to_owned(), |dv| dv.to_owned())
+  }
+
+  fn get_plugin_value(opt_plugin_value: Option<&Plugin>) -> Option<PluginRunResult> {
+    let plugin = opt_plugin_value?;
+
+    match &plugin.result {
+      crate::templates::PluginRunStatus::NotRun => None,
+      crate::templates::PluginRunStatus::Run(run_result) => Some(run_result.to_owned()),
     }
   }
 }
