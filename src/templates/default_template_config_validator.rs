@@ -36,28 +36,28 @@ struct DynamicPair(String, String);
 
 
 impl UserInputProvider for Cli {
-    fn get_user_input(&self, template_variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
-      let mut token_map = HashMap::new();
+  fn get_user_input(&self, template_variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
+    let mut token_map = HashMap::new();
 
-      for v in template_variables.tokens {
-        p!("");
+    for v in template_variables.tokens {
+      p!("");
 
-        let default_value = Cli::get_default_value(v.default_value.as_deref());
-        let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
-          );
-        let dynamic_value = Cli::get_dynamic_values(&default_value, plugin_result_value.as_ref());
+      let default_value = Cli::get_default_value(v.default_value.as_deref());
+      let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
+        );
+      let dynamic_value = Cli::get_dynamic_values(&default_value, plugin_result_value.as_ref());
 
-        match &dynamic_value {
-          DynamicValueType::DefaultValue(dstring, _) => p!("{}{}", Yellow.paint(&v.prompt), dstring),
-          DynamicValueType::PluginValue(pstring, _) => p!("{}{}", Yellow.paint(&v.prompt), pstring),
-          DynamicValueType::Neither => p!("{}", Yellow.paint(&v.prompt)),
-        }
-
-        Cli::read_user_input(&mut token_map, &v, &dynamic_value);
+      match &dynamic_value {
+        DynamicValueType::DefaultValue(dstring, _) => p!("{}{}", Yellow.paint(&v.prompt), dstring),
+        DynamicValueType::PluginValue(pstring, _) => p!("{}{}", Yellow.paint(&v.prompt), pstring),
+        DynamicValueType::Neither => p!("{}", Yellow.paint(&v.prompt)),
       }
 
-      token_map
+      Cli::read_user_input(&mut token_map, &v, &dynamic_value);
     }
+
+    token_map
+  }
 }
 
 impl UserTemplateVariableValidator for Cli {

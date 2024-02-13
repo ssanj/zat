@@ -23,10 +23,10 @@ impl ProcessTemplates {
     let mut template_variables: TemplateVariables = template_variable_provider.get_tokens(user_config.clone())?;
     VerboseLogger::log_template_variables(&user_config, &template_variables);
 
+    // Runs any plugins that have been defined and updates template_variables with results
     let plugin_runner = DefaultPluginRunner::new();
     plugin_runner.run_plugins(&mut template_variables)?;
     VerboseLogger::log_template_variables(&user_config, &template_variables);
-
 
     // Ask for the user for the value of each variable
     // Then verify all the variables supplied are correct
