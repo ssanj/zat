@@ -5,7 +5,7 @@ use super::PluginRunner;
 use crate::config::UserConfig;
 use crate::logging::{Logger, verbose_logger};
 use crate::templates::{TemplateVariable, TemplateVariables, Plugin, PluginArg, PluginRunResult, PluginRunStatus};
-use crate::error::{ZatResult, ZatError};
+use crate::error::{ZatResult, ZatError, ZatAction};
 use std::{println as p, format as s};
 
 pub struct DefaultPluginRunner;
@@ -30,73 +30,8 @@ pub struct PluginError {
 }
 
 impl PluginRunner for DefaultPluginRunner {
-  // TODO: We need to maintain template definition order.
-  // TODO: should template_variables be mut?
-  fn run_plugins(&self, user_config: &UserConfig, template_variables: TemplateVariables) -> ZatResult<TemplateVariables> {
-
-    // Store results of running plugins against the variable name in the template.
-    let mut plugin_hash: HashMap<String, PluginSuccess> = HashMap::new();
-
-    // Put the template variables into a Hash, keyed against the variable name so we can match them with the plugin hash above.
-    let mut template_variable_hash: HashMap<String, TemplateVariable> = HashMap::new();
-
-    for tv in template_variables.clone().tokens {
-      // Add variable to template_variable_hash
-      if let Some(plugin) = &tv.plugin {
-        let variable_name = tv.clone().variable_name;
-        let run_result = DefaultPluginRunner::run_plugin(plugin.clone());
-        match run_result {
-          Ok(PluginResult::Success(plugin_success)) => {
-            plugin_hash.insert(variable_name.clone(), plugin_success);
-          },
-          Ok(PluginResult::Error(error)) => {
-            let exception = &error.exception.unwrap_or("<No Exception>".to_owned());
-            let zerr = ZatError::plugin_return_error(&error.plugin_name, &error.error, exception, &error.fix);
-            return Err(zerr)
-          },
-          Err(error) => return Err(error),
-        }
-
-        template_variable_hash.insert(variable_name.clone(), tv);
-      } else {
-        template_variable_hash.insert(tv.clone().variable_name, tv);
-      }
-    }
-
-
-    let mut results_vec: Vec<TemplateVariable> = vec![];
-
-    for (variable_name, template_variable) in template_variable_hash {
-      if let Some(plugin_result) = plugin_hash.get(&variable_name) {
-        template_variable
-          .clone()
-          .plugin
-          .into_iter()
-          .for_each(|plugin| {
-            let new_result = PluginRunStatus::Run(PluginRunResult::new(&plugin_result.result));
-
-            let mut new_plugin = plugin.clone();
-            new_plugin.result = new_result;
-
-            let mut new_template_variable = template_variable.clone();
-            new_template_variable.plugin = Some(new_plugin);
-
-            results_vec.push(new_template_variable)
-          });
-      } else {
-        results_vec.push(template_variable)
-      }
-    }
-
-    let result = TemplateVariables {
-      tokens: results_vec
-    };
-
-    if user_config.verbose {
-      verbose_logger::VerboseLogger::log_template_variables(user_config, &result)
-    }
-
-    Ok(result)
+  fn run_plugins(&self, template_variables: &mut TemplateVariables) -> ZatAction {
+    DefaultPluginRunner::run_plugins(template_variables)
   }
 }
 
@@ -151,4 +86,27 @@ impl DefaultPluginRunner {
 
     s!("{} {}", program, args)
   }
+
+  fn run_plugins(template_variables: &mut TemplateVariables) -> ZatAction {
+
+    for tv in template_variables.tokens.iter_mut() {
+      if let Some(plugin) = tv.plugin.as_mut() {
+        let run_result = DefaultPluginRunner::run_plugin(plugin.clone());
+        match run_result {
+          Ok(PluginResult::Success(plugin_success)) => {
+            plugin.result = PluginRunStatus::Run(PluginRunResult::new(&plugin_success.result));
+          },
+          Ok(PluginResult::Error(error)) => {
+            let exception = &error.exception.unwrap_or("<No Exception>".to_owned());
+            let zerr = ZatError::plugin_return_error(&error.plugin_name, &error.error, exception, &error.fix);
+            return Err(zerr)
+          },
+          Err(error) => return Err(error),
+        }
+      }
+    }
+
+    Ok(())
+  }
+
 }
