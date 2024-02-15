@@ -144,10 +144,10 @@ impl Cli {
           token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(variable_value));
         } else { // User pressed enter
           match dynamic_value {
-            DynamicValueType::DefaultValue(_, dvalue) => { // Default Value
+            DynamicValueType::DefaultValue(_, dvalue) => { // Default value
               token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(dvalue.to_owned()));
             },
-            DynamicValueType::PluginValue(_, pvalue) => { // Plugin Vaue
+            DynamicValueType::PluginValue(_, pvalue) => { // Plugin value
               token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(pvalue.to_owned()));
             },
             // TODO: This allows us to skip entering values for a variable. We should ask for the input again.
@@ -434,5 +434,20 @@ use crate::templates::PluginRunStatus;
 
     assert_eq!(result, DynamicValueType::Neither)
   }
+}
+
+#[test]
+fn get_dynamic_values_returns_plugin_preferrentially() {
+  let plugin_result_value = "my plugin result";
+  let plugin_result = PluginRunResult::new(plugin_result_value);
+  let default_value = "my default value";
+
+  let result = Cli::get_dynamic_values(Some(default_value), Some(plugin_result).as_ref());
+
+    match result {
+      r @ DynamicValueType::DefaultValue(..) => assert!(false, "Expected PluginValue, got DefaultValue: {:?}", r),
+      DynamicValueType::PluginValue(_, value) => assert_eq!(value, plugin_result_value),
+      DynamicValueType::Neither => assert!(false, "Expected PluginValue, got NeitherValue"),
+    }
 }
 
