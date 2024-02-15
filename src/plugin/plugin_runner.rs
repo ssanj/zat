@@ -1,7 +1,8 @@
-use crate::templates::TemplateVariables;
-use crate::error::ZatAction;
+use crate::error::ZatResult;
+use crate::templates::Plugin;
+use crate::plugin::PluginResult;
 
-/// Runs any defined plugins and updates a TemplateVariable with the value.
+/// Runs a plugin and returns the result
 pub trait PluginRunner {
-  fn run_plugins(&self, template_variable: &mut TemplateVariables) -> ZatAction;
+  fn run_plugin(&self, plugin: Plugin) -> ZatResult<PluginResult>;
 }

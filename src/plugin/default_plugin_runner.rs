@@ -1,47 +1,15 @@
-use std::collections::HashMap;
 use std::process::Command;
 
-use super::PluginRunner;
-use crate::config::UserConfig;
-use crate::logging::{Logger, verbose_logger};
-use crate::templates::{TemplateVariable, TemplateVariables, Plugin, PluginArg, PluginRunResult, PluginRunStatus};
-use crate::error::{ZatResult, ZatError, ZatAction};
-use std::{println as p, format as s};
+use super::{PluginResult, PluginRunner};
+use crate::logging::Logger;
+use crate::templates::Plugin;
+use crate::error::{ZatResult, ZatError};
+use std::format as s;
 
 pub struct DefaultPluginRunner;
 
-#[derive(Debug, Clone, serde::Deserialize)]
-pub enum PluginResult {
-  Success(PluginSuccess),
-  Error(PluginError)
-}
-
-#[derive(Debug, Clone, serde::Deserialize)]
-pub struct PluginSuccess {
-  result: String,
-}
-
-#[derive(Debug, Clone, serde::Deserialize)]
-pub struct PluginError {
-  plugin_name: String,
-  error: String,
-  exception: Option<String>,
-  fix: String
-}
-
 impl PluginRunner for DefaultPluginRunner {
-  fn run_plugins(&self, template_variables: &mut TemplateVariables) -> ZatAction {
-    DefaultPluginRunner::run_plugins(template_variables)
-  }
-}
-
-
-impl DefaultPluginRunner {
-  pub fn new() -> Self {
-    DefaultPluginRunner
-  }
-
-  fn run_plugin(plugin: Plugin) -> ZatResult<PluginResult> {
+  fn run_plugin(&self, plugin: Plugin) -> ZatResult<PluginResult> {
     Logger::info(&s!("Running {} plugin...", plugin.id));
 
     let mut command = Command::new(&plugin.id);
@@ -71,6 +39,12 @@ impl DefaultPluginRunner {
 
     Ok(plugin_result)
   }
+}
+
+impl DefaultPluginRunner {
+  pub fn new() -> Self {
+    DefaultPluginRunner
+  }
 
   fn generate_command_string(plugin: &Plugin) -> String {
     let program = plugin.id.as_str();
@@ -86,27 +60,4 @@ impl DefaultPluginRunner {
 
     s!("{} {}", program, args)
   }
-
-  fn run_plugins(template_variables: &mut TemplateVariables) -> ZatAction {
-
-    for tv in template_variables.tokens.iter_mut() {
-      if let Some(plugin) = tv.plugin.as_mut() {
-        let run_result = DefaultPluginRunner::run_plugin(plugin.clone());
-        match run_result {
-          Ok(PluginResult::Success(plugin_success)) => {
-            plugin.result = PluginRunStatus::Run(PluginRunResult::new(&plugin_success.result));
-          },
-          Ok(PluginResult::Error(error)) => {
-            let exception = &error.exception.unwrap_or("<No Exception>".to_owned());
-            let zerr = ZatError::plugin_return_error(&error.plugin_name, &error.error, exception, &error.fix);
-            return Err(zerr)
-          },
-          Err(error) => return Err(error),
-        }
-      }
-    }
-
-    Ok(())
-  }
-
 }
