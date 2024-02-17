@@ -9,6 +9,7 @@ use super::ReasonFileErrorReason;
 use super::PostProcessingErrorReason;
 use super::BootstrapCommandErrorReason;
 use super::ProcessRemoteCommandErrorReason;
+use super::PluginErrorReason;
 use ansi_term::Color::Yellow;
 
 pub type ZatResult<A> = Result<A, ZatError>;
@@ -18,7 +19,8 @@ pub type ZatAction = Result<(), ZatError>;
 pub enum ZatError {
   ProcessCommandError(ProcessCommandErrorReason),
   BootstrapCommandError(BootstrapCommandErrorReason),
-  ProcessRemoteCommandError(ProcessRemoteCommandErrorReason)
+  ProcessRemoteCommandError(ProcessRemoteCommandErrorReason),
+  PluginError(PluginErrorReason)
 
 }
 
@@ -410,11 +412,16 @@ impl ZatError {
     todo!()
   }
 
-  pub fn plugin_return_error(plugin: &str, error: &str, exception: &str, fix: &str) -> ZatError {
-    println!("plugin:{}\nerror:{}\nexception:{}\nfix:{}", plugin, error, exception, fix);
-    todo!()
+  pub fn plugin_returned_error(plugin: &str, error: &str, exception: &str, fix: &str) -> ZatError {
+    ZatError::PluginError(
+      PluginErrorReason::PluginFailure(
+        plugin.to_owned(),
+        error.to_owned(),
+        exception.to_owned(),
+        fix.to_owned()
+      )
+    )
   }
-
 }
 
 
@@ -429,6 +436,8 @@ impl std::fmt::Display for ZatError {
           ZatError::print_formatted_error("There was an error running the bootstrap process", error),
        ZatError::ProcessRemoteCommandError(error)                                                       =>
           ZatError::print_formatted_error("There was an error running a remote processing command", error),
+       ZatError::PluginError(error)                                                       =>
+          ZatError::print_formatted_error("There was an error running a plugin", error),
       };
 
       write!(f, "{}", string_rep)

@@ -4,6 +4,27 @@ pub enum PluginResult {
   Error(PluginError)
 }
 
+impl PluginResult {
+  pub fn success(result: String) -> Self {
+    PluginResult::Success(
+      PluginSuccess {
+        result
+      }
+    )
+  }
+
+  pub fn error(plugin_name: String, error: String, exception: Option<String>, fix: String) -> Self {
+      PluginResult::Error(
+        PluginError {
+          plugin_name,
+          error,
+          exception,
+          fix
+        }
+      )
+  }
+}
+
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct PluginSuccess {
   pub result: String,
