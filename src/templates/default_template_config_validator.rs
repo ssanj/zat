@@ -212,7 +212,7 @@ use super::super::TemplateVariable;
 use super::*;
 use pretty_assertions::assert_eq;
 use crate::config::user_config::UserConfig;
-use crate::templates::PluginRunStatus;
+use crate::templates::{ArgType, PluginRunStatus};
 
   impl UserInputProvider for HashMap<String, String> {
     fn get_user_input(&self, variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
@@ -365,7 +365,7 @@ use crate::templates::PluginRunStatus;
   fn get_plugin_value_returns_none_when_plugin_has_not_run() {
     let plugin = Plugin {
         id: "MyPlugin".to_owned(),
-        args: Vec::default(),
+        args: Default::default(),
         result: PluginRunStatus::default(),
       };
 
@@ -379,7 +379,7 @@ use crate::templates::PluginRunStatus;
 
     let plugin = Plugin {
         id: "MyPlugin".to_owned(),
-        args: Vec::default(),
+        args: Default::default(),
         result: PluginRunStatus::Run(plugin_result.clone()),
       };
 

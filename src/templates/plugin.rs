@@ -1,9 +1,24 @@
 use serde::Deserialize;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
+pub enum ArgType {
+  NoArgs,
+  MutlipleArgs(PluginArg, Vec<PluginArg>),
+  ArgLine(Vec<String>),
+}
+
+impl Default for ArgType {
+  fn default() -> Self {
+      ArgType::NoArgs
+  }
+}
+
+// TODO: Will we need a custom deserializer?
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Plugin {
   pub id: String,
-  pub args: Vec<PluginArg>,
+  pub args: ArgType,
 
   #[serde(default)]
   pub result: PluginRunStatus,

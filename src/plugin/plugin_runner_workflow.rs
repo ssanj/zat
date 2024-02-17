@@ -118,7 +118,7 @@ mod tests {
       let plugin =
         Plugin {
           id: "My Plugin".to_owned(),
-          args: Vec::default(),
+          args: Default::default(),
           result: PluginRunStatus::NotRun,
         };
 
@@ -153,7 +153,7 @@ mod tests {
       let plugin =
         Plugin {
           id: "My Plugin".to_owned(),
-          args: Vec::default(),
+          args: Default::default(),
           result: PluginRunStatus::NotRun,
         };
 

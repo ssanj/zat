@@ -2,7 +2,7 @@ use std::process::Command;
 
 use super::{PluginResult, PluginRunner};
 use crate::logging::Logger;
-use crate::templates::Plugin;
+use crate::templates::{Plugin, ArgType};
 use crate::error::{ZatResult, ZatError};
 use std::format as s;
 
@@ -14,11 +14,23 @@ impl PluginRunner for DefaultPluginRunner {
 
     let mut command = Command::new(&plugin.id);
 
-    for arg in &plugin.args {
-      command
-        .arg(s!("{}{}", &arg.prefix, &arg.name))
-        .arg(&arg.value);
-    }
+    match &plugin.args {
+      ArgType::NoArgs => (),
+      ArgType::MutlipleArgs(first, rest) => {
+        let mut args = vec![first.clone()];
+        let mut other = rest.clone();
+        args.append(&mut other);
+
+        for arg in args {
+          command
+            .arg(s!("{}{}", &arg.prefix, &arg.name))
+            .arg(&arg.value);
+        }
+      },
+      ArgType::ArgLine(args) => {
+        command.args(args);
+      },
+    };
 
     let program = Self::generate_command_string(&plugin);
 
@@ -49,14 +61,25 @@ impl DefaultPluginRunner {
   fn generate_command_string(plugin: &Plugin) -> String {
     let program = plugin.id.as_str();
 
-    let args =
-      plugin
-        .clone()
-        .args
-        .into_iter()
-        .map(|arg| s!("{}{} {}", arg.prefix, arg.name, arg.value))
-        .collect::<Vec<String>>()
-        .join(" ");
+    let plugin_args = plugin.args.clone();
+
+    let args_vec: Vec<String> =
+      match plugin_args {
+        ArgType::NoArgs => vec![],
+        ArgType::MutlipleArgs(f, r) => {
+          let mut items = vec![f];
+          let mut other_items = r;
+          items.append(&mut other_items);
+
+          items
+            .into_iter()
+            .map(|i| s!("{}{} {}", i.prefix, i.name, i.value))
+            .collect::<Vec<String>>()
+        },
+        ArgType::ArgLine(args) => args,
+      };
+
+    let args = args_vec.join(" ");
 
     s!("{} {}", program, args)
   }
