@@ -390,9 +390,26 @@ impl ZatError {
   // Process Remote Errors
   // -------------------------------------------------------------------------------------------------------------------
 
-  pub fn could_not_run_plugin(program: &str, exception: String) -> ZatError {
-    println!("program:{}\nexception:{}", program, exception);
-    todo!()
+  pub fn could_not_run_plugin(plugin: &str, exception: String) -> ZatError {
+    ZatError::PluginError(
+      PluginErrorReason::CouldNotRunPlugin(
+        plugin.to_owned(),
+        s!("Plugin could not be run. Does it exist and is it executable?"),
+        exception,
+        s!("Try running the plugin manually to fix the above error.")
+      )
+    )
+  }
+
+
+  pub fn plugin_return_invalid_status_code(plugin: &str, opt_code: Option<&i32>) -> ZatError {
+    ZatError::PluginError(
+      PluginErrorReason::PluginReturnedInvalidExitCodeFailure(
+        plugin.to_owned(),
+        s!("Plugin failed with status code {}. The plugin failed with a non-zero error code signifying an error.", opt_code.map_or_else(|| s!("unknown"), |ec| ec.to_string())),
+        s!("Try running the plugin manually to fix the above error.")
+      )
+    )
   }
 
 

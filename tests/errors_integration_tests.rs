@@ -193,6 +193,41 @@ fn error_message_plugin_failure() -> Result<(), Box<dyn std::error::Error>> {
 
 
 #[test]
+fn error_message_incorrect_plugin_invocation() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-invocation-failure";
+
+  let error_parts =
+    ErrorParts::new(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/failure.sh' returned the following error: Plugin failed with status code 1. The plugin failed with a non-zero error code signifying an error."),
+      s!("Try running the plugin manually to fix the above error."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
+fn error_message_plugin_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-does-not-exist-failure";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/a-failure.sh one two' returned the following error: Plugin could not be run. Does it exist and is it executable?"),
+      s!("No such file or directory (os error 2)"),
+      s!("Try running the plugin manually to fix the above error."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
 fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "post-processing-shell-hook-not-executable";
   let source_directory = get_source_directory(test_directory);

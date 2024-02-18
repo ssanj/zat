@@ -35,6 +35,10 @@ impl PluginRunner for DefaultPluginRunner {
           .output()
           .map_err(|e| ZatError::could_not_run_plugin(&program, e.to_string()))?;
 
+    if !&output.status.success() {
+      return Err(ZatError::plugin_return_invalid_status_code(&program, output.status.code().as_ref()));
+    }
+
     let result =
       std::str::from_utf8(&output.stdout).map_err(|e| ZatError::could_not_decode_plugin_result_to_utf8(&program, e.to_string()))?;
 
@@ -117,9 +121,12 @@ mod tests {
     fn generate_command_string_with_argline() {
       let args =
         vec![
-          "--argone value1".to_owned(),
-          "--argtwo value2".to_owned(),
-          "--argthree value3".to_owned(),
+          "--argone".to_owned(),
+          "value1".to_owned(),
+          "--argtwo".to_owned(),
+          "value2".to_owned(),
+          "--argthree".to_owned(),
+          "value3".to_owned(),
         ];
 
       let plugin =

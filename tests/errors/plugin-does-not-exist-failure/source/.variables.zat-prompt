@@ -1,0 +1,14 @@
+[
+  {
+    "variable_name": "description",
+    "description": "What your project is about",
+    "prompt": "Please a description of your project",
+    "plugin": {
+      "id": "tests/plugins/a-failure.sh",
+      "args": [
+        "one",
+        "two"
+      ]
+    }
+  }
+]
