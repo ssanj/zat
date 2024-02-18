@@ -10,7 +10,7 @@ pub struct DefaultPluginRunner;
 
 impl PluginRunner for DefaultPluginRunner {
   fn run_plugin(&self, plugin: Plugin) -> ZatResult<PluginResult> {
-    Logger::info(&s!("Running {} plugin...", plugin.id));
+    Logger::info(&s!("Running plugin: {}", Self::generate_command_string(&plugin)));
 
     let mut command = Command::new(&plugin.id);
 
@@ -75,6 +75,77 @@ impl DefaultPluginRunner {
 
     let args = args_vec.join(" ");
 
-    s!("{} {}", program, args)
+    if !args.is_empty() {
+      s!("{} {}", program, args)
+    } else {
+      program.to_owned()
+    }
+
+
   }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::templates::PluginArg;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn generate_command_string_with_args() {
+      let args =
+        vec![
+          PluginArg::new("argone", "value1"),
+          PluginArg::new("argtwo", "value2"),
+          PluginArg::new("argthree", "value3"),
+        ];
+
+      let plugin =
+        Plugin {
+          id: "my-program".to_owned(),
+          args: Some(ArgType::MutlipleArgs(args)),
+          result: Default::default(),
+      };
+
+      let command_string = DefaultPluginRunner:: generate_command_string(&plugin);
+
+      assert_eq!(command_string, "my-program --argone value1 --argtwo value2 --argthree value3")
+    }
+
+
+    #[test]
+    fn generate_command_string_with_argline() {
+      let args =
+        vec![
+          "--argone value1".to_owned(),
+          "--argtwo value2".to_owned(),
+          "--argthree value3".to_owned(),
+        ];
+
+      let plugin =
+        Plugin {
+          id: "my-program".to_owned(),
+          args: Some(ArgType::ArgLine(args)),
+          result: Default::default(),
+      };
+
+      let command_string = DefaultPluginRunner:: generate_command_string(&plugin);
+
+      assert_eq!(command_string, "my-program --argone value1 --argtwo value2 --argthree value3")
+    }
+
+
+    #[test]
+    fn generate_command_string_without_args() {
+      let plugin =
+        Plugin {
+          id: "my-program".to_owned(),
+          args: None,
+          result: Default::default(),
+      };
+
+      let command_string = DefaultPluginRunner:: generate_command_string(&plugin);
+
+      assert_eq!(command_string, "my-program")
+    }
 }

@@ -54,6 +54,25 @@ pub struct PluginArg {
   pub prefix: String
 }
 
+impl PluginArg {
+
+  #[cfg(test)]
+  pub fn new(name: &str, value: &str) -> Self {
+    let prefix =
+      if name.len() > 1 {
+        "--"
+      } else {
+        "-"
+      };
+
+    Self {
+      name: name.to_owned(),
+      value: value.to_owned(),
+      prefix: prefix.to_owned()
+    }
+  }
+}
+
 
 #[cfg(test)]
 mod tests {
