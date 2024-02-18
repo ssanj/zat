@@ -173,6 +173,25 @@ fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn
   run_error_test(error_test_config)
 }
 
+
+#[test]
+fn error_message_plugin_failure() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-failure";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'failure.sh' returned the following error: Something went wrong."),
+      s!("Born to fail"),
+      s!("Run the success.sh plugin instead."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
 #[test]
 fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "post-processing-shell-hook-not-executable";

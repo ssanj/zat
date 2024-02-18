@@ -22,7 +22,7 @@ impl From<&PluginErrorReason> for ErrorFormat {
       PluginErrorReason::CouldNotDecodePluginResultToJson(_, _, _) => todo!(),
     };
 
-    let error_reason = s!("Plugin {} returned the following error: {}", plugin_name, error);
+    let error_reason = s!("Plugin '{}' returned the following error: {}", plugin_name, error);
 
     ErrorFormat {
       error_reason,

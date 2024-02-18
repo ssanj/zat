@@ -1,0 +1,26 @@
+[
+  {
+    "variable_name": "project",
+    "description": "Name of project",
+    "prompt": "Please enter your project name",
+    "filters": [
+      { "name": "__default__",
+        "filter": "Pascal"
+      },
+      { "name": "underscore",
+        "filter": "Snake"
+      }
+    ]
+  },
+  {
+    "variable_name": "description",
+    "description": "What your project is about",
+    "prompt": "Please a description of your project",
+    "plugin": {
+      "id": "tests/plugins/success.sh",
+      "args":[
+        "Testing 123"
+      ]
+    }
+  }
+]
