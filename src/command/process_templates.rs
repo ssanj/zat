@@ -6,7 +6,7 @@ use crate::templates::{TemplateVariableProvider, DefaultTemplateVariableProvider
 use crate::templates::{TemplateConfigValidator, DefaultTemplateConfigValidator};
 use crate::templates::TemplateVariableReview;
 use crate::token_expander::{ExpandFilters, DefaultExpandFilters};
-use crate::plugin::{PluginRunner, DefaultPluginRunner, PluginRunnerWorkflow};
+use crate::plugin::{DefaultPluginRunner, PluginRunnerWorkflow};
 use crate::config::UserConfig;
 use std::format as s;
 

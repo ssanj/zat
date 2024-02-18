@@ -15,19 +15,15 @@ impl PluginRunner for DefaultPluginRunner {
     let mut command = Command::new(&plugin.id);
 
     match &plugin.args {
-      ArgType::NoArgs => (),
-      ArgType::MutlipleArgs(first, rest) => {
-        let mut args = vec![first.clone()];
-        let mut other = rest.clone();
-        args.append(&mut other);
-
+      None => (),
+      Some(ArgType::MutlipleArgs(args)) => {
         for arg in args {
           command
             .arg(s!("{}{}", &arg.prefix, &arg.name))
             .arg(&arg.value);
         }
       },
-      ArgType::ArgLine(args) => {
+      Some(ArgType::ArgLine(args)) => {
         command.args(args);
       },
     };
@@ -65,18 +61,16 @@ impl DefaultPluginRunner {
 
     let args_vec: Vec<String> =
       match plugin_args {
-        ArgType::NoArgs => vec![],
-        ArgType::MutlipleArgs(f, r) => {
-          let mut items = vec![f];
-          let mut other_items = r;
-          items.append(&mut other_items);
-
+        None => vec![],
+        Some(ArgType::MutlipleArgs(items)) => {
           items
             .into_iter()
             .map(|i| s!("{}{} {}", i.prefix, i.name, i.value))
             .collect::<Vec<String>>()
         },
-        ArgType::ArgLine(args) => args,
+        Some(ArgType::ArgLine(args)) => {
+          args
+        },
       };
 
     let args = args_vec.join(" ");

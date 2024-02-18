@@ -12,7 +12,7 @@ pub use template_config_validator::{TemplateConfigValidator, ValidConfig, Templa
 pub use default_template_config_validator::DefaultTemplateConfigValidator;
 pub use variables::{FilterType, TemplateVariable, UserVariableKey, UserVariableValue, TemplateVariables};
 
-pub use plugin::{Plugin, PluginArg, PluginRunResult, PluginRunStatus, ArgType};
+pub use plugin::{Plugin, PluginRunResult, PluginRunStatus, ArgType};
 
 #[cfg(test)]
 pub use variables::VariableFilter;
