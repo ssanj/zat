@@ -1,6 +1,8 @@
 #[derive(Debug, Clone, serde::Deserialize)]
 pub enum PluginResult {
+  #[serde(rename = "success")]
   Success(PluginSuccess),
+  #[serde(rename = "error")]
   Error(PluginError)
 }
 

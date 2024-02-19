@@ -6,4 +6,4 @@ if [[ "$#" -ne 1 ]];then
 fi
 
 MESSAGE="$1"
-echo {\"Error\":{\"plugin_name\": \"failure.sh\",\"error\": \"$MESSAGE.\",\"exception\": \"Born to fail\",\"fix\": \"Run the success.sh plugin instead.\"}}
+echo {\"error\":{\"plugin_name\": \"failure.sh\",\"error\": \"$MESSAGE.\",\"exception\": \"Born to fail\",\"fix\": \"Run the success.sh plugin instead.\"}}
