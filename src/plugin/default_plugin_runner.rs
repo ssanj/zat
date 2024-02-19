@@ -39,15 +39,17 @@ impl PluginRunner for DefaultPluginRunner {
       return Err(ZatError::plugin_return_invalid_status_code(&program, output.status.code().as_ref()));
     }
 
-    let result =
+    let mut result =
       std::str::from_utf8(&output.stdout).map_err(|e| ZatError::could_not_decode_plugin_result_to_utf8(&program, e.to_string()))?;
+
+    result = result.trim();
 
     let std_err =
       std::str::from_utf8(&output.stderr).map_err(|e| ZatError::could_not_decode_plugin_stderr_to_utf8(&program, e.to_string()))?;
 
     let plugin_result: PluginResult =
       serde_json::from_str(result)
-        .map_err(|e| ZatError::could_not_decode_plugin_result_to_json(&program, e.to_string(), std_err))?;
+        .map_err(|e| ZatError::could_not_decode_plugin_result_to_json(&program, e.to_string(), &result, std_err))?;
 
     Ok(plugin_result)
   }

@@ -387,7 +387,7 @@ impl ZatError {
 
 
   // -------------------------------------------------------------------------------------------------------------------
-  // Process Remote Errors
+  // Plugin Errors
   // -------------------------------------------------------------------------------------------------------------------
 
   pub fn could_not_run_plugin(plugin: &str, exception: String) -> ZatError {
@@ -413,20 +413,45 @@ impl ZatError {
   }
 
 
-  pub fn could_not_decode_plugin_result_to_utf8(program: &str, exception: String) -> ZatError {
-    println!("program:{}\nexception:{}", program, exception);
-    todo!()
+  pub fn could_not_decode_plugin_result_to_utf8(plugin: &str, exception: String) -> ZatError {
+    ZatError::PluginError(
+      PluginErrorReason::CouldNotDecodePluginOutputToUtf8(
+        plugin.to_owned(),
+        s!("The plugin return invalid UTF8 characters."),
+        exception.to_owned(),
+        s!("Try running the plugin manually to fix the above error.")
+      )
+    )
   }
 
 
-  pub fn could_not_decode_plugin_stderr_to_utf8(program: &str, exception: String) -> ZatError {
-    println!("program:{}\nexception:{}", program, exception);
-    todo!()
+  pub fn could_not_decode_plugin_stderr_to_utf8(plugin: &str, exception: String) -> ZatError {
+    ZatError::PluginError(
+      PluginErrorReason::CouldNotDecodePluginStdErrToUtf8(
+        plugin.to_owned(),
+        s!("The plugin return invalid UTF8 characters to stderr."),
+        exception.to_owned(),
+        s!("Try running the plugin manually to fix the above error.")
+      )
+    )
   }
 
-  pub fn could_not_decode_plugin_result_to_json(program: &str, exception: String, std_err: &str) -> ZatError {
-    println!("program:{}\nexception:{}\nstderr:{}", program, exception, std_err);
-    todo!()
+  pub fn could_not_decode_plugin_result_to_json(plugin: &str, exception: String,result: &str, std_err: &str) -> ZatError {
+    let error_message =
+      if !std_err.is_empty() {
+        s!(" The plugin returned the following error: {}", std_err)
+      } else {
+        s!("")
+      };
+
+    ZatError::PluginError(
+      PluginErrorReason::CouldNotDecodePluginResultToJson(
+        plugin.to_owned(),
+        s!("Could not decode result from plugin. The plugin returned: '{}'.{}", result, error_message),
+        exception.to_owned(),
+        s!("Try running the plugin manually verify the output format of the plugin adheres to the Zat Plugin Specification.")
+      )
+    )
   }
 
   pub fn plugin_returned_error(plugin: &str, error: &str, exception: &str, fix: &str) -> ZatError {

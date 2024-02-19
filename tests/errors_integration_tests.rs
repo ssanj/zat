@@ -210,6 +210,24 @@ fn error_message_incorrect_plugin_invocation() -> Result<(), Box<dyn std::error:
 
 
 #[test]
+fn error_message_plugin_did_not_return_json() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-result-not-json";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/failure-not-json.sh I am not JSON' returned the following error: Could not decode result from plugin. The plugin returned: 'I am not JSON'."),
+      s!("expected value at line 1 column 1"),
+      s!("Try running the plugin manually verify the output format of the plugin adheres to the Zat Plugin Specification."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
 fn error_message_plugin_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "plugin-does-not-exist-failure";
 
