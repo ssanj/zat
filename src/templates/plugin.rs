@@ -1,11 +1,34 @@
 use serde::Deserialize;
+use std::format as s;
 
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ArgType {
   MutlipleArgs(Vec<PluginArg>),
   ArgLine(Vec<String>),
 }
+
+impl <'de> Deserialize<'de> for ArgType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de> {
+
+        #[derive(Debug, Clone, Deserialize)]
+        #[serde(untagged)]
+        enum InnerArgType {
+          Strings(Vec<String>),
+          Args(Vec<PluginArg>)
+        }
+
+        let found_type = InnerArgType::deserialize(deserializer);
+
+        match found_type {
+          Ok(InnerArgType::Strings(strings)) => Ok(ArgType::ArgLine(strings)),
+          Ok(InnerArgType::Args(args)) => Ok(ArgType::MutlipleArgs(args)),
+          Err(e) => Err(serde::de::Error::custom(s!("could not decode 'args' field: {}", e))),
+        }
+    }
+}
+
 
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -132,9 +155,12 @@ mod tests {
       {
         "id": "scala-deps",
         "args":[
-          "-o org.scala-lang",
-          "-g scala3-library",
-          "-s 3"
+          "-o",
+          "org.scala-lang",
+          "-g",
+          "scala3-library",
+          "-s",
+          "3"
         ]
       }
     "#;
@@ -145,12 +171,21 @@ mod tests {
         .unwrap();
 
 
-    let args =
-      vec![
-      "-o org.scala-lang".to_owned(),
-        "-g scala3-library".to_owned(),
-        "-s 3".to_owned()
+    let arg_values =
+      [
+      "-o",
+      "org.scala-lang",
+      "-g",
+      "scala3-library",
+      "-s",
+      "3"
       ];
+
+    let args =
+      arg_values
+        .into_iter()
+        .map(|v| v.to_owned())
+        .collect::<Vec<String>>();
 
     let args = ArgType::ArgLine(args);
 
