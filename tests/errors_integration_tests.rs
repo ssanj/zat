@@ -228,6 +228,42 @@ fn error_message_plugin_did_not_return_json() -> Result<(), Box<dyn std::error::
 
 
 #[test]
+fn error_message_plugin_did_not_return_utf8_in_stdout() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-result-not-utf8-stdout";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/failure-not-utf8-stdout.sh' returned the following error: The plugin return invalid UTF8 characters."),
+      s!("invalid utf-8 sequence of 1 bytes from index 0"),
+      s!("Try running the plugin manually to fix the above error."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
+fn error_message_plugin_did_not_return_utf8_in_stderr() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-result-not-utf8-stderr";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/failure-not-utf8-stderr.sh' returned the following error: The plugin return invalid UTF8 characters to stderr."),
+      s!("invalid utf-8 sequence of 1 bytes from index 0"),
+      s!("Try running the plugin manually to fix the above error."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
 fn error_message_plugin_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "plugin-does-not-exist-failure";
 
