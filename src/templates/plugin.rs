@@ -22,9 +22,21 @@ impl <'de> Deserialize<'de> for ArgType {
         let found_type = InnerArgType::deserialize(deserializer);
 
         match found_type {
-          Ok(InnerArgType::Strings(strings)) => Ok(ArgType::ArgLine(strings)),
-          Ok(InnerArgType::Args(args)) => Ok(ArgType::MutlipleArgs(args)),
-          Err(e) => Err(serde::de::Error::custom(s!("could not decode 'args' field: {}", e))),
+          Ok(InnerArgType::Strings(strings)) => {
+            if strings.is_empty() {
+              Err(serde::de::Error::custom("'args' field can't be empty. Remove the 'args' field if there are no arguments or supplyone of: List of string or List (name, value, prefix)"))
+            } else {
+              Ok(ArgType::ArgLine(strings))
+            }
+          },
+          Ok(InnerArgType::Args(args)) => {
+              if args.is_empty() {
+              Err(serde::de::Error::custom("'args' field can't be empty. Remove the 'args' field if there are no arguments or supplyone of: List of string or List (name, value, prefix)"))
+            } else {
+              Ok(ArgType::MutlipleArgs(args))
+            }
+          },
+          Err(_) => Err(serde::de::Error::custom(s!("Could not decode 'args' field. It should be one of: List of string or List (name, value, prefix)"))),
         }
     }
 }
@@ -100,7 +112,7 @@ impl PluginArg {
 #[cfg(test)]
 mod tests {
   use super::*;
-
+  use predicates::prelude::*;
 
   #[test]
   fn decodes_plugin_with_args() {
@@ -229,7 +241,7 @@ mod tests {
     let config = r#"
       {
         "id": "scala-deps",
-        args: 1234
+        "args": 1234
       }
     "#;
 
@@ -237,7 +249,30 @@ mod tests {
       serde_json::from_str::<Plugin>(config)
         .map_err(|e| e.to_string());
 
-    assert!(plugin_result.is_err())
+    println!("{:?}", plugin_result);
+
+    assert!(plugin_result.is_err(), "expected an error but was {:?}", plugin_result);
+    let predicate = predicates::str::starts_with("Could not decode 'args' field. It should be one of: List of string or List (name, value, prefix)");
+    assert_eq!(true, predicate.eval(plugin_result.unwrap_err().as_str()))
+  }
+
+
+  #[test]
+  fn decoding_plugin_fails_with_empty_args() {
+    let config = r#"
+      {
+        "id": "scala-deps",
+        "args": []
+      }
+    "#;
+
+    let plugin_result =
+      serde_json::from_str::<Plugin>(config)
+        .map_err(|e| e.to_string());
+
+    assert!(plugin_result.is_err(), "expected an error but was {:?}", plugin_result);
+    let predicate = predicates::str::starts_with("'args' field can't be empty. Remove the 'args' field if there are no arguments or supplyone of: List of string or List (name, value, prefix)");
+    assert_eq!(true, predicate.eval(plugin_result.unwrap_err().as_str()))
   }
 
 
