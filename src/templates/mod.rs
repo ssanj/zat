@@ -16,3 +16,6 @@ pub use plugin::{Plugin, PluginRunResult, PluginRunStatus, ArgType};
 
 #[cfg(test)]
 pub use variables::VariableFilter;
+
+#[cfg(test)]
+pub use plugin::PluginArg;
