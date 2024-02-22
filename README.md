@@ -312,6 +312,7 @@ Ignored files will not be processed or copied over to the target directory.
 | [Sublime Text Plugin Template](https://github.com/ssanj/st-plugin-zat) | Simple Sublime Text Plugin template |
 | [Rust CLI Template](https://github.com/ssanj/rust-cli-zat) | A template for creating CLI applications in Rust |
 | [Basic Scala 3 Template](https://github.com/ssanj/basic-scala3-zat) | A template for creating applications in Scala 3 |
+| [Basic Scala 3 Template with the Latest Dependencies](https://github.com/ssanj/basic-scala3-latest-deps-zat) | A template for creating applications in Scala 3 with the latest stable dependencies |
 
 Also have a look at the [example tests](https://github.com/ssanj/zat/tree/main/tests/examples) for some sample Zat repositories.
 
@@ -320,6 +321,124 @@ A simple way to run a remote template is with `process-remote`. For example to r
 ```
 zat process-remote --repository-url https://github.com/ssanj/st-plugin-zat --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>
 ```
+
+## Plugins
+
+Zat supports the concept of a "plugin"; an external executable that can be passed some arguments and which returns a result in a standard format. The result will be used to replace the value of a token in a template file. The executable can be a Bash script, a Rust program or anything you want really.
+
+### Inputs
+
+The inputs to the plugin can take any format the plugin requires.
+
+
+### Outputs
+
+The output from a plugin should follow the guidelines below.
+
+For a successful result, the plugin should return the following JSON payload:
+
+```json
+{
+    "success":
+    {
+        "result": "YOUR_RESULT"
+    }
+}
+```
+
+For example:
+
+
+```.json
+{
+    "success":
+    {
+        "result": "2.10.0"
+    }
+}
+```
+
+For an erroneous result, the plugin should return the following JSON payload:
+
+```json
+{
+    "error":
+    {
+        "plugin_name": "<YOUR_PLUGIN_NAME>",
+        "error": "<DESCRIPTION_OF_THE_ERROR>",
+        "exception": "<EXCEPTION_IF_ANY_THIS_IS_OPTIONAL>",
+        "fix": "<HOW TO FIX THE ERROR>"
+    }
+}
+```
+
+For example:
+
+```json
+{
+    "error":
+    {
+        "plugin_name": "scala-deps",
+        "error": "The 'scala-deps' plugin did not receive any matching results from coursier.",
+        "fix": "Verify the output returned by courser by running 'cs complete-dep org.typelevel:cats-snore_2.13:'"
+    }
+}
+```
+
+### Calling the plugin
+
+The plugin can be called through `.variables.zat-prompt` configuration using the `plugin` attribute when defining a `token`:
+
+```json
+  {
+    "variable_name": "YOUR_VARIABLE_NAME",
+    "description": "WHAT YOUR_VARIABLE_NAME IS",
+    "prompt": "HOW TO ASK FOR YOUR_VARIABLE_NAME",
+    "plugin": {
+      "id": "<NAME OR PATH TO PLUGIN>",
+      "args":[
+          "ARG1",
+          "ARG2",
+          "ARGX",
+      ]
+    }
+  }
+```
+
+For example:
+
+```json
+  {
+    "variable_name": "scala_3_version",
+    "description": "Which version of Scala 3 to use",
+    "prompt": "Please enter Scala 3 version to use",
+    "plugin": {
+      "id": "scala-deps",
+      "args":[
+          "-o",
+          "org.scala-lang",
+          "-g",
+          "scala3-library",
+          "-s",
+          "3"
+      ]
+    }
+  }
+```
+
+The value returned from the plugin can be used in templates as per usual. For example to use the above `scala_3_version` in a template we would use:
+
+```
+// YOUR.tmpl.file
+$scala_3_version$
+```
+
+If the plugin returns successfully the token will be replaced within the template file. If the plugin fails, the failure message will be displayed and Zat will fail.
+
+### Examples
+
+Have a look at the [scala-deps](https://github.com/ssanj/scala-deps-zatp) plugin for a working implementation. Some simple Bash examples can be found in the [plugin folder](https://github.com/ssanj/zat/blob/main/plugin-support/tests/plugins).
+
 
 ## Caveats
 
