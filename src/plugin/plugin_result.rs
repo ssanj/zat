@@ -6,6 +6,7 @@ pub enum PluginResult {
   Error(PluginError)
 }
 
+#[cfg(test)]
 impl PluginResult {
   pub fn success(result: String) -> Self {
     PluginResult::Success(
