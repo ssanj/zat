@@ -78,7 +78,7 @@ cargo build --release
 Copy binary file from target/release/zat to a directory on your PATH.
 ```
 
-See the User Manual for more information.
+See the [User Manual](docs/user-manual/user-manual.md) for more information.
 
 ## What is a "project templating system"?
 
