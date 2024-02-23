@@ -5,6 +5,7 @@ Welcome to the Zat user manual. This manual will cover some Zat topics in more d
 
 
 - [What is a project templating system](what-is-a-project-templating-system.md)
+- [Installation](installation.md)
 - [Usage](usage.md)
 - [Getting started](getting-started.md)
 - [Repository structure](repoistory-structure.md)

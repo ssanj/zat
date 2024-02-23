@@ -17,11 +17,9 @@ MyCoolTemplate /        <-- Zat repository.
     $project$.conf.tmpl <-- Tokens in this template file name and content will be replaced by values supplied by the user.
 ```
 
-- [Defining Tokens](defining-a-template/defining-tokens.md)
-- [Structure of a filter](defining-a-template/structure-of-a-filter.md)
-- [Example Configuration](defining-a-template/example-configuration.md)
-- [Supported filters](defining-a-template/supported-filters.md)
-- [How to use a filter](defining-a-template/how-to-use-a-filter.md)
+- [Defining tokens or variables](defining-a-template/defining-tokens.md)
+- [Defining a filter](defining-a-template/structure-of-a-filter.md)
+- [Example configuration](defining-a-template/example-configuration.md)
 - [How ignore files and folders](defining-a-template/how-to-ignore-files-and-folders.md)
 - [Example templates](defining-a-template/example-templates.md)
-- [Plugins](defining-a-template/plugins.md)
+- [Defining a plugin](defining-a-template/plugins.md)
