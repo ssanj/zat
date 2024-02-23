@@ -61,6 +61,6 @@ For example:
 }
 ```
 
-- [How to call a plugin](plugins/how-to-call-a-plugin.md)
-- [Example plugins](plugins/example-plugins.md)
+- [How to call a plugin](../plugins/how-to-call-a-plugin.md)
+- [Example plugins](../plugins/example-plugins.md)
 

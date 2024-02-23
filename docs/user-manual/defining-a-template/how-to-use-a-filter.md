@@ -1,4 +1,4 @@
-# Filter Usage
+# How to use a filter
 
 Variables can be used in the following ways:
 
