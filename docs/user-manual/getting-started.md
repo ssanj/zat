@@ -38,4 +38,4 @@ Have a look at the files in `ZAT_REPOSITORY` and how they they are different in 
 
 The [example tests](https://github.com/ssanj/zat/tree/main/tests/examples) are a good source of some sample Zat repositories.
 
-Additional templates can also be found in the [Example Templates](example-templates.md) section.
+Additional templates can also be found in the [Example Templates](defining-a-template/example-templates.md) section.
