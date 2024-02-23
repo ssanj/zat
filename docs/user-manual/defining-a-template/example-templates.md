@@ -14,3 +14,5 @@ A simple way to run a remote template is with `process-remote`. For example to r
 ```
 zat process-remote --repository-url https://github.com/ssanj/st-plugin-zat --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>
 ```
+
+![Processing a Remote Project](../../images/zat-process-remote.gif)

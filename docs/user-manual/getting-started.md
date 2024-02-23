@@ -17,7 +17,7 @@ The `ZAT_REPOSITORY` directory will have the following files:
 └── .variables.zat-prompt
 ```
 
-![Creating a Bootstrap Project](docs/images/zat-bootstrap.gif)
+![Creating a Bootstrap Project](../images/zat-bootstrap.gif)
 
 Once the repository is created, you can run it with:
 
@@ -32,10 +32,10 @@ Once the template is processed the `WHERE_TO_EXTRACT_THE_REPOSITORY` directory w
 └── README.md
 ```
 
-![Processing a Bootstrap Project](docs/images/zat-process-bootstrap.gif)
+![Processing a Bootstrap Project](../images/zat-process-bootstrap.gif)
 
 Have a look at the files in `ZAT_REPOSITORY` and how they they are different in `WHERE_TO_EXTRACT_THE_REPOSITORY` to get a feel for how Zat works. For more detailed information read the contents that follows.
 
 The [example tests](https://github.com/ssanj/zat/tree/main/tests/examples) are a good source of some sample Zat repositories.
 
-Additional templates can also be found in the [Example Templates](example-templates.md) section.
+Additional templates can also be found in the [Example Templates](defining-a-template/example-templates.md) section.
