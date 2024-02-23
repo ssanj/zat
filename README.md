@@ -9,16 +9,39 @@ Zat has the following goals:
 - It's easy to use
 - Has great error messages
 
-## What is a "project templating system"?
+## Quick start
 
-If you've ever been working on a project and then required some or all of the same project files and structures in another similar project, then you know how annoying it can be to manually copy across all the necessary files and then modify them to suit your new project.
+To use a remote template use:
 
-Wouldn't it be nice if something automated this for you?
+```
+zat process-remote --repository-url <YOUR_REMOTE_REPOSITORY> --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>
+```
+Some useful remote templates are:
 
-That's where Zat comes in:
-- Create a Zat repository to represent the common files and folder structures across your project.
-- Tokenise any differences that are project-specific.
-- Use Zat to process the repository and generate a unique versions of the project at a new destination.
+| Template | Command |
+| ----- | ---------- |
+| [Rust CLI Template](https://github.com/ssanj/rust-cli-zat) | `zat process-remote --repository-url https://github.com/ssanj/rust-cli-zat --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>` |
+| [Basic Scala 3 Template](https://github.com/ssanj/basic-scala3-zat) | `zat process-remote --repository-url https://github.com/ssanj/basic-scala3-zat --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>` |
+| [Sublime Text Plugin Template](https://github.com/ssanj/st-plugin-zat) | `zat process-remote --repository-url https://github.com/ssanj/st-plugin-zat --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>` |
+
+![Processing a Remote Project](docs/images/zat-process-remote.gif)
+
+To use a local template use:
+
+```
+zat process --repository-dir  <ZAT_REPOSITORY> --target-dir <WHERE_TO_EXTRACT_THE_REPOSITORY>
+```
+
+![Processing a Bootstrap Project](docs/images/zat-process-bootstrap.gif)
+
+
+To setup a new template use:
+
+```
+zat bootstrap --repository-dir <ZAT_REPOSITORY>
+```
+
+![Creating a Bootstrap Project](docs/images/zat-bootstrap.gif)
 
 ## Installation
 
@@ -34,16 +57,40 @@ Copy executable to a directory on your path.
 Note: Windows is not explicitly supported at this time as I don't use Windows myself. If you install Zat on Windows and have any problems please raise an issue.
 
 
+### Building through Cargo
+
+You can build Zat through Cargo with:
+
+```
+cargo install --git https://github.com/ssanj/zat
+```
+
+This will install Zat into your Cargo home directory; usually `~/.cargo/bin`.
+
 ### Building from Source
 
-Ensure you have Cargo and Rust installed.
+Ensure you have Cargo installed.
 
 Run:
 
 ```
 cargo build --release
-Copy binary file from target/release/zat to a directory on your path.
+Copy binary file from target/release/zat to a directory on your PATH.
 ```
+
+See the User Manual for more information.
+
+## What is a "project templating system"?
+
+If you've ever been working on a project and then required some or all of the same project files and structures in another similar project, then you know how annoying it can be to manually copy across all the necessary files and then modify them to suit your new project.
+
+Wouldn't it be nice if something automated this for you?
+
+That's where Zat comes in:
+- Create a Zat repository to represent the common files and folder structures across your project.
+- Tokenise any differences that are project-specific.
+- Use Zat to process the repository and generate a unique versions of the project at a new destination.
+
 
 
 ## Usage
