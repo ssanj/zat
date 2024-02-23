@@ -12,7 +12,7 @@ These files will not get copied to the target directory once the template is pro
 
 The '.variables.zat-prompt' defines any tokens you want replaced within the content of template files and in file and folder names. The values for these tokens will be requested from the user when the template is processed.
 
-The optional 'shell-hook.zat-exec' file should be an executable file (`chmod +x`). It will get invoked after the repository has been processed, with single argument of the `target directory path`. Use this file to handle any post-processing tasks. See (shell hooks)[defining-a-template/shell-hooks.md] for more information.
+The optional 'shell-hook.zat-exec' file should be an executable file (`chmod +x`). It will get invoked after the repository has been processed, with single argument of the `target directory path`. Use this file to handle any post-processing tasks. See [shell hooks](defining-a-template/shell-hooks.md) for more information.
 
 ## Template directory
 
