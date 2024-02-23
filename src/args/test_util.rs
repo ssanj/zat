@@ -90,7 +90,7 @@ pub fn create_file_in(parent_dir: &Path, file: &str, content: &[u8], maybe_permi
     file_options.mode(permissions);
   }
 
-  file_options
+  let new_file = file_options
     .open(&file_path)
     .expect(&format!("Could not create file: {}", &file_path.to_string_lossy().to_string()));
 
@@ -104,5 +104,6 @@ pub fn create_file_in(parent_dir: &Path, file: &str, content: &[u8], maybe_permi
       file_path.as_path().to_string_lossy().to_string(),
       parent_dir.to_string_lossy().to_string()));
 
+  drop(new_file); // This should close the file explicitly
   Path::new(&file_path).to_owned()
 }
