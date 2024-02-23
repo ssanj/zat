@@ -470,7 +470,7 @@ MESSAGE="$1"
 echo {\"error\":{\"plugin_name\": \"failure.sh\",\"error\": \"$MESSAGE.\",\"exception\": \"Born to fail\",\"fix\": \"Run the success.sh plugin instead.\"}}
 ```
 
-Have a look at the [scala-deps](https://github.com/ssanj/scala-deps-zatp) plugin for a working Rust implementation. Some other simple Bash examples can be found in the [plugin folder](https://github.com/ssanj/zat/blob/main/plugin-support/tests/plugins).
+Have a look at the [scala-deps](https://github.com/ssanj/scala-deps-zatp) plugin for a working Rust implementation. Some other simple Bash examples can be found in the [plugin folder](https://github.com/ssanj/zat/tree/main/tests/plugins).
 
 ## Caveats
 
