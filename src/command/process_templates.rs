@@ -2,10 +2,11 @@ use crate::error::ZatAction;
 use crate::logging::{VerboseLogger, Logger};
 use crate::post_processor::{PostProcessingHook, ShellHook};
 use crate::processor::{ProcessTemplates as TemplateProcessing, DefaultProcessTemplates};
-use crate::templates::{TemplateVariableProvider, DefaultTemplateVariableProvider};
+use crate::templates::{TemplateVariableProvider, DefaultTemplateVariableProvider, TemplateVariables};
 use crate::templates::{TemplateConfigValidator, DefaultTemplateConfigValidator};
 use crate::templates::TemplateVariableReview;
 use crate::token_expander::{ExpandFilters, DefaultExpandFilters};
+use crate::plugin::{DefaultPluginRunner, PluginRunnerWorkflow};
 use crate::config::UserConfig;
 use std::format as s;
 
@@ -19,12 +20,19 @@ impl ProcessTemplates {
 
     // Reads the .variables.zat-prompt file into TemplateVariables
     let template_variable_provider = DefaultTemplateVariableProvider::new();
-    let template_variables = template_variable_provider.get_tokens(user_config.clone())?;
+    let mut template_variables: TemplateVariables = template_variable_provider.get_tokens(user_config.clone())?;
+    VerboseLogger::log_template_variables(&user_config, &template_variables);
+
+    // Runs any plugins that have been defined and updates template_variables with results
+    let plugin_runner = DefaultPluginRunner::new();
+    PluginRunnerWorkflow::run_plugins(plugin_runner, &mut template_variables)?;
     VerboseLogger::log_template_variables(&user_config, &template_variables);
 
     // Ask for the user for the value of each variable
     // Then verify all the variables supplied are correct
     let template_config_validator = DefaultTemplateConfigValidator::new();
+
+    // TODO: Do we need this template_variables.clone()?
     let template_variable_review = template_config_validator.validate(user_config.clone(), template_variables.clone());
 
     match template_variable_review {

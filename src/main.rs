@@ -9,6 +9,7 @@ mod macros;
 mod logging;
 mod workflow;
 mod command;
+mod plugin;
 
 use error::ZatAction;
 use logging::Logger;

@@ -73,6 +73,19 @@ fn runs_a_simple_template_with_shell_hook() -> Result<(), Box<dyn std::error::Er
   assert_run_example(example_test_config)
 }
 
+
+#[test]
+fn runs_a_simple_template_with_plugin() -> Result<(), Box<dyn std::error::Error>> {
+  let example_test_config =
+    ExampleTestConfig::with_input(
+      "simple-with-plugin",
+      &["YouOnlyLiveOnce", "", "y"]
+    );
+
+  assert_run_example(example_test_config)
+}
+
+
 #[test]
 fn runs_template_with_ignores() -> Result<(), Box<dyn std::error::Error>> {
   let working_directory = tempdir()?;

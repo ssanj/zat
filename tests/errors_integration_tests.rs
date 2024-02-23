@@ -173,6 +173,114 @@ fn error_message_on_shell_hook_returning_non_zero_result() -> Result<(), Box<dyn
   run_error_test(error_test_config)
 }
 
+
+#[test]
+fn error_message_plugin_failure() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-failure";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'failure.sh' returned the following error: Something went wrong."),
+      s!("Born to fail"),
+      s!("Run the success.sh plugin instead."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
+fn error_message_incorrect_plugin_invocation() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-invocation-failure";
+
+  let error_parts =
+    ErrorParts::new(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/failure.sh' returned the following error: Plugin failed with status code 1. The plugin failed with a non-zero error code signifying an error."),
+      s!("Try running the plugin manually to fix the above error."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
+fn error_message_plugin_did_not_return_json() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-result-not-json";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/failure-not-json.sh I am not JSON' returned the following error: Could not decode result from plugin. The plugin returned: 'I am not JSON'."),
+      s!("expected value at line 1 column 1"),
+      s!("Try running the plugin manually verify the output format of the plugin adheres to the Zat Plugin Specification."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
+fn error_message_plugin_did_not_return_utf8_in_stdout() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-result-not-utf8-stdout";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/failure-not-utf8-stdout.sh' returned the following error: The plugin return invalid UTF8 characters."),
+      s!("invalid utf-8 sequence of 1 bytes from index 0"),
+      s!("Try running the plugin manually to fix the above error."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
+fn error_message_plugin_did_not_return_utf8_in_stderr() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-result-not-utf8-stderr";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/failure-not-utf8-stderr.sh' returned the following error: The plugin return invalid UTF8 characters to stderr."),
+      s!("invalid utf-8 sequence of 1 bytes from index 0"),
+      s!("Try running the plugin manually to fix the above error."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
+#[test]
+fn error_message_plugin_does_not_exist() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "plugin-does-not-exist-failure";
+
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running a plugin"),
+      s!("Plugin 'tests/plugins/a-failure.sh one two' returned the following error: Plugin could not be run. Does it exist and is it executable?"),
+      s!("No such file or directory (os error 2)"),
+      s!("Try running the plugin manually to fix the above error."),
+    );
+
+  let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
 #[test]
 fn error_message_on_shell_hook_not_executable() -> Result<(), Box<dyn std::error::Error>> {
   let test_directory = "post-processing-shell-hook-not-executable";

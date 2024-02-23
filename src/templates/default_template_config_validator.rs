@@ -1,9 +1,10 @@
 use std::collections::HashMap;
-use std::io::BufRead;
+use std::io::{BufRead, stdin};
 
-use super::{TemplateConfigValidator, TemplateVariableReview, ValidConfig};
+use super::{TemplateConfigValidator, TemplateVariableReview, ValidConfig, TemplateVariable, Plugin};
 use super::{UserVariableValue, UserVariableKey, TemplateVariables};
 use crate::config::UserConfig;
+use crate::templates::PluginRunResult;
 use ansi_term::Colour::{Yellow, Green, Blue};
 use ansi_term::Style;
 use std::{println as p, format as s};
@@ -25,47 +26,39 @@ enum UserVariablesValidity {
 
 struct Cli;
 
+#[derive(Debug, Clone, PartialEq)]
+enum DynamicValueType {
+  DefaultValue(String, String),
+  PluginValue(String, String),
+  Neither,
+}
+
+struct DynamicPair(String, String);
+
 
 impl UserInputProvider for Cli {
-    fn get_user_input(&self, template_variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
-      let stdin = std::io::stdin();
-      let mut token_map = HashMap::new();
+  fn get_user_input(&self, template_variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
+    let mut token_map = HashMap::new();
 
-      for v in template_variables.tokens {
-        p!("");
-        let default_value = {
-          match v.default_value {
-            Some(default_value) => default_value,
-            None  => "".to_owned()
-          }
-        };
+    for v in template_variables.tokens {
+      p!("");
 
-        let default_string =
-          if default_value.is_empty() {
-            "".to_owned()
-          } else {
-            s!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(&default_value))
-          };
+      let default_value = Cli::get_default_value(v.default_value.as_deref());
+      let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
+        );
+      let dynamic_value = Cli::get_dynamic_values(default_value.as_deref(), plugin_result_value.as_ref());
 
-        p!("{}{}", Yellow.paint(v.prompt), default_string);
-        let mut variable_value = String::new();
-        if let Ok(read_count) = stdin.read_line(&mut variable_value) {
-          if read_count > 0 { //read at least one character
-            let _ = variable_value.pop(); // remove newline
-            if !variable_value.is_empty() {
-              token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(variable_value));
-            } else {
-              // check for default value
-              if !default_value.is_empty() {
-                token_map.insert(UserVariableKey::new(v.variable_name.clone()), UserVariableValue::new(default_value));
-              }
-            }
-          }
-        }
+      match &dynamic_value {
+        DynamicValueType::DefaultValue(dstring, _) => p!("{}{}", Yellow.paint(&v.prompt), dstring),
+        DynamicValueType::PluginValue(pstring, _) => p!("{}{}", Yellow.paint(&v.prompt), pstring),
+        DynamicValueType::Neither => p!("{}", Yellow.paint(&v.prompt)),
       }
 
-      token_map
+      Cli::read_user_input(&mut token_map, &v, &dynamic_value);
     }
+
+    token_map
+  }
 }
 
 impl UserTemplateVariableValidator for Cli {
@@ -80,6 +73,7 @@ impl UserTemplateVariableValidator for Cli {
         }
     }
 }
+
 
 impl Cli {
 
@@ -110,6 +104,70 @@ impl Cli {
     match &line[..] {
       "y" => UserVariablesValidity::Valid,
       _ => UserVariablesValidity::Invalid,
+    }
+  }
+
+  fn get_dynamic_values(opt_default_value: Option<&str>, plugin_run_result: Option<&PluginRunResult>) -> DynamicValueType {
+
+    let default_type: Option<DynamicPair> =
+      opt_default_value.map(|default_value| {
+          let default_prompt = s!(". Press {} to accept the default value of: {}.", Style::new().underline().paint("enter"), Green.paint(default_value));
+
+          DynamicPair(default_prompt, default_value.to_owned())
+      });
+
+    let plugin_type: Option<DynamicPair> =
+      plugin_run_result.map(|plugin_result| {
+        let plugin_prompt = s!(". Press {} to accept the plugin result value of: {}.", Style::new().underline().paint("enter"), Green.paint(&plugin_result.result));
+
+        DynamicPair(plugin_prompt, plugin_result.clone().result)
+      });
+
+    let dynamic_value = match (default_type, plugin_type) {
+      (Some(DynamicPair(dprompt, dvalue)), None) => DynamicValueType::DefaultValue(dprompt, dvalue),
+      (None, Some(DynamicPair(pprompt, pvalue))) => DynamicValueType::PluginValue(pprompt, pvalue.to_owned()),
+      (Some(_), Some(DynamicPair(pprompt, pvalue))) => DynamicValueType::PluginValue(pprompt, pvalue.to_owned()), // plugin value overrides default value
+      (None, None) => DynamicValueType::Neither,
+    };
+
+    dynamic_value
+  }
+
+  fn read_user_input(token_map: &mut HashMap<UserVariableKey, UserVariableValue>, template_variable: &TemplateVariable, dynamic_value: &DynamicValueType) {
+
+    let mut variable_value = String::new();
+
+    if let Ok(read_count) = stdin().read_line(&mut variable_value) {
+      if read_count > 0 { // Read at least one character
+        let _ = variable_value.pop(); // Remove newline
+        if !variable_value.is_empty() { // User entered a value
+          token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(variable_value));
+        } else { // User pressed enter
+          match dynamic_value {
+            DynamicValueType::DefaultValue(_, dvalue) => { // Default value
+              token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(dvalue.to_owned()));
+            },
+            DynamicValueType::PluginValue(_, pvalue) => { // Plugin value
+              token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(pvalue.to_owned()));
+            },
+            // TODO: This allows us to skip entering values for a variable. We should ask for the input again.
+            DynamicValueType::Neither => (), // No plugin or default value, so do nothing
+          }
+        }
+      }
+    }
+  }
+
+  fn get_default_value(opt_default_value: Option<&str>) -> Option<String> {
+    opt_default_value.map(|dv| dv.to_owned())
+  }
+
+  fn get_plugin_value(opt_plugin_value: Option<&Plugin>) -> Option<PluginRunResult> {
+    let plugin = opt_plugin_value?;
+
+    match &plugin.result {
+      crate::templates::PluginRunStatus::NotRun => None,
+      crate::templates::PluginRunStatus::Run(run_result) => Some(run_result.to_owned()),
     }
   }
 }
@@ -150,10 +208,11 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 #[cfg(test)]
 mod tests {
 
-  use super::super::TemplateVariable;
-  use super::*;
-  use pretty_assertions::assert_eq;
-  use crate::config::user_config::UserConfig;
+use super::super::TemplateVariable;
+use super::*;
+use pretty_assertions::assert_eq;
+use crate::config::user_config::UserConfig;
+use crate::templates::{ArgType, PluginRunStatus};
 
   impl UserInputProvider for HashMap<String, String> {
     fn get_user_input(&self, variables: TemplateVariables) -> HashMap<UserVariableKey, UserVariableValue> {
@@ -219,6 +278,7 @@ mod tests {
       description: String::default(),
       prompt: String::default(),
       default_value: None,
+      plugin: None,
       filters: Vec::default(),
     }
   }
@@ -301,5 +361,93 @@ mod tests {
     assert_eq!(validation_result, TemplateVariableReview::Rejected)
   }
 
+  #[test]
+  fn get_plugin_value_returns_none_when_plugin_has_not_run() {
+    let plugin = Plugin {
+        id: "MyPlugin".to_owned(),
+        args: Default::default(),
+        result: PluginRunStatus::default(),
+      };
+
+    let result = Cli::get_plugin_value(Some(&plugin));
+    assert_eq!(result, None)
+  }
+
+  #[test]
+  fn get_plugin_value_returns_run_result_when_plugin_has_run() {
+    let plugin_result = PluginRunResult::new("my result");
+
+    let plugin = Plugin {
+        id: "MyPlugin".to_owned(),
+        args: Default::default(),
+        result: PluginRunStatus::Run(plugin_result.clone()),
+      };
+
+    let result = Cli::get_plugin_value(Some(&plugin));
+    assert_eq!(result, Some(plugin_result))
+  }
+
+  #[test]
+  fn get_default_value_returns_none_if_not_set() {
+    let default_value = None;
+    let result = Cli::get_default_value(default_value);
+
+    assert_eq!(result, None)
+  }
+
+  #[test]
+  fn get_default_value_returns_default_if_set() {
+    let default_value = Some("my default");
+    let result = Cli::get_default_value(default_value);
+
+    assert_eq!(result, default_value.map(|dv| dv.to_owned()))
+  }
+
+  #[test]
+  fn get_dynamic_values_returns_plugin_if_set() {
+    let plugin_result_value = "my plugin result";
+    let plugin_result = PluginRunResult::new(plugin_result_value);
+    let result: DynamicValueType = Cli::get_dynamic_values(None, Some(plugin_result).as_ref());
+
+    match result {
+      r @ DynamicValueType::DefaultValue(..) => assert!(false, "Expected PluginValue, got DefaultValue: {:?}", r),
+      DynamicValueType::PluginValue(_, value) => assert_eq!(value, plugin_result_value),
+      DynamicValueType::Neither => assert!(false, "Expected PluginValue, got NeitherValue"),
+    }
+  }
+
+  #[test]
+  fn get_dynamic_values_returns_default_value_if_set() {
+    let default_value = "my default value";
+    let result: DynamicValueType = Cli::get_dynamic_values(Some(default_value), None);
+
+    match result {
+      DynamicValueType::DefaultValue(_, value) => assert_eq!(value, default_value),
+      r @ DynamicValueType::PluginValue(..) => assert!(false, "Expected DefaultValue, got PluginValue: {:?}", r),
+      DynamicValueType::Neither => assert!(false, "Expected PluginValue, got NeitherValue"),
+    }
+  }
+
+  #[test]
+  fn get_dynamic_values_returns_neither_if_no_values_are_set() {
+    let result: DynamicValueType = Cli::get_dynamic_values(None, None);
+
+    assert_eq!(result, DynamicValueType::Neither)
+  }
+}
+
+#[test]
+fn get_dynamic_values_returns_plugin_preferrentially() {
+  let plugin_result_value = "my plugin result";
+  let plugin_result = PluginRunResult::new(plugin_result_value);
+  let default_value = "my default value";
+
+  let result = Cli::get_dynamic_values(Some(default_value), Some(plugin_result).as_ref());
+
+    match result {
+      r @ DynamicValueType::DefaultValue(..) => assert!(false, "Expected PluginValue, got DefaultValue: {:?}", r),
+      DynamicValueType::PluginValue(_, value) => assert_eq!(value, plugin_result_value),
+      DynamicValueType::Neither => assert!(false, "Expected PluginValue, got NeitherValue"),
+    }
 }
 
