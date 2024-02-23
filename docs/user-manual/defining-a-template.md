@@ -22,4 +22,5 @@ MyCoolTemplate /        <-- Zat repository.
 - [Example configuration](defining-a-template/example-configuration.md)
 - [How ignore files and folders](defining-a-template/how-to-ignore-files-and-folders.md)
 - [Example templates](defining-a-template/example-templates.md)
+- [Defining a shell hook](defining-a-template/shell-hooks.md)
 - [Defining a plugin](defining-a-template/plugins.md)
