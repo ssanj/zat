@@ -6,7 +6,7 @@ pub struct VariableFile {
   path: String
 }
 
-pub const DOT_VARIABLES_PROMPT: &'static str  = ".variables.zat-prompt";
+pub const DOT_VARIABLES_PROMPT: &str  = ".variables.zat-prompt";
 
 impl VariableFile {
 
