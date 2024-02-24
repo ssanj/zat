@@ -18,7 +18,8 @@ ansi_term = "0.12"
 
 dirs = "5"
 url = "2.5"
-tempfile = "3.3"
+tempfile = "3"
+remove_dir_all = "0.8"
 
 [dev-dependencies]
 pretty_assertions = "1.0"
