@@ -41,7 +41,7 @@ impl UserInputProvider for Cli {
     let mut token_map = HashMap::new();
 
     for v in template_variables.tokens {
-      p!("");
+      p!();
 
       let default_value = Cli::get_default_value(v.default_value.as_deref());
       let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
@@ -101,7 +101,7 @@ impl Cli {
     handle.read_line(&mut user_response).expect("Could not read from stdin"); // Unexpected, so throw
     let line = user_response.lines().next().expect("Could not extract line from buffer"); // Unexpected, so throw
 
-    match &line[..] {
+    match line {
       "y" => UserVariablesValidity::Valid,
       _ => UserVariablesValidity::Invalid,
     }
@@ -123,14 +123,12 @@ impl Cli {
         DynamicPair(plugin_prompt, plugin_result.clone().result)
       });
 
-    let dynamic_value = match (default_type, plugin_type) {
+    match (default_type, plugin_type) {
       (Some(DynamicPair(dprompt, dvalue)), None) => DynamicValueType::DefaultValue(dprompt, dvalue),
       (None, Some(DynamicPair(pprompt, pvalue))) => DynamicValueType::PluginValue(pprompt, pvalue.to_owned()),
       (Some(_), Some(DynamicPair(pprompt, pvalue))) => DynamicValueType::PluginValue(pprompt, pvalue.to_owned()), // plugin value overrides default value
       (None, None) => DynamicValueType::Neither,
-    };
-
-    dynamic_value
+    }
   }
 
   fn read_user_input(token_map: &mut HashMap<UserVariableKey, UserVariableValue>, template_variable: &TemplateVariable, dynamic_value: &DynamicValueType) {

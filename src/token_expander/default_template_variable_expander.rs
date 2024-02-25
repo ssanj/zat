@@ -43,7 +43,7 @@ impl TemplateVariableExpander for DefaultTemplateVariableExpander {
                   .map(move |f|{
                     let filtered_value = self.filter_applicator.apply_filter(&f.filter, &v.value); // Apply the filter to the value supplied by the user
                     let filter_name =
-                      if &f.name == DEFAULT_FILTER {
+                      if f.name == DEFAULT_FILTER {
                         k.value.clone() //if the key name is __default__ then use the original KEYNAME
                       } else {
                         format!("{}__{}", k.value.clone(), f.name) // otherwise the key name is KEYNAME__FILTERNAME

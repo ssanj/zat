@@ -49,7 +49,7 @@ impl PluginRunner for DefaultPluginRunner {
 
     let plugin_result: PluginResult =
       serde_json::from_str(result)
-        .map_err(|e| ZatError::could_not_decode_plugin_result_to_json(&program, e.to_string(), &result, std_err))?;
+        .map_err(|e| ZatError::could_not_decode_plugin_result_to_json(&program, e.to_string(), result, std_err))?;
 
     Ok(plugin_result)
   }

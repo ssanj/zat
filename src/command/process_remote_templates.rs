@@ -29,7 +29,7 @@ impl ProcessRemoteTemplates {
 
     checkout_directory
       .close()
-      .unwrap_or_else(|e| Logger::warn(&s!("Could not remove temporary folder '{}', reason: {}", checkout_directory_path, e.to_string())));
+      .unwrap_or_else(|e| Logger::warn(&s!("Could not remove temporary folder '{}', reason: {}", checkout_directory_path, e)));
 
     result
   }
@@ -39,12 +39,12 @@ impl ProcessRemoteTemplates {
     let url = Url::parse(repository_url)
       .map_err(|e| ZatError::invalid_remote_repository_url(e.to_string(), repository_url))?;
 
-    let hostname = &url.host_str().ok_or_else(|| ZatError::unsupported_hostname(&url.as_str()))?;
+    let hostname = &url.host_str().ok_or_else(|| ZatError::unsupported_hostname(url.as_str()))?;
     let path = &url.path();
 
     // We can't use Path to join the pieces here, because the 'path' segment has a leading '/' which
     // clears the rest of the path. This is documented in Path.join.
-    let repository_path = s!("zat-{}{}_", &hostname, &path.replace("/", "_"));
+    let repository_path = s!("zat-{}{}_", &hostname, &path.replace('/', "_"));
 
     let checkout_dir =
       tempfile::Builder::new()
@@ -76,13 +76,13 @@ fn clone_git_repository(process_remote_template_args: &ProcessRemoteTemplatesArg
       .env("GIT_TERMINAL_PROMPT" , "0")
       .arg("clone")
       .arg(&process_remote_template_args.repository_url)
-      .arg(&repository_dir.path())
+      .arg(repository_dir.path())
       .status();
 
   let program = s!("GIT_TERMINAL_PROMPT=0 git clone {} {}", &process_remote_template_args.repository_url, &repository_dir.path());
 
   let status = status_result.map_err(|e| {
-    ZatError::git_clone_error(e.to_string(), &program, &process_remote_template_args.repository_url, &repository_dir.path())
+    ZatError::git_clone_error(e.to_string(), &program, &process_remote_template_args.repository_url, repository_dir.path())
   })?;
 
   // TODO: Write a function to generate this from Command.

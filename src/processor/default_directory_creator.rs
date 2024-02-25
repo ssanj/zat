@@ -26,7 +26,7 @@ impl DirectoryCreator for DefaultDirectoryCreator<'_> {
 
       fs::create_dir(&directory_path_with_tokens_replaced)
         .map_err(|e| {
-          ZatError::could_not_create_output_file_directory(&directory_path_with_tokens_replaced.0.as_str(), e.to_string())
+          ZatError::could_not_create_output_file_directory(directory_path_with_tokens_replaced.0.as_str(), e.to_string())
         })
     }
 }

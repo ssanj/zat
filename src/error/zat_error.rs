@@ -16,6 +16,7 @@ pub type ZatResult<A> = Result<A, ZatError>;
 pub type ZatAction = Result<(), ZatError>;
 
 #[derive(Debug, PartialEq, Clone)]
+#[allow(clippy::enum_variant_names)]
 pub enum ZatError {
   ProcessCommandError(ProcessCommandErrorReason),
   BootstrapCommandError(BootstrapCommandErrorReason),
@@ -25,6 +26,7 @@ pub enum ZatError {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+#[allow(clippy::enum_variant_names)]
 pub enum ProcessCommandErrorReason {
   UserConfigError(UserConfigErrorReason),
   VariableFileError(VariableFileErrorReason),
@@ -104,7 +106,7 @@ impl ZatError {
       ProcessCommandErrorReason::UserConfigError(
         UserConfigErrorReason::TargetDirectoryShouldNotExist(
           s!("The target directory '{}' should not exist. It will be created when Zat processes the template files.", path),
-          s!("Please supply an empty directory for the target.")
+          "Please supply an empty directory for the target.".to_owned()
         )
       )
     )
@@ -293,7 +295,7 @@ impl ZatError {
     ZatError::BootstrapCommandError(
       BootstrapCommandErrorReason::RepositoryDirectoryShouldNotExist(
           s!("The repository directory '{}' should not exist. It will be created by the Zat bootstrap process.", path),
-          s!("Please supply an empty directory for the repository.")
+          "Please supply an empty directory for the repository.".to_owned()
       )
     )
   }
@@ -394,9 +396,9 @@ impl ZatError {
     ZatError::PluginError(
       PluginErrorReason::CouldNotRunPlugin(
         plugin.to_owned(),
-        s!("Plugin could not be run. Does it exist and is it executable?"),
+        "Plugin could not be run. Does it exist and is it executable?".to_owned(),
         exception,
-        s!("Try running the plugin manually to fix the above error.")
+        "Try running the plugin manually to fix the above error.".to_owned()
       )
     )
   }
@@ -406,8 +408,11 @@ impl ZatError {
     ZatError::PluginError(
       PluginErrorReason::PluginReturnedInvalidExitCodeFailure(
         plugin.to_owned(),
-        s!("Plugin failed with status code {}. The plugin failed with a non-zero error code signifying an error.", opt_code.map_or_else(|| s!("unknown"), |ec| ec.to_string())),
-        s!("Try running the plugin manually to fix the above error.")
+        s!("Plugin failed with status code {}. The plugin failed with a non-zero error code signifying an error.",
+          opt_code
+            .map_or_else(|| "unknown".to_owned(), |ec| ec.to_string())
+        ),
+        "Try running the plugin manually to fix the above error.".to_owned()
       )
     )
   }
@@ -417,9 +422,9 @@ impl ZatError {
     ZatError::PluginError(
       PluginErrorReason::CouldNotDecodePluginOutputToUtf8(
         plugin.to_owned(),
-        s!("The plugin return invalid UTF8 characters."),
+        "The plugin return invalid UTF8 characters.".to_owned(),
         exception.to_owned(),
-        s!("Try running the plugin manually to fix the above error.")
+        "Try running the plugin manually to fix the above error.".to_owned()
       )
     )
   }
@@ -429,9 +434,9 @@ impl ZatError {
     ZatError::PluginError(
       PluginErrorReason::CouldNotDecodePluginStdErrToUtf8(
         plugin.to_owned(),
-        s!("The plugin return invalid UTF8 characters to stderr."),
+        "The plugin return invalid UTF8 characters to stderr.".to_owned(),
         exception.to_owned(),
-        s!("Try running the plugin manually to fix the above error.")
+        "Try running the plugin manually to fix the above error.".to_owned()
       )
     )
   }
@@ -441,7 +446,7 @@ impl ZatError {
       if !std_err.is_empty() {
         s!(" The plugin returned the following error: {}", std_err)
       } else {
-        s!("")
+        "".to_owned()
       };
 
     ZatError::PluginError(
@@ -449,7 +454,7 @@ impl ZatError {
         plugin.to_owned(),
         s!("Could not decode result from plugin. The plugin returned: '{}'.{}", result, error_message),
         exception.to_owned(),
-        s!("Try running the plugin manually verify the output format of the plugin adheres to the Zat Plugin Specification.")
+        "Try running the plugin manually verify the output format of the plugin adheres to the Zat Plugin Specification.".to_owned()
       )
     )
   }

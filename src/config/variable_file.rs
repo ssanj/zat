@@ -15,7 +15,7 @@ impl VariableFile {
   }
 
   pub fn get_path(&self) -> &str {
-    &self.path.as_str()
+    self.path.as_str()
   }
 }
 
@@ -30,7 +30,7 @@ impl From<RepositoryDir> for VariableFile {
 
 impl AsRef<Path> for VariableFile {
   fn as_ref(&self) -> &Path {
-      &Path::new(&self.path)
+    Path::new(&self.path)
   }
 }
 

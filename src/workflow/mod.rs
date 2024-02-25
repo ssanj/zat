@@ -1,3 +1,3 @@
-pub mod workflow;
+pub mod zat_workflow;
 
-pub use workflow::Workflow;
+pub use zat_workflow::Workflow;

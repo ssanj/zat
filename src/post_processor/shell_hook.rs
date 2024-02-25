@@ -22,9 +22,9 @@ impl PostProcessingHook for ShellHook {
 
 fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatError> {
     Logger::info("Executing Shellhook");
-    VerboseLogger::log_content(&user_config, &s!("Running shellhook: {}", shell_hook));
+    VerboseLogger::log_content(user_config, &s!("Running shellhook: {}", shell_hook));
 
-    let target_dir_path = <TargetDir as AsRef<Path>>::as_ref(&user_config.target_dir).as_ref();
+    let target_dir_path = <TargetDir as AsRef<Path>>::as_ref(&user_config.target_dir);
     Command::new(shell_hook)
       .arg::<&Path>(target_dir_path)
       .status()
@@ -32,7 +32,7 @@ fn run_shell_hook(shell_hook: &str, user_config: &UserConfig) -> Result<(), ZatE
       .and_then(|exit|{
         match exit.code() {
           Some(0) => {
-            VerboseLogger::log_content(&user_config, "Shell hook exited successfully");
+            VerboseLogger::log_content(user_config, "Shell hook exited successfully");
             Ok(())
           },
           Some(other) => Err(ZatError::post_processing_hook_completed_with_non_zero_status(shell_hook, spath!(target_dir_path), other)),

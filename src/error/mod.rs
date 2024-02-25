@@ -1,4 +1,4 @@
-pub mod error;
+pub mod zat_error;
 pub mod error_format;
 pub mod user_config_error_reason;
 pub mod variable_file_error_reason;
@@ -8,9 +8,9 @@ pub mod bootstrap_command_error_reason;
 pub mod process_remote_command_error_reason;
 pub mod plugin_error_reason;
 
-pub use error::ZatAction;
-pub use error::ZatError;
-pub use error::ZatResult;
+pub use zat_error::ZatAction;
+pub use zat_error::ZatError;
+pub use zat_error::ZatResult;
 
 use error_format::ErrorFormat;
 use user_config_error_reason::UserConfigErrorReason;
@@ -23,4 +23,4 @@ use process_remote_command_error_reason::ProcessRemoteCommandErrorReason;
 use plugin_error_reason::PluginErrorReason;
 
 #[cfg(test)]
-pub use error::ProcessCommandErrorReason;
+pub use zat_error::ProcessCommandErrorReason;

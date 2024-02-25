@@ -56,6 +56,6 @@ impl fmt::Display for SourceFile {
 
 impl AsRef<Path> for SourceFile {
   fn as_ref(&self) -> &Path {
-      &Path::new(&self.0)
+    Path::new(&self.0)
   }
 }

@@ -1,5 +1,4 @@
 use serde::Deserialize;
-use std::format as s;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ArgType {
@@ -36,7 +35,7 @@ impl <'de> Deserialize<'de> for ArgType {
               Ok(ArgType::MutlipleArgs(args))
             }
           },
-          Err(_) => Err(serde::de::Error::custom(s!("Could not decode 'args' field. It should be one of: List of string or List (name, value, prefix)"))),
+          Err(_) => Err(serde::de::Error::custom("Could not decode 'args' field. It should be one of: List of string or List (name, value, prefix)")),
         }
     }
 }
