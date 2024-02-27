@@ -3,7 +3,9 @@ use serde::Deserialize;
 use crate::logging::Lines;
 use std::format as s;
 use super::{Choice, Plugin};
+
 use super::ArgType;
+
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Default)]
 pub struct TemplateVariables {
@@ -283,6 +285,7 @@ mod test {
               "value": "long"
             }
           ]
+<<<<<<< HEAD
         },
         {
           "variable_name": "description",
@@ -294,6 +297,8 @@ mod test {
               "Testing 123"
             ]
           }
+=======
+>>>>>>> 466fbb2 (add test for choices)
         }
       ]
     "#;

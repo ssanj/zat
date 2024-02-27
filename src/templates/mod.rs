@@ -16,6 +16,7 @@ pub use variables::{FilterType, TemplateVariable, UserVariableKey, UserVariableV
 
 pub use plugin::{Plugin, PluginRunResult, PluginRunStatus, ArgType};
 pub use choice::Choice;
+
 pub use user_choices::UserChoices;
 
 #[cfg(test)]
