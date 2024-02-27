@@ -90,7 +90,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
     let ignores_with_defaults =
       IgnoredFiles::default_ignores()
         .into_iter()
-        .chain(args.ignores.into_iter()); // use default ignores with user-supplied ignores
+        .chain(args.ignores); // use default ignores with user-supplied ignores
 
     let ignores = IgnoredFiles::from(ignores_with_defaults);
 
@@ -98,10 +98,10 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
     match (repository_dir_exists, template_files_dir_exists, target_dir_exists) {
       (RepositoryDirStatus::DoesNotExist, _, _) => {
-        Err(ZatError::template_dir_does_not_exist(&repository_dir.path()))
+        Err(ZatError::template_dir_does_not_exist(repository_dir.path()))
       },
       (RepositoryDirStatus::Exists, TemplateDirTemplateFileStatus::DoesNotExist, _) => {
-        Err(ZatError::template_files_dir_does_not_exist(&template_files_dir.path()))
+        Err(ZatError::template_files_dir_does_not_exist(template_files_dir.path()))
       },
       (RepositoryDirStatus::Exists, TemplateDirTemplateFileStatus::Exists, TargetDirStatus::Exists) => {
         Err(ZatError::target_dir_should_not_exist(&target_dir.path))

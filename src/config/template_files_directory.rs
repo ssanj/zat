@@ -1,6 +1,5 @@
 use std::path::Path;
 use super::RepositoryDir;
-use std::format as s;
 use crate::spath;
 
 pub static TEMPLATE_FILES_DIR: &str = "template";
@@ -30,20 +29,20 @@ impl TemplateFilesDir {
     let template_files_dir_path = Path::new(self.path());
     let file_path = Path::new(file);
     // TODO: Should we raise this as an ZatError?
-    let relative = file_path.strip_prefix(template_files_dir_path).expect(&s!("Could not strip path prefix '{}' from path '{}'", self.path(), file));
+    let relative = file_path.strip_prefix(template_files_dir_path).unwrap_or_else(|_| panic!("Could not strip path prefix '{}' from path '{}'", self.path(), file));
     spath!(relative).clone()
   }
 }
 
 impl From<&RepositoryDir> for TemplateFilesDir {
     fn from(template_dir: &RepositoryDir) -> Self {
-      TemplateFilesDir::new(&template_dir.join(TEMPLATE_FILES_DIR).to_string_lossy().to_string())
+      TemplateFilesDir::new(template_dir.join(TEMPLATE_FILES_DIR).to_string_lossy().as_ref())
     }
 }
 
 impl AsRef<Path> for TemplateFilesDir {
   fn as_ref(&self) -> &Path {
-      &Path::new(&self.path)
+      Path::new(&self.path)
   }
 }
 

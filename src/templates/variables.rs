@@ -4,19 +4,11 @@ use crate::logging::Lines;
 use std::format as s;
 use super::plugin::Plugin;
 
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Default)]
 pub struct TemplateVariables {
   pub tokens: Vec<TemplateVariable>
 }
 
-
-impl Default for TemplateVariables {
-  fn default() -> Self {
-    TemplateVariables {
-      tokens: vec![]
-    }
-  }
-}
 
 impl Lines for TemplateVariables {
 

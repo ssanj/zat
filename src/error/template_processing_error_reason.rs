@@ -1,6 +1,7 @@
 use super::ErrorFormat;
 
 #[derive(Debug, PartialEq, Clone)]
+#[allow(clippy::enum_variant_names)]
 pub enum TemplateProcessingErrorReason {
   NoFilesToProcessError(String, String),
   ReadingFileError(ReasonFileErrorReason),
@@ -9,6 +10,7 @@ pub enum TemplateProcessingErrorReason {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+#[allow(clippy::enum_variant_names)]
 pub enum ReasonFileErrorReason {
   ReadingError(String, String, String),
   UnsupportedContentError(String, String, String),

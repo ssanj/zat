@@ -1,18 +1,10 @@
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Filters {
   pub values: Vec<String>,
 }
 
-
-impl Default for Filters {
-    fn default() -> Self {
-        Self {
-          values: vec![]
-        }
-    }
-}
 
 impl fmt::Display for Filters {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

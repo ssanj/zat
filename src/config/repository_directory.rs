@@ -37,13 +37,13 @@ impl RepositoryDir {
 
 impl AsRef<Path> for RepositoryDir {
   fn as_ref(&self) -> &Path {
-      &Path::new(&self.path)
+    Path::new(&self.path)
   }
 }
 
 impl From<&Path> for RepositoryDir {
   fn from(path: &Path) -> Self {
-      Self::new(&path.to_string_lossy().to_string())
+    Self::new(path.to_string_lossy().as_ref())
   }
 }
 

@@ -24,8 +24,8 @@ impl DefaultTemplateEnricher {
     source_file
       .strip_prefix(source_root_path.as_ref())
       .map(|relative_source_path|{
-        let destination_file_path = destination_root_path.as_ref().join(&relative_source_path);
-        DestinationFile::new(&destination_file_path.to_string_lossy().to_string())
+        let destination_file_path = destination_root_path.as_ref().join(relative_source_path);
+        DestinationFile::new(destination_file_path.to_string_lossy().as_ref())
       })
   }
 }
@@ -39,12 +39,12 @@ impl TemplateEnricher for DefaultTemplateEnricher {
     match template_file {
       TemplateFile::File(file) => {
         let source_file = SourceFile(file);
-        let destination_file = Self::get_destination_file(&source_file, &template_files_dir_path, &destination_dir_path)?;
+        let destination_file = Self::get_destination_file(&source_file, template_files_dir_path, destination_dir_path)?;
         Ok(EnrichedTemplateFile::File(source_file, destination_file))
       },
       TemplateFile::Dir(dir) => {
         let source_file = SourceFile(dir);
-        let destination_file = Self::get_destination_file(&source_file, &template_files_dir_path, &destination_dir_path)?;
+        let destination_file = Self::get_destination_file(&source_file, template_files_dir_path, destination_dir_path)?;
         Ok(EnrichedTemplateFile::Dir(destination_file))
       }
     }

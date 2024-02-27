@@ -32,7 +32,7 @@ impl <'a> ReplacingStringTokenReplacer<'a> {
 
   pub fn replace(&self, input: &str) -> String {
     self.replacements
-      .into_iter()
+      .iter()
       .fold(input.to_owned(), |i, r| i.replace(r.0, r.1))
   }
 }

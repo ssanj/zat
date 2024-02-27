@@ -19,20 +19,20 @@ impl TargetDir {
 
 impl From<&Path> for TargetDir {
   fn from(path: &Path) -> Self {
-      TargetDir::new(&path.to_string_lossy().to_string())
+    TargetDir::new(path.to_string_lossy().as_ref())
   }
 }
 
 impl From<&str> for TargetDir {
   fn from(path: &str) -> Self {
-      TargetDir::new(path)
+    TargetDir::new(path)
   }
 }
 
 
 impl AsRef<Path> for TargetDir {
   fn as_ref(&self) -> &Path {
-      &Path::new(&self.path)
+    Path::new(&self.path)
   }
 }
 

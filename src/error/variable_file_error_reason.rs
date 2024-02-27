@@ -1,6 +1,7 @@
 use super::ErrorFormat;
 
 #[derive(Debug, PartialEq, Clone)]
+#[allow(clippy::enum_variant_names)]
 pub enum VariableFileErrorReason {
   VariableFileNotFound(String, String),
   VariableOpenError(String, String),

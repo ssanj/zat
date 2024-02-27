@@ -32,13 +32,12 @@ impl ProcessTemplates for DefaultProcessTemplates {
       let file_chooser = RegExFileChooser::new(&user_config.template_files_dir, &ignores).expect("Could not create file chooser");
       let file_traverser = WalkDirFileTraverser::new(Box::new(file_chooser));
       let template_files_dir = &user_config.template_files_dir;
-      let files_to_process = file_traverser.traverse_files(&template_files_dir);
+      let files_to_process = file_traverser.traverse_files(template_files_dir);
 
       // We need a &[&TemplateFile] to pass to `has_template_files`.
       let template_files: Vec<_> =
         files_to_process
           .iter()
-          .map(|tf| tf)
           .collect();
 
       // Converts template files into enriched files that include replaced file name and content tokens
@@ -52,7 +51,7 @@ impl ProcessTemplates for DefaultProcessTemplates {
 
       DefaultProcessTemplates::log_files_to_process(&user_config, &files_to_process);
 
-      if self.has_template_files(&template_files, &template_files_dir) {
+      if self.has_template_files(&template_files, template_files_dir) {
         files_to_process
           .into_iter()
           .map(|tf| template_enricher.enrich(tf)) // adds relative target file directory paths for each template
@@ -105,7 +104,7 @@ impl DefaultProcessTemplates {
         })
         .collect();
 
-    VerboseLogger::log_files_to_process(&user_config, files);
+    VerboseLogger::log_files_to_process(user_config, files);
   }
 }
 

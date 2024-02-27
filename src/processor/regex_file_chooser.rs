@@ -38,8 +38,8 @@ impl <'a> FileChooser for RegExFileChooser<'a> {
             .iter()
             .any(|f|{
               match &file_type {
-                TemplateFile::File(file) => f.is_match(&self.template_files_dir.relative_path(&file)),
-                TemplateFile::Dir(dir) => f.is_match(&self.template_files_dir.relative_path(&dir)),
+                TemplateFile::File(file) => f.is_match(&self.template_files_dir.relative_path(file)),
+                TemplateFile::Dir(dir) => f.is_match(&self.template_files_dir.relative_path(dir)),
               }
             });
 

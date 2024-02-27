@@ -15,14 +15,14 @@ impl DestinationFile {
   pub fn get_extension(&self) -> Option<Cow<'_, str>> {
      Path::new(&self.0)
       .extension()
-      .map(|p| p.to_string_lossy().to_owned())
+      .map(|p| p.to_string_lossy().clone())
   }
 
   pub fn parent_directory(&self) -> DestinationFile {
     let parent_dir =
       Path::new(&self.0)
         .parent()
-        .expect(&format!("Could not get parent path for: {}", &self.0))
+        .unwrap_or_else(|| panic!("Could not get parent path for: {}", &self.0))
         .to_string_lossy();
 
     DestinationFile(parent_dir.to_string())
@@ -32,7 +32,7 @@ impl DestinationFile {
     let file_stem =
       Path::new(&self.0)
         .file_stem()
-        .expect(&format!("Could not get file stem for: {}", &self.0))
+        .unwrap_or_else(|| panic!("Could not get file stem for: {}", &self.0))
         .to_string_lossy();
 
     DestinationFile(file_stem.to_string())
@@ -60,7 +60,7 @@ impl From<PathBuf> for DestinationFile {
 
 impl AsRef<Path> for DestinationFile {
   fn as_ref(&self) -> &Path {
-      &Path::new(&self.0)
+    Path::new(&self.0)
   }
 }
 

@@ -1,1 +1,1 @@
-pub const SHELL_HOOK_FILE: &'static str = "shell-hook.zat-exec";
+pub const SHELL_HOOK_FILE: & str = "shell-hook.zat-exec";

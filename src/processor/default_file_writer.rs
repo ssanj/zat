@@ -20,13 +20,13 @@ impl FileWriter for DefaultFileWriter<'_> {
       VerboseLogger::log_content(self.user_config, &s!("Writing template file: {}", &target_file_name_tokens_applied));
       let content = source_file.read_text()?;
       let parent_dir = &target_file_name_tokens_applied.parent_directory();
-      let full_target_file_path_templated = parent_dir.join(&target_file_name_tokens_applied.file_stem());
+      let full_target_file_path_templated = parent_dir.join(target_file_name_tokens_applied.file_stem());
       let content_with_tokens_applied = token_replacer.replace(&content);
-      Self::write_file(&full_target_file_path_templated, &content_with_tokens_applied)
+      Self::write_file(full_target_file_path_templated, content_with_tokens_applied)
     } else {
       VerboseLogger::log_content(self.user_config, &s!("Copying file: {}", &target_file_name_tokens_applied));
       let content = source_file.read_binary()?;
-      Self::write_file(&target_file_name_tokens_applied, &content)
+      Self::write_file(target_file_name_tokens_applied, content)
     }
   }
 }

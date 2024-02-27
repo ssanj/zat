@@ -27,13 +27,12 @@ impl EnrichedTemplateFileProcessor for DefaultEnrichedTemplateFileProcessor<'_> 
     let results: ZatResult<()> =
       template_files
         .iter()
-        .map(|f|{
+        .try_for_each(|f|{
           match f {
               EnrichedTemplateFile::File(source_file, destination_file) => self.file_writer.write_source_to_destination(source_file, destination_file, replacer),
               EnrichedTemplateFile::Dir(destination_file) => self.directory_creator.create_directory(destination_file, replacer),
           }
-        })
-        .collect();
+        });
 
     results
   }
@@ -48,7 +47,7 @@ mod tests {
     use super::super::DestinationFile;
     use pretty_assertions::assert_eq;
     use crate::error::template_processing_error_reason::TemplateProcessingErrorReason;
-    use crate::error::error::{ZatError, ProcessCommandErrorReason};
+    use crate::error::{ZatError, ProcessCommandErrorReason};
     use std::{format as s};
 
     struct Succeeding;
