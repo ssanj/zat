@@ -73,7 +73,8 @@ mod tests {
         prompt: prompt.to_owned(),
         filters: Vec::default(),
         default_value: Option::default(),
-        plugin: Option::default()
+        plugin: Option::default(),
+        choice: Vec::default()
       }
     }
 

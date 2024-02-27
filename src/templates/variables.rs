@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::logging::Lines;
 use std::format as s;
-use super::plugin::Plugin;
+use super::{Choice, Plugin};
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Default)]
 pub struct TemplateVariables {
@@ -40,10 +40,14 @@ pub struct TemplateVariable {
   #[serde(default)] // use default value if not found in the input
   pub filters: Vec<VariableFilter>,
 
+  // TODO: Create enum with one of DefaultValue, PluginValue or ChoiceValue
   #[serde(default)] // use default value if not found in the input
   pub default_value: Option<String>,
 
-  pub plugin: Option<Plugin>
+  pub plugin: Option<Plugin>,
+
+  #[serde(default)] // use default value if not found in the input
+  pub choice: Vec<Choice>
 }
 
 impl TemplateVariable {
@@ -56,7 +60,8 @@ impl TemplateVariable {
       prompt: prompt.to_owned(),
       filters: Vec::from_iter(filters.iter().map(|v| v.clone())),
       default_value: default_value.map(|v| v.to_owned()),
-      plugin: None
+      plugin: None,
+      choice: Default::default()
     }
   }
 }
@@ -156,12 +161,29 @@ mod test {
           "variable_name": "plugin_description",
           "description": "Explain what your plugin is about",
           "prompt": "Please enter your plugin description"
+        },
+        {
+          "variable_name": "readme_type",
+          "description": "Type of README",
+          "prompt": "Please choose your type of README",
+          "choice": [
+            {
+              "display": "Short",
+              "description": "A shorter README",
+              "value": "short"
+            },
+            {
+              "display": "Long",
+              "description": "A longer README",
+              "value": "long"
+            }
+          ]
         }
       ]
     "#;
 
      let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_config).unwrap();
-     assert_eq!(variables.len(), 2);
+     assert_eq!(variables.len(), 3);
 
      let first = &variables[0];
      let expected_first = TemplateVariable {
@@ -170,6 +192,7 @@ mod test {
         prompt: "Please enter your project name".to_owned(),
         default_value: Some("Some Project".to_owned()),
         plugin: None,
+        choice: Default::default(),
         filters: vec![
           VariableFilter {
             name: "python".to_owned(),
@@ -192,9 +215,28 @@ mod test {
         prompt: "Please enter your plugin description".to_owned(),
         default_value: None,
         plugin: None,
+        choice: Default::default(),
         filters: vec![]
      };
 
-     assert_eq!(second, &expected_second)
+     assert_eq!(second, &expected_second);
+
+    let third = &variables[2];
+
+     let expected_third = TemplateVariable {
+        variable_name: "readme_type".to_owned(),
+        description: "Type of README".to_owned(),
+        prompt: "Please choose your type of README".to_owned(),
+        default_value: None,
+        plugin: None,
+        choice:
+          vec![
+            Choice::new("Short", "A shorter README", "short"),
+            Choice::new("Long", "A longer README", "long"),
+          ],
+        filters: vec![]
+     };
+
+     assert_eq!(third, &expected_third)
   }
 }

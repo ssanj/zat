@@ -48,6 +48,7 @@ impl UserInputProvider for Cli {
         );
       let dynamic_value = Cli::get_dynamic_values(default_value.as_deref(), plugin_result_value.as_ref());
 
+      // Ask the user of values for each token
       match &dynamic_value {
         DynamicValueType::DefaultValue(dstring, _) => p!("{}{}", Yellow.paint(&v.prompt), dstring),
         DynamicValueType::PluginValue(pstring, _) => p!("{}{}", Yellow.paint(&v.prompt), pstring),
@@ -137,7 +138,7 @@ impl Cli {
 
     if let Ok(read_count) = stdin().read_line(&mut variable_value) {
       if read_count > 0 { // Read at least one character
-        let _ = variable_value.pop(); // Remove newline
+        let _ = variable_value.pop(); // Remove newline //TODO: trim here
         if !variable_value.is_empty() { // User entered a value
           token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(variable_value));
         } else { // User pressed enter
@@ -278,6 +279,7 @@ use crate::templates::{ArgType, PluginRunStatus};
       default_value: None,
       plugin: None,
       filters: Vec::default(),
+      choice: Vec::default()
     }
   }
 

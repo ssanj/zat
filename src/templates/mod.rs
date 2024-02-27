@@ -3,6 +3,7 @@ pub mod default_template_variable_provider;
 pub mod template_config_validator;
 pub mod default_template_config_validator;
 pub mod variables;
+pub mod choice;
 
 mod plugin;
 
@@ -13,6 +14,7 @@ pub use default_template_config_validator::DefaultTemplateConfigValidator;
 pub use variables::{FilterType, TemplateVariable, UserVariableKey, UserVariableValue, TemplateVariables};
 
 pub use plugin::{Plugin, PluginRunResult, PluginRunStatus, ArgType};
+pub use choice::Choice;
 
 #[cfg(test)]
 pub use variables::VariableFilter;
