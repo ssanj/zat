@@ -285,7 +285,6 @@ mod test {
               "value": "long"
             }
           ]
-<<<<<<< HEAD
         },
         {
           "variable_name": "description",
@@ -297,8 +296,6 @@ mod test {
               "Testing 123"
             ]
           }
-=======
->>>>>>> 466fbb2 (add test for choices)
         }
       ]
     "#;
