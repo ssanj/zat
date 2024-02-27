@@ -178,65 +178,84 @@ mod test {
               "value": "long"
             }
           ]
+        },
+        {
+          "variable_name": "description",
+          "description": "What your project is about",
+          "prompt": "Please a description of your project",
+          "plugin": {
+            "id": "tests/plugins/success.sh",
+            "args":[
+              "Testing 123"
+            ]
+          }
         }
       ]
     "#;
 
-     let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_config).unwrap();
-     assert_eq!(variables.len(), 3);
+    let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_config).unwrap();
 
-     let first = &variables[0];
-     let expected_first = TemplateVariable {
-        variable_name: "project".to_owned(),
-        description: "Name of project".to_owned(),
-        prompt: "Please enter your project name".to_owned(),
-        default_value: Some("Some Project".to_owned()),
-        plugin: None,
-        choice: Default::default(),
-        filters: vec![
-          VariableFilter {
-            name: "python".to_owned(),
-            filter: FilterType::Snake
-          },
-          VariableFilter {
-            name: "Command".to_owned(),
-            filter: FilterType::Pascal
-          },
-        ]
-     };
+    let expected_first = TemplateVariable {
+      variable_name: "project".to_owned(),
+      description: "Name of project".to_owned(),
+      prompt: "Please enter your project name".to_owned(),
+      default_value: Some("Some Project".to_owned()),
+      plugin: None,
+      choice: Default::default(),
+      filters: vec![
+        VariableFilter {
+          name: "python".to_owned(),
+          filter: FilterType::Snake
+        },
+        VariableFilter {
+          name: "Command".to_owned(),
+          filter: FilterType::Pascal
+        },
+      ]
+    };
 
-     assert_eq!(first, &expected_first);
+    let expected_second = TemplateVariable {
+      variable_name: "plugin_description".to_owned(),
+      description: "Explain what your plugin is about".to_owned(),
+      prompt: "Please enter your plugin description".to_owned(),
+      default_value: None,
+      plugin: None,
+      choice: Default::default(),
+      filters: vec![]
+    };
 
-     let second = &variables[1];
+    let expected_third = TemplateVariable {
+      variable_name: "readme_type".to_owned(),
+      description: "Type of README".to_owned(),
+      prompt: "Please choose your type of README".to_owned(),
+      default_value: None,
+      plugin: None,
+      choice:
+        vec![
+          Choice::new("Short", "A shorter README", "short"),
+          Choice::new("Long", "A longer README", "long"),
+        ],
+      filters: vec![]
+    };
 
-     let expected_second = TemplateVariable {
-        variable_name: "plugin_description".to_owned(),
-        description: "Explain what your plugin is about".to_owned(),
-        prompt: "Please enter your plugin description".to_owned(),
-        default_value: None,
-        plugin: None,
-        choice: Default::default(),
-        filters: vec![]
-     };
+    let expected_fourth = TemplateVariable {
+      variable_name: "description".to_owned(),
+      description: "What your project is about".to_owned(),
+      prompt: "Please a description of your project".to_owned(),
+      default_value: None,
+      plugin: Some(Plugin::new("tests/plugins/success.sh", &["Testing 123"])),
+      choice: Vec::default(),
+      filters: Vec::default()
+    };
 
-     assert_eq!(second, &expected_second);
+    let expected_variables =
+      vec![
+        expected_first,
+        expected_second,
+        expected_third,
+        expected_fourth,
+      ];
 
-    let third = &variables[2];
-
-     let expected_third = TemplateVariable {
-        variable_name: "readme_type".to_owned(),
-        description: "Type of README".to_owned(),
-        prompt: "Please choose your type of README".to_owned(),
-        default_value: None,
-        plugin: None,
-        choice:
-          vec![
-            Choice::new("Short", "A shorter README", "short"),
-            Choice::new("Long", "A longer README", "long"),
-          ],
-        filters: vec![]
-     };
-
-     assert_eq!(third, &expected_third)
+     assert_eq!(variables, expected_variables)
   }
 }
