@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 use crate::logging::Lines;
+use std::collections::HashMap;
 use std::format as s;
 use super::{Choice, Plugin};
 use super::ArgType;
