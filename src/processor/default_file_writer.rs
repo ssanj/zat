@@ -24,10 +24,13 @@ impl FileWriter for DefaultFileWriter<'_> {
     if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a template
       VerboseLogger::log_content(self.user_config, &s!("Writing template file: {}", &target_file_name_tokens_applied));
       let mut content = source_file.read_text()?;
-      if content.contains("{% if") || content.contains("{%if") {
+
+      if content.contains("{% if") || content.contains("{%if") { // It's Tera template, with an 'if' condition.
         VerboseLogger::log_content(self.user_config, &s!("Found Tera template file: {}", &target_file_name_tokens_applied));
+        // Mutates content by rendering the Tera template
         self.render_str(&mut content, &source_file.0)?;
       }
+
       let parent_dir = &target_file_name_tokens_applied.parent_directory();
       let full_target_file_path_templated = parent_dir.join(target_file_name_tokens_applied.file_stem());
       let content_with_tokens_applied = token_replacer.replace(&content);
@@ -57,10 +60,8 @@ impl <'a> DefaultFileWriter<'a> {
   }
 
   fn render_str(&self, input: &mut String, file: &str) -> ZatAction {
-    let mut tera = Tera::default();
     let new_content =
-      tera
-        .render_str(input, &self.context)
+      Tera::one_off(input, &self.context, false)
         .map_err(|e| ZatError::could_not_render_template(file, input, e.to_string()))?;
     *input = new_content;
     Ok(())
