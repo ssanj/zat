@@ -19,7 +19,8 @@ impl VerboseLogger {
   }
 
   pub(crate) fn log_template_variables_after_plugins_run(user_config: &UserConfig, template_variables: &TemplateVariables) {
-    if user_config.verbose {
+    // Only show this if some plugins have run, otherwise it's the same as `log_template_variables`.
+    if user_config.verbose && template_variables.tokens.iter().any(|t| t.plugin.is_some() ) {
       Printer::print_verbose("Template variables after plugins have run", template_variables);
     }
   }

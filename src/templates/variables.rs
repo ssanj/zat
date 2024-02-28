@@ -25,9 +25,9 @@ impl Lines for TemplateVariables {
                 s!("Variable name: {}", token.variable_name),
                 s!("Description: {}", token.description),
                 s!("Prompt: {}", token.prompt),
-                s!("Default value: {}", token.default_value.unwrap_or_else(|| "-".to_owned())),
+                s!("Default value: {}", token.default_value.as_ref().map(|v| v.as_str()).unwrap_or_else(|| "-")),
                 s!("Plugin: {}", token.plugin.as_ref().map(|p| Self::plugin_lines(p)).unwrap_or_else(|| "-".to_owned())),
-                s!("Choices: {}", Self::choice_lines(&token.choice.iter().collect::<Vec<_>>())),
+                s!("Choices: {}", Self::choice_lines(&token, &token.choice.iter().collect::<Vec<_>>())),
                 s!(""),
               ]
           })
@@ -66,8 +66,8 @@ impl TemplateVariables {
     ].join("\n    ")
   }
 
-  fn choice_lines(choices: &[&Choice]) -> String {
-    let mut lines =
+  fn choice_lines(token: &TemplateVariable, choices: &[&Choice]) -> String {
+    let mut items =
       choices
         .iter()
         .map(|c| {
@@ -75,10 +75,21 @@ impl TemplateVariables {
         })
         .collect::<Vec<_>>();
 
-    let mut result = vec!["".to_owned()];
+    let top_attributes =
+      vec![
+        "".to_owned(),
+        s!("Variable name: {}", token.variable_name),
+        s!("Description: {}", token.description),
+        s!("Prompt: {}", token.prompt),
+      ];
 
-    result.append(&mut lines);
-    result.join("\n    ")
+
+    let top_level_str = top_attributes.join("\n    ");
+    let mut items_format = vec!["".to_owned()];
+    items_format.append(&mut items);
+    let item_str = items_format.join("\n      ");
+
+    s!("{top_level_str}{item_str:>6}")
   }
 }
 
