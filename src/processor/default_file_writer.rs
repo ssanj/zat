@@ -10,6 +10,7 @@ use super::StringTokenReplacer;
 use std::{fs, path::Path, fmt::Display, format as s};
 use tera::{Tera, Context};
 
+#[allow(dead_code)]
 pub struct DefaultFileWriter<'a> {
   user_config: &'a UserConfig,
   user_choices: &'a UserChoices,
@@ -95,7 +96,8 @@ mod tests {
       let destination_file = DestinationFile(temp_destination_file.path().to_string_lossy().to_string());
 
       let user_config = UserConfig::default();
-      let file_writer = DefaultFileWriter::with_user_config(&user_config);
+      let user_choices = UserChoices::default();
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from $project_underscore$";
       fs::write(&source_file, &source_content).unwrap();
 
@@ -126,7 +128,8 @@ mod tests {
       let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
 
       let user_config = UserConfig::default();
-      let file_writer = DefaultFileWriter::with_user_config(&user_config);
+      let user_choices = UserChoices::default();
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from $project_underscore$";
       fs::write(&source_file, &source_content).unwrap();
 
@@ -166,7 +169,8 @@ mod tests {
       let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
 
       let user_config = UserConfig::default();
-      let file_writer = DefaultFileWriter::with_user_config(&user_config);
+      let user_choices = UserChoices::default();
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from $project$";
       fs::write(&source_file, &source_content).unwrap();
 
@@ -206,7 +210,8 @@ mod tests {
       let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
 
       let user_config = UserConfig::default();
-      let file_writer = DefaultFileWriter::with_user_config(&user_config);
+      let user_choices = UserChoices::default();
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from $project$";
       fs::write(&source_file, &source_content).unwrap();
 

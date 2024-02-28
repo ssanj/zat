@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 use crate::logging::Lines;
+use std::collections::HashMap;
 use std::format as s;
 use super::{Choice, Plugin};
 use super::ArgType;
@@ -179,6 +180,15 @@ impl UserChoiceValue {
     }
   }
 }
+
+
+impl From<(&str, &str, &str)> for UserChoiceValue {
+
+  fn from(value: (&str, &str, &str)) -> Self {
+    UserChoiceValue::new(Choice::new(value.0, value.1, value.2))
+  }
+}
+
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct VariableFilter {

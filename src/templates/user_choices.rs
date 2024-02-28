@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::{UserChoiceKey, UserChoiceValue};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct UserChoices {
   pub value: HashMap<UserChoiceKey, UserChoiceValue>
 }
