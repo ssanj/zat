@@ -200,6 +200,47 @@ mod tests {
     }
 
     #[test]
+    fn should_write_out_file_with_tokens_in_its_name_but_not_content_and_not_tera_template_if_not_a_template() {
+      let temp_source_file = NamedTempFile::new().unwrap();
+      let temp_destination_dir = tempdir().unwrap();
+
+      let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
+
+      let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
+      let destination_file = destination_dir.join("$project__underscore$.py");
+      let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
+
+      let user_config = UserConfig::default();
+      let user_choices = UserChoices::default();
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
+      let source_content = b"HelloWorld from {% if option=\"1\" %}my first{% else %}my second{% endif %} $project$";
+      fs::write(&source_file, &source_content).unwrap();
+
+      let replacer =
+        ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
+
+      file_writer.write_source_to_destination(
+        &source_file,
+        &destination_file,
+        &replacer
+      ).unwrap();
+
+      let mut destination_content = String::new();
+
+      let mut destination_file =
+        OpenOptions::new()
+          .read(true)
+          .create(false) // don't create this if it does not exist
+          .open(&token_replaced_destination_file)
+          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+
+      let _ = destination_file.read_to_string(&mut destination_content).unwrap();
+      let source_content_utf = std::str::from_utf8(source_content).unwrap();
+
+      assert_eq!(&source_content_utf, &destination_content, "source content should be equal to the destination content");
+    }
+
+    #[test]
     fn should_write_out_file_with_tokens_in_its_name_and_replace_tokenised_content_in_template_file() {
       let temp_source_file = NamedTempFile::new().unwrap();
       let temp_destination_dir = tempdir().unwrap();
