@@ -3,6 +3,7 @@ use serde::Deserialize;
 use crate::logging::Lines;
 use std::format as s;
 use super::{Choice, Plugin};
+use super::ArgType;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Default)]
 pub struct TemplateVariables {
@@ -12,6 +13,7 @@ pub struct TemplateVariables {
 
 impl Lines for TemplateVariables {
 
+    // TODO: Add Plugin and Choices to this list
     fn lines(&self) -> Vec<String> {
         self
           .tokens
@@ -24,11 +26,60 @@ impl Lines for TemplateVariables {
                 s!("Description: {}", token.description),
                 s!("Prompt: {}", token.prompt),
                 s!("Default value: {}", token.default_value.unwrap_or_else(|| "-".to_owned())),
+                s!("Plugin: {}", token.plugin.as_ref().map(|p| Self::plugin_lines(p)).unwrap_or_else(|| "-".to_owned())),
+                s!("Choices: {}", Self::choice_lines(&token.choice.iter().collect::<Vec<_>>())),
                 s!(""),
               ]
           })
           .collect()
     }
+}
+
+impl TemplateVariables {
+
+  fn plugin_lines(plugin: &Plugin) -> String {
+    let id = &plugin.id;
+    let args: String = match &plugin.args {
+        Some(ArgType::ArgLine(args)) => args.join(" "),
+        Some(ArgType::MutlipleArgs(args)) => {
+          args
+            .iter()
+            .map(|a|{
+              s!("{}{} {}", a.prefix, a.name, a.value)
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+        },
+        None => "".to_owned(),
+    };
+
+    let run_status = match &plugin.result {
+      super::PluginRunStatus::NotRun => "Not run".to_owned(),
+      super::PluginRunStatus::Run(result) => result.result.clone(),
+    };
+
+    vec![
+      "".to_owned(),
+      s!("Id: {id}"),
+      s!("Args: {args}"),
+      s!("Status: {run_status}"),
+    ].join("\n    ")
+  }
+
+  fn choice_lines(choices: &[&Choice]) -> String {
+    let mut lines =
+      choices
+        .iter()
+        .map(|c| {
+          s!("Display: {}, Description: {}, Value: {}", c.display, c.description, c.value)
+        })
+        .collect::<Vec<_>>();
+
+    let mut result = vec!["".to_owned()];
+
+    result.append(&mut lines);
+    result.join("\n    ")
+  }
 }
 
 
@@ -87,6 +138,32 @@ pub struct UserVariableValue {
 impl UserVariableValue {
   pub fn new(value: String) -> Self {
     UserVariableValue {
+      value
+    }
+  }
+}
+
+#[derive(Hash, Debug, Clone, PartialEq, Eq)]
+pub struct UserChoiceKey {
+  pub value: String
+}
+
+impl UserChoiceKey {
+  pub fn new(value: String) -> Self {
+    Self {
+      value
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct UserChoiceValue {
+  pub value: Choice
+}
+
+impl UserChoiceValue {
+  pub fn new(value: Choice) -> Self {
+    Self {
       value
     }
   }

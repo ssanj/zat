@@ -26,14 +26,14 @@ impl ProcessTemplates {
     // Runs any plugins that have been defined and updates template_variables with results
     let plugin_runner = DefaultPluginRunner::new();
     PluginRunnerWorkflow::run_plugins(plugin_runner, &mut template_variables)?;
-    VerboseLogger::log_template_variables(&user_config, &template_variables);
+    VerboseLogger::log_template_variables_after_plugins_run(&user_config, &template_variables);
 
     // Ask for the user for the value of each variable
     // Then verify all the variables supplied are correct
     let template_config_validator = DefaultTemplateConfigValidator::new();
 
     // TODO: Do we need this template_variables.clone()?
-    let template_variable_review = template_config_validator.validate(user_config.clone(), template_variables.clone());
+    let template_variable_review = template_config_validator.validate(user_config.clone(), template_variables.clone())?;
 
     match template_variable_review {
       TemplateVariableReview::Accepted(vc) => {
@@ -56,7 +56,7 @@ impl ProcessTemplates {
           ))
       },
       TemplateVariableReview::Rejected => {
-        Logger::warn("The user rejected the variables.")
+        Logger::warn("The user rejected the input review.")
       }
     }
 

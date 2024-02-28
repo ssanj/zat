@@ -21,6 +21,8 @@ pub struct Choice {
 }
 
 impl Choice {
+
+  #[cfg(test)]
   pub fn new(display: &str, description: &str, value: &str) -> Self {
     Self {
       display: display.to_owned(),

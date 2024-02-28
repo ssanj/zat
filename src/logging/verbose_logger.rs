@@ -18,6 +18,12 @@ impl VerboseLogger {
     }
   }
 
+  pub(crate) fn log_template_variables_after_plugins_run(user_config: &UserConfig, template_variables: &TemplateVariables) {
+    if user_config.verbose {
+      Printer::print_verbose("Template variables after plugins have run", template_variables);
+    }
+  }
+
   pub(crate) fn log_user_supplied_variables(user_config: &UserConfig, user_supplied_values: &ValidConfig) {
     if user_config.verbose {
       Printer::print_verbose("User Supplied Values", user_supplied_values);
