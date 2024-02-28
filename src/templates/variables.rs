@@ -3,9 +3,7 @@ use serde::Deserialize;
 use crate::logging::Lines;
 use std::format as s;
 use super::{Choice, Plugin};
-
 use super::ArgType;
-
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Default)]
 pub struct TemplateVariables {
@@ -189,7 +187,6 @@ impl UserChoiceValue {
     }
   }
 }
-
 
 impl From<(&str, &str, &str)> for UserChoiceValue {
 
