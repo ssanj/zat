@@ -1,16 +1,3 @@
-    // "choice": [
-    //   {
-    //     "display": "Short",
-    //     "description": "A shorter README"
-    //     "value": "short"
-    //   },
-    //   {
-    //     "display": "Long",
-    //     "description": "A longer README",
-    //     "value": "long"
-    //   }
-    // ]
-
 use serde::Deserialize;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
