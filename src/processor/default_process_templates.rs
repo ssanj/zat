@@ -1,6 +1,7 @@
 use crate::error::ZatError;
 use crate::error::{ZatResult, ZatAction};
 use crate::logging::VerboseLogger;
+use crate::templates::UserChoices;
 
 use super::default_directory_creator::DefaultDirectoryCreator;
 use super::ProcessTemplates;
@@ -20,7 +21,7 @@ use std::format as s;
 pub struct DefaultProcessTemplates;
 
 impl ProcessTemplates for DefaultProcessTemplates {
-    fn process_templates(&self, user_config: UserConfig, tokenized_key_expanded_variables: crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables) -> ZatAction {
+    fn process_templates(&self, user_config: UserConfig, tokenized_key_expanded_variables: crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables, user_choices: UserChoices) -> ZatAction {
       let ignores: Vec<&str> =
         user_config
           .ignores.ignores
@@ -43,7 +44,7 @@ impl ProcessTemplates for DefaultProcessTemplates {
       // Converts template files into enriched files that include replaced file name and content tokens
       let template_enricher = DefaultTemplateEnricher::new(user_config.clone());
 
-      let default_file_writer = DefaultFileWriter::with_user_config(&user_config);
+      let default_file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let default_directory_creator = DefaultDirectoryCreator::with_user_config(&user_config);
       let enriched_template_file_processor = DefaultEnrichedTemplateFileProcessor::new(&default_file_writer, &default_directory_creator, &user_config);
 

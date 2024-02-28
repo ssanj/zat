@@ -20,6 +20,7 @@ dirs = "5"
 url = "2.5"
 tempfile = "3"
 remove_dir_all = "0.8"
+tera = "1.19.1"
 
 [dev-dependencies]
 pretty_assertions = "1.0"

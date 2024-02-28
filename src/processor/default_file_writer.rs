@@ -2,13 +2,18 @@ use super::FileWriter;
 use super::SourceFile;
 use super::DestinationFile;
 use crate::config::UserConfig;
+use crate::error::ZatAction;
 use crate::error::{ZatError, ZatResult};
 use crate::logging::VerboseLogger;
+use crate::templates::UserChoices;
 use super::StringTokenReplacer;
 use std::{fs, path::Path, fmt::Display, format as s};
+use tera::{Tera, Context};
 
 pub struct DefaultFileWriter<'a> {
-  user_config: &'a UserConfig
+  user_config: &'a UserConfig,
+  user_choices: &'a UserChoices,
+  context: Context,
 }
 
 impl FileWriter for DefaultFileWriter<'_> {
@@ -16,9 +21,13 @@ impl FileWriter for DefaultFileWriter<'_> {
   fn write_source_to_destination(&self, source_file: &SourceFile, destination_file: &DestinationFile, token_replacer: &dyn StringTokenReplacer) -> ZatResult<()> {
     let target_file_name_tokens_applied = destination_file.map(|df| token_replacer.replace(df));
 
-    if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a templates
+    if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a template
       VerboseLogger::log_content(self.user_config, &s!("Writing template file: {}", &target_file_name_tokens_applied));
-      let content = source_file.read_text()?;
+      let mut content = source_file.read_text()?;
+      if content.contains("{% if") || content.contains("{%if") {
+        VerboseLogger::log_content(self.user_config, &s!("Found Tera template file: {}", &target_file_name_tokens_applied));
+        self.render_str(&mut content, &source_file.0)?;
+      }
       let parent_dir = &target_file_name_tokens_applied.parent_directory();
       let full_target_file_path_templated = parent_dir.join(target_file_name_tokens_applied.file_stem());
       let content_with_tokens_applied = token_replacer.replace(&content);
@@ -33,10 +42,28 @@ impl FileWriter for DefaultFileWriter<'_> {
 
 impl <'a> DefaultFileWriter<'a> {
 
-  pub fn with_user_config(user_config: &'a UserConfig) -> Self {
-    Self {
-      user_config
+  pub fn new(user_config: &'a UserConfig, user_choices: &'a UserChoices) -> Self {
+    let mut context = Context::new();
+
+    for (k, v) in user_choices.value.iter() {
+      context.insert(k.value.as_str(), v.value.value.as_str())
     }
+
+    Self {
+      user_config,
+      user_choices,
+      context
+    }
+  }
+
+  fn render_str(&self, input: &mut String, file: &str) -> ZatAction {
+    let mut tera = Tera::default();
+    let new_content =
+      tera
+        .render_str(input, &self.context)
+        .map_err(|e| ZatError::could_not_render_template(file, input, e.to_string()))?;
+    *input = new_content;
+    Ok(())
   }
 
   fn write_file<C, T>(target_file_with_tokens_replaced: T, content: C) -> ZatResult<()> where
