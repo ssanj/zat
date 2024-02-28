@@ -80,6 +80,7 @@ impl <'a> DefaultFileWriter<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
     use std::{io::Read, fs::OpenOptions};
 
     use super::super::{EchoingStringTokenReplacer, ReplacingStringTokenReplacer};
@@ -98,7 +99,7 @@ mod tests {
       let user_config = UserConfig::default();
       let user_choices = UserChoices::default();
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
-      let source_content = b"HelloWorld from $project_underscore$";
+      let source_content = b"HelloWorld from $project__underscore$";
       fs::write(&source_file, &source_content).unwrap();
 
       let replacer = EchoingStringTokenReplacer;
@@ -124,17 +125,17 @@ mod tests {
       let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
 
       let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
-      let destination_file = destination_dir.join("$project_underscore$.py");
+      let destination_file = destination_dir.join("$project__underscore$.py");
       let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
 
       let user_config = UserConfig::default();
       let user_choices = UserChoices::default();
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
-      let source_content = b"HelloWorld from $project_underscore$";
+      let source_content = b"HelloWorld from $project__underscore$";
       fs::write(&source_file, &source_content).unwrap();
 
       let replacer =
-        ReplacingStringTokenReplacer::new(&[("$project_underscore$", "my-cool-project")]);
+        ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my-cool-project")]);
 
       file_writer.write_source_to_destination(
         &source_file,
@@ -165,7 +166,7 @@ mod tests {
       let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
 
       let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
-      let destination_file = destination_dir.join("$project_underscore$.py");
+      let destination_file = destination_dir.join("$project__underscore$.py");
       let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
 
       let user_config = UserConfig::default();
@@ -175,7 +176,7 @@ mod tests {
       fs::write(&source_file, &source_content).unwrap();
 
       let replacer =
-        ReplacingStringTokenReplacer::new(&[("$project_underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
+        ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
 
       file_writer.write_source_to_destination(
         &source_file,
@@ -206,7 +207,7 @@ mod tests {
       let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
 
       let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
-      let destination_template_file = destination_dir.join("$project_underscore$.py.tmpl");
+      let destination_template_file = destination_dir.join("$project__underscore$.py.tmpl");
       let token_replaced_destination_file = destination_dir.join("my-cool-project.py");
 
       let user_config = UserConfig::default();
@@ -216,9 +217,139 @@ mod tests {
       fs::write(&source_file, &source_content).unwrap();
 
       let replacer =
-        ReplacingStringTokenReplacer::new(&[("$project_underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
+        ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
 
       let token_replaced_destination_content = b"HelloWorld from My Cool Project";
+
+      file_writer.write_source_to_destination(
+        &source_file,
+        &destination_template_file,
+        &replacer
+      ).unwrap();
+
+      let mut destination_content = String::new();
+
+      let mut destination_file =
+        fs::OpenOptions::new()
+          .read(true)
+          .create(false) // don't create this if it does not exist
+          .open(&token_replaced_destination_file)
+          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+
+      let _ = destination_file.read_to_string(&mut destination_content).unwrap();
+      let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
+
+      assert_eq!(&expected_destination_content, &destination_content, "token replaced content should be equal to the destination content");
+    }
+
+
+    #[test]
+    fn should_write_out_file_without_tokens_in_its_name_and_replace_tokenised_content_in_template_file() {
+      let temp_source_file = NamedTempFile::new().unwrap();
+      let temp_destination_dir = tempdir().unwrap();
+
+      let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
+
+      let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
+      let destination_template_file = destination_dir.join("myproject.py.tmpl");
+      let template_replaced_destination_file = destination_dir.join("myproject.py");
+
+      let user_config = UserConfig::default();
+      let user_choices = UserChoices::default();
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
+      let source_content = b"HelloWorld from $project$";
+      fs::write(&source_file, &source_content).unwrap();
+
+      let replacer =
+        ReplacingStringTokenReplacer::new(&[("$project$", "My Cool Project")]);
+
+      let token_replaced_destination_content = b"HelloWorld from My Cool Project";
+
+      file_writer.write_source_to_destination(
+        &source_file,
+        &destination_template_file,
+        &replacer
+      ).unwrap();
+
+      let mut destination_content = String::new();
+
+      let mut destination_file =
+        fs::OpenOptions::new()
+          .read(true)
+          .create(false) // don't create this if it does not exist
+          .open(&template_replaced_destination_file)
+          .expect(&format!("Could not find file: {}", &template_replaced_destination_file));
+
+      let _ = destination_file.read_to_string(&mut destination_content).unwrap();
+      let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
+
+      assert_eq!(&expected_destination_content, &destination_content, "token replaced content should be equal to the destination content");
+    }
+
+    #[test]
+    fn should_write_out_file_without_tokens_in_its_name_and_replace_tokenised_content_in_template_file_and_execute_tera_template() {
+      let temp_source_file = NamedTempFile::new().unwrap();
+      let temp_destination_dir = tempdir().unwrap();
+
+      let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
+
+      let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
+      let destination_template_file = destination_dir.join("myproject.py.tmpl");
+      let template_replaced_destination_file = destination_dir.join("myproject.py");
+
+      let user_config = UserConfig::default();
+      let user_choices = UserChoices::new(HashMap::from_iter([("project_type".into(), ("X", "Y", "first").into())]));
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
+      let source_content = b"HelloWorld from {% if project_type == \"first\" %}first $project${% else %}next $project${% endif%}";
+      fs::write(&source_file, &source_content).unwrap();
+
+      let replacer =
+        ReplacingStringTokenReplacer::new(&[("$project$", "Cool Project")]);
+
+      let token_replaced_destination_content = b"HelloWorld from first Cool Project";
+
+      file_writer.write_source_to_destination(
+        &source_file,
+        &destination_template_file,
+        &replacer
+      ).unwrap();
+
+      let mut destination_content = String::new();
+
+      let mut destination_file =
+        fs::OpenOptions::new()
+          .read(true)
+          .create(false) // don't create this if it does not exist
+          .open(&template_replaced_destination_file)
+          .expect(&format!("Could not find file: {}", &template_replaced_destination_file));
+
+      let _ = destination_file.read_to_string(&mut destination_content).unwrap();
+      let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
+
+      assert_eq!(&expected_destination_content, &destination_content, "token replaced content should be equal to the destination content");
+    }
+
+    #[test]
+    fn should_write_out_file_with_tokens_in_its_name_and_replace_tokenised_content_in_template_file_and_execute_tera_template() {
+      let temp_source_file = NamedTempFile::new().unwrap();
+      let temp_destination_dir = tempdir().unwrap();
+
+      let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
+
+      let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
+      let destination_template_file = destination_dir.join("$project__underscore$.py.tmpl");
+      let token_replaced_destination_file = destination_dir.join("my_cool_project.py");
+
+      let user_config = UserConfig::default();
+      let user_choices = UserChoices::new(HashMap::from_iter([("project_type".into(), ("X", "Y", "second").into())]));
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
+      let source_content = b"HelloWorld from {% if project_type == \"first\" %}first $project${% else %}next $project${% endif%}";
+      fs::write(&source_file, &source_content).unwrap();
+
+      let replacer =
+        ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my_cool_project"), ("$project$", "Cool Project")]);
+
+      let token_replaced_destination_content = b"HelloWorld from next Cool Project";
 
       file_writer.write_source_to_destination(
         &source_file,

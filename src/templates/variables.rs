@@ -168,6 +168,14 @@ impl UserChoiceKey {
   }
 }
 
+impl From<&str> for UserChoiceKey {
+  fn from(value: &str) -> Self {
+      Self {
+        value: value.to_owned()
+      }
+  }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct UserChoiceValue {
   pub value: Choice
