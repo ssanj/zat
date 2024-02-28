@@ -82,11 +82,10 @@ impl <'a> DefaultFileWriter<'a> {
 mod tests {
     use std::collections::HashMap;
     use std::{io::Read, fs::OpenOptions};
-
     use super::super::{EchoingStringTokenReplacer, ReplacingStringTokenReplacer};
-
     use super::*;
     use tempfile::{tempdir, NamedTempFile};
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn should_write_out_file_without_tokens_in_its_name() {
@@ -348,6 +347,91 @@ mod tests {
         ReplacingStringTokenReplacer::new(&[("$project$", "Cool Project")]);
 
       let token_replaced_destination_content = b"HelloWorld from first Cool Project";
+
+      file_writer.write_source_to_destination(
+        &source_file,
+        &destination_template_file,
+        &replacer
+      ).unwrap();
+
+      let mut destination_content = String::new();
+
+      let mut destination_file =
+        fs::OpenOptions::new()
+          .read(true)
+          .create(false) // don't create this if it does not exist
+          .open(&template_replaced_destination_file)
+          .expect(&format!("Could not find file: {}", &template_replaced_destination_file));
+
+      let _ = destination_file.read_to_string(&mut destination_content).unwrap();
+      let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
+
+      assert_eq!(&expected_destination_content, &destination_content, "token replaced content should be equal to the destination content");
+    }
+
+    #[test]
+    fn should_not_execute_tera_template_in_a_non_template_file() {
+      let temp_source_file = NamedTempFile::new().unwrap();
+      let temp_destination_dir = tempdir().unwrap();
+
+      let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
+
+      let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
+      let destination_template_file = destination_dir.join("myproject.py");
+
+      let user_config = UserConfig::default();
+      let user_choices = UserChoices::new(HashMap::from_iter([("project_type".into(), ("X", "Y", "first").into())]));
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
+      let source_content = b"HelloWorld from {% if project_type == \"first\" %}first $project${% else %}next $project${% endif%}";
+      fs::write(&source_file, &source_content).unwrap();
+
+      let replacer =
+        ReplacingStringTokenReplacer::new(&[("$project$", "Cool Project")]);
+
+      let token_replaced_destination_content = b"HelloWorld from {% if project_type == \"first\" %}first $project${% else %}next $project${% endif%}";
+
+      file_writer.write_source_to_destination(
+        &source_file,
+        &destination_template_file,
+        &replacer
+      ).unwrap();
+
+      let mut destination_content = String::new();
+
+      let mut destination_file =
+        fs::OpenOptions::new()
+          .read(true)
+          .create(false) // don't create this if it does not exist
+          .open(&destination_template_file)
+          .expect(&format!("Could not find file: {}", &destination_template_file));
+
+      let _ = destination_file.read_to_string(&mut destination_content).unwrap();
+      let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
+
+      assert_eq!(&expected_destination_content, &destination_content, "token replaced content should be equal to the destination content");
+    }
+
+    #[test]
+    fn should_replace_tokenised_content_in_template_file_and_ignore_raw_tera_template() {
+      let temp_source_file = NamedTempFile::new().unwrap();
+      let temp_destination_dir = tempdir().unwrap();
+
+      let destination_dir = DestinationFile(temp_destination_dir.into_path().to_string_lossy().to_string());
+
+      let source_file = SourceFile(temp_source_file.path().to_string_lossy().to_string());
+      let destination_template_file = destination_dir.join("myproject.py.tmpl");
+      let template_replaced_destination_file = destination_dir.join("myproject.py");
+
+      let user_config = UserConfig::default();
+      let user_choices = UserChoices::new(HashMap::from_iter([("project_type".into(), ("X", "Y", "first").into())]));
+      let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
+      let source_content = b"HelloWorld from {% raw %}{% if project_type == \"first\" %}first $project${% else %}next $project${% endif%}{% endraw %}";
+      fs::write(&source_file, &source_content).unwrap();
+
+      let replacer =
+        ReplacingStringTokenReplacer::new(&[("$project$", "Cool Project")]);
+
+      let token_replaced_destination_content = b"HelloWorld from {% if project_type == \"first\" %}first Cool Project{% else %}next Cool Project{% endif%}";
 
       file_writer.write_source_to_destination(
         &source_file,
