@@ -97,7 +97,6 @@ impl UserInputProvider for Cli {
         let choices = v.choice.iter().collect::<Vec<_>>();
         let choice_value = Cli::get_choice(&v.prompt, &choices)?;
         choices_map.insert(UserChoiceKey::new(v.variable_name), UserChoiceValue::new(choice_value.clone()));
-        ()
       }
     }
 
