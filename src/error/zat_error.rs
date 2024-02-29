@@ -2,6 +2,7 @@
 use format as s;
 use url::Url;
 use super::ErrorFormat;
+use super::GenericErrorReason;
 use super::UserConfigErrorReason;
 use super::VariableFileErrorReason;
 use super::TemplateProcessingErrorReason;
@@ -18,6 +19,7 @@ pub type ZatAction = Result<(), ZatError>;
 #[derive(Debug, PartialEq, Clone)]
 #[allow(clippy::enum_variant_names)]
 pub enum ZatError {
+  GenericError(GenericErrorReason),
   ProcessCommandError(ProcessCommandErrorReason),
   BootstrapCommandError(BootstrapCommandErrorReason),
   ProcessRemoteCommandError(ProcessRemoteCommandErrorReason),
@@ -253,6 +255,18 @@ impl ZatError {
   }
 
 
+  pub fn could_not_render_conditional_template(file: &str, offending_lines: &[&str], exception: String) -> ZatError {
+    ZatError::ProcessCommandError(
+      ProcessCommandErrorReason::TemplateProcessingError(
+        TemplateProcessingErrorReason::TeraTemplateRenderingError(
+          s!("Could not render conditional template in file '{}'. The conditional template uses user supplied choices to render the template. Offending lines: {:?}", file, offending_lines),
+          exception,
+          s!("Ensure the template file '{}' has all necessary user choices defined in '.variables.zat-prompt' to render itself.", file)
+        )
+      )
+    )
+  }
+
   // -------------------------------------------------------------------------------------------------------------------
   // PostProcessingError
   // -------------------------------------------------------------------------------------------------------------------
@@ -472,17 +486,19 @@ impl ZatError {
 
 
   // -------------------------------------------------------------------------------------------------------------------
-  // Choice Errors
+  // Generic Unforeseen Errors
   // -------------------------------------------------------------------------------------------------------------------
 
-  pub fn could_not_get_choice_input(exception: String) -> ZatError {
-    println!("Could not retreive user choice. {}", exception);
-    todo!()
-  }
+  pub fn generic_error(error: &str, exception: String) -> ZatError {
+    let fix = s!("This is an unexpected error. Please raise an issue with this error");
 
-  pub fn could_not_render_template(file: &str, content: &str, exception: String) -> ZatError {
-    println!("Could not render template. file:{file} content:{content} exception:{exception}");
-    todo!()
+    ZatError::GenericError(
+      GenericErrorReason {
+        error: error.to_owned(),
+        exception: exception,
+        fix
+      }
+    )
   }
 }
 
@@ -500,6 +516,8 @@ impl std::fmt::Display for ZatError {
           ZatError::print_formatted_error("There was an error running a remote processing command", error),
        ZatError::PluginError(error)                                                       =>
           ZatError::print_formatted_error("There was an error running a plugin", error),
+       ZatError::GenericError(error)                                                       =>
+          ZatError::print_formatted_error("There was an unexpected error", error),
       };
 
       write!(f, "{}", string_rep)

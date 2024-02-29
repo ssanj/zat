@@ -370,6 +370,25 @@ fn error_message_on_git_clone_status_failure() -> Result<(), Box<dyn std::error:
 }
 
 
+#[test]
+fn error_message_on_tera_template_rendering_failure() -> Result<(), Box<dyn std::error::Error>> {
+  let test_directory = "tera-template-rendering-failure";
+  let source_directory = get_source_directory(test_directory);
+  let error_parts =
+    ErrorParts::with_exception(
+      s!("There was an error running the template"),
+      s!("Could not render conditional template in file '{}/template/README.md.tmpl'. The conditional template uses user supplied choices to render the template. Offending lines: [\"{{% if dummy_value == \\\"something\\\" %}}something{{% endif %}}\"]", &source_directory),
+      s!("Failed to render '__tera_one_off'"),
+      s!("Ensure the template file '{}/template/README.md.tmpl' has all necessary user choices defined in '.variables.zat-prompt' to render itself.", &source_directory),
+    );
+
+  let input = &["This will fail to render", "y"];
+  let error_test_config = ErrorTestConfig::run_template(test_directory, input, error_parts);
+
+  run_error_test(error_test_config)
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper Classes
 //----------------------------------------------------------------------------------------------------------------------

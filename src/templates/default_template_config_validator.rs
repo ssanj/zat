@@ -256,24 +256,25 @@ impl Cli {
       })
   }
 
+
   fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
     let mut result = Self::print_menu(prompt, &items);
-      while let Err(error) = result {
-        let error_message = match error {
-          ChoiceError::CouldNotReadInput(error) => format!("Could not read input: {error}"),
-          ChoiceError::NotANumber(input) => format!("Selection has to be a number: {} is not a number.", input.trim()),
-          ChoiceError::OutOfBounds(index) => format!("Selected index: {} is out of bounds. It should be between 1 - {}", index, items.len())
-        };
-        println!("{}", Red.paint(error_message));
-        println!("press {} to continue", Style::new().underline().paint("ENTER"));
-        let mut char_buf = [0;1];
-        let _ = stdin().read(&mut char_buf);
-        println!();
-        println!();
-        result = Self::print_menu(prompt, items);
+    while let Err(error) = result {
+      let error_message = match error {
+        ChoiceError::CouldNotReadInput(error) => format!("Could not read input: {error}"),
+        ChoiceError::NotANumber(input) => format!("Selection has to be a number: {} is not a number.", input.trim()),
+        ChoiceError::OutOfBounds(index) => format!("Selected index: {} is out of bounds. It should be between 1 - {}", index, items.len())
+      };
+      println!("{}", Red.paint(error_message));
+      println!("press {} to continue", Style::new().underline().paint("ENTER"));
+      let mut char_buf = [0;1];
+      let _ = stdin().read(&mut char_buf);
+      println!();
+      println!();
+      result = Self::print_menu(prompt, items);
     }
 
-    result.map_err(|e| ZatError::could_not_get_choice_input(e.to_string()))
+    result.map_err(|e| ZatError::generic_error("Could not get successful result from choice", e.to_string()))
   }
 }
 

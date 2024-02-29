@@ -26,6 +26,7 @@ impl FileWriter for DefaultFileWriter<'_> {
       VerboseLogger::log_content(self.user_config, &s!("Writing template file: {}", &target_file_name_tokens_applied));
       let mut content = source_file.read_text()?;
 
+      // TODO: We should check if we have user tokens before trying this
       if content.contains("{% if") || content.contains("{%if") { // It's Tera template, with an 'if' condition.
         VerboseLogger::log_content(self.user_config, &s!("Found Tera template file: {}", &target_file_name_tokens_applied));
         // Mutates content by rendering the Tera template
@@ -63,7 +64,15 @@ impl <'a> DefaultFileWriter<'a> {
   fn render_str(&self, input: &mut String, file: &str) -> ZatAction {
     let new_content =
       Tera::one_off(input, &self.context, false)
-        .map_err(|e| ZatError::could_not_render_template(file, input, e.to_string()))?;
+        .map_err(|e| {
+          let offending_lines =
+            input
+              .split('\n')
+              .filter(|line| line.contains(r#"{% if"#) || line.contains(r#"{%if"#))
+              .collect::<Vec<_>>();
+
+          ZatError::could_not_render_conditional_template(file, &offending_lines, e.to_string())
+        })?;
     *input = new_content;
     Ok(())
   }
