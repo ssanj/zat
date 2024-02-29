@@ -2,6 +2,34 @@
 
 Choices let you choose from a list of different options. Choices are currently used to make conditional changes to a template (`tmpl`).
 
+Say for example you wanted to change the rendering of a your `README.tmpl.md` file depending on whether the user chose English or French as the required language:
+
+```md
+# $project$
+
+{% if language_type == "french" %}
+Bonjour!
+{% else %}
+Hello!
+{% endif %}
+```
+
+Basically we want to render:
+
+```
+Bonjour!
+```
+
+if the user selected French as the language, and
+
+```
+Hello!
+```
+
+if the user chose any other language.
+
+The syntax used for the conditional selection of blocks is from the [Tera](https://keats.github.io/tera/docs/#if) templating library.
+
 ## Defining choices
 
 Choices can be defined via the `.variables.zat-prompt` file:
@@ -87,4 +115,3 @@ Hola!
 Hello!
 {% endif %}
 ```
-
