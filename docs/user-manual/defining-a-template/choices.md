@@ -107,6 +107,12 @@ following format:
 Using the above example:
 
 ```
+{% if variable_name == "value" %}
+```
+
+In the above example:
+
+```
 {% if language_type == "french" %}
 Bonjour!
 {% elif language_type == "spanish" %}
