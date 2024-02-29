@@ -56,7 +56,7 @@ Choices can be defined via the `.variables.zat-prompt` file:
 
 When a template with a choice, is processed it will output a menu allowing the user to select an option:
 
-![Choices Menu](../images/zat-choices-menu.png)
+![Choices Menu](../../images/zat-choices-menu.png)
 
 After the user makes a choice, the `value` of the choice is stored against the `variable_name`. We can then use the `variable_name` to perform conditionals like:
 
