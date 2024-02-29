@@ -1,19 +1,21 @@
 use std::collections::HashMap;
 
-use crate::{config::UserConfig, logging::Lines};
-use super::{UserVariableValue, UserVariableKey, TemplateVariables};
+use crate::{config::UserConfig, error::ZatResult, logging::Lines};
+use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue, TemplateVariables};
 use std::{format as s};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValidConfig {
   pub user_variables: HashMap<UserVariableKey, UserVariableValue>,
+  pub user_choices: HashMap<UserChoiceKey, UserChoiceValue>,
   pub user_config: UserConfig
 }
 
 impl ValidConfig {
-  pub fn new(user_variables: HashMap<UserVariableKey, UserVariableValue>, user_config: UserConfig) -> Self {
+  pub fn new(user_variables: HashMap<UserVariableKey, UserVariableValue>, user_choices: HashMap<UserChoiceKey, UserChoiceValue>, user_config: UserConfig) -> Self {
     Self {
       user_variables,
+      user_choices,
       user_config
     }
   }
@@ -22,13 +24,27 @@ impl ValidConfig {
 
 impl Lines for ValidConfig {
     fn lines(&self) -> Vec<String> {
-      self
-        .user_variables
-        .iter()
-        .map(|(k, v)|{
-          s!("{} -> {}", k.value, v.value)
-        })
-        .collect()
+      let mut variable_lines =
+        self
+          .user_variables
+          .iter()
+          .map(|(k, v)|{
+            s!("{} -> {}", k.value, v.value)
+          })
+          .collect::<Vec<_>>();
+
+      let mut choices_lines =
+        self
+          .user_choices
+          .iter()
+          .map(|(k, v)| {
+            s!("{} -> item:{}, value:{}", k.value, v.value.display, v.value.value)
+          })
+          .collect::<Vec<_>>();
+
+      choices_lines.append(&mut variable_lines);
+
+      choices_lines
     }
 }
 
@@ -40,5 +56,5 @@ pub enum TemplateVariableReview {
 }
 
 pub trait TemplateConfigValidator {
-  fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> TemplateVariableReview;
+  fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> ZatResult<TemplateVariableReview>;
 }

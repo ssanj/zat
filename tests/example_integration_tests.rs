@@ -87,6 +87,18 @@ fn runs_a_simple_template_with_plugin() -> Result<(), Box<dyn std::error::Error>
 
 
 #[test]
+fn runs_a_simple_template_with_choices() -> Result<(), Box<dyn std::error::Error>> {
+  let example_test_config =
+    ExampleTestConfig::with_input(
+      "simple-with-choices",
+      &["YouOnlyLiveOnce", "2", "y"]
+    );
+
+  assert_run_example(example_test_config)
+}
+
+
+#[test]
 fn runs_template_with_ignores() -> Result<(), Box<dyn std::error::Error>> {
   let working_directory = tempdir()?;
   let target_directory = working_directory.into_path().join("example-template-with-ignores");

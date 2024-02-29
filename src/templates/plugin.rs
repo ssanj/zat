@@ -51,6 +51,17 @@ pub struct Plugin {
   pub result: PluginRunStatus,
 }
 
+impl Plugin {
+  pub fn new(id: &str, args: &[&str]) -> Self {
+    let args = args.into_iter().map(|i| (*i).to_owned()).collect::<Vec<String>>();
+    Self {
+      id: id.to_owned(),
+      args: Some(ArgType::ArgLine(args)),
+      result: PluginRunStatus::default()
+    }
+  }
+}
+
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub enum PluginRunStatus {

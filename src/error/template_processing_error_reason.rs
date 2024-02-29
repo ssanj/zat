@@ -7,6 +7,7 @@ pub enum TemplateProcessingErrorReason {
   ReadingFileError(ReasonFileErrorReason),
   WritingFileError(String, String, String),
   DirectoryCreationError(String, String, String),
+  TeraTemplateRenderingError(String, String,String),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -26,6 +27,7 @@ impl From<&TemplateProcessingErrorReason> for ErrorFormat {
         TemplateProcessingErrorReason::ReadingFileError(ReasonFileErrorReason::PrefixError(error, exception, fix)) => (error, Some(exception), fix),
         TemplateProcessingErrorReason::WritingFileError(error, exception, fix) => (error, Some(exception), fix),
         TemplateProcessingErrorReason::DirectoryCreationError(error, exception, fix) => (error, Some(exception), fix),
+        TemplateProcessingErrorReason::TeraTemplateRenderingError(error, exception, fix) => (error, Some(exception), fix),
     };
 
     ErrorFormat {
