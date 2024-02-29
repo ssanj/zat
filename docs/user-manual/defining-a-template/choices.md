@@ -56,7 +56,7 @@ For example:
 
 When a template with a choice is processed, it will output a menu allowing the user to select an option:
 
-![Selecting a choice](../../images/zat-choices.gif)
+![Select a choice](../../images/zat-choices.gif)
 
 After the user makes a choice, the `value` of the choice is stored against the `variable_name`.  In the above example when the user
 selects the "English" language option the value of `english` will be stored against the `language_type` variable name.
