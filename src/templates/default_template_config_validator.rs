@@ -274,7 +274,7 @@ impl Cli {
       result = Self::print_menu(prompt, items);
     }
 
-    result.map_err(|e| ZatError::generic_error("Could not get successful result from choice", e.to_string()))
+    result.map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
   }
 }
 
