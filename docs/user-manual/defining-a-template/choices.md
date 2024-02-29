@@ -61,5 +61,11 @@ When a template with a choice, is processed it will output a menu allowing the u
 After the user makes a choice, the `value` of the choice is stored against the `variable_name`. We can then use the `variable_name` to perform conditionals like:
 
 ```
+{% if variable_name == "value" %}
+```
+
+In the above example:
+
+```
 {% if language_type == "french" %}
 ```
