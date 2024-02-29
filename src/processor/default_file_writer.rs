@@ -25,6 +25,7 @@ impl FileWriter for DefaultFileWriter<'_> {
     if let Some("tmpl") = &target_file_name_tokens_applied.get_extension().as_deref() { // It's a template
       VerboseLogger::log_content(self.user_config, &s!("Writing template file: {}", &target_file_name_tokens_applied));
       let mut content = source_file.read_text()?;
+
       // TODO: We should check if we have user tokens before trying this
       if content.contains("{% if") || content.contains("{%if") { // It's Tera template, with an 'if' condition.
         VerboseLogger::log_content(self.user_config, &s!("Found Tera template file: {}", &target_file_name_tokens_applied));

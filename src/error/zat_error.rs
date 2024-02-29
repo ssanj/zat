@@ -499,12 +499,6 @@ impl ZatError {
         fix
       }
     )
-
-  }
-
-  pub fn could_not_render_template(file: &str, content: &str, exception: String) -> ZatError {
-    println!("Could not render template. file:{file} content:{content} exception:{exception}");
-    todo!()
   }
 }
 
