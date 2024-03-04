@@ -176,7 +176,7 @@ mod tests {
       ProcessTemplatesArgs {
         repository_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
-        ignores: ignores,
+        ignores,
         verbose: false
       };
 
@@ -224,7 +224,7 @@ mod tests {
       ProcessTemplatesArgs {
         repository_dir: repository_dir_path.clone(),
         target_dir: target_dir_path.clone(),
-        ignores: ignores,
+        ignores,
         verbose: false
       };
 
@@ -268,7 +268,7 @@ mod tests {
 
     let user_config_provider = DefaultUserConfigProvider;
     match get_user_config_fallable(user_config_provider, args) {
-      Ok(_) => assert!(false, "get_config should fail if the repository directory does not exist"),
+      Ok(_) => panic!("get_config should fail if the repository directory does not exist"),
       Err(error) => {
 
         let expected_error = s!("The Zat repository directory '{}' does not exist. It should exist so Zat can read the template configuration.", repository_dir_path);
@@ -298,7 +298,7 @@ mod tests {
 
     let user_config_provider = DefaultUserConfigProvider;
     match get_user_config_fallable(user_config_provider, args) {
-      Ok(_) => assert!(false, "get_config should fail if the template files directory does not exist"),
+      Ok(_) => panic!("get_config should fail if the template files directory does not exist"),
       Err(error) => {
         let expected_error = s!("The Zat template files directory '{}/template' does not exist. It should exist so Zat can read the template files.", repository_dir_path);
         let expected_fix = s!("Please create the Zat template files directory '{}/template' with the necessary template files. See `zat --help` for more details.", repository_dir_path);
@@ -328,7 +328,7 @@ mod tests {
 
     let user_config_provider = DefaultUserConfigProvider;
     match get_user_config_fallable(user_config_provider, args) {
-      Ok(_) => assert!(false, "get_config should fail if the target directory does exist"),
+      Ok(_) => panic!("get_config should fail if the target directory does exist"),
       Err(error) => {
         let expected_error = s!("The target directory '{}' should not exist. It will be created when Zat processes the template files.", target_dir_path);
         let expected_fix = "Please supply an empty directory for the target.".to_owned();

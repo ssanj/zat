@@ -60,6 +60,7 @@ mod tests {
 
     /// Models files in the multiple folders, template, input, output, working dirs
     /// The code that interprets this enum will create the appropriate folders and the specified directories
+    #[allow(clippy::enum_variant_names)]
     enum InputFileType {
       TemplateDirFile(String, String),
       InputDirFile(String, String),
@@ -102,10 +103,10 @@ mod tests {
           let working_dir_path_string = working_dir_path.0;
 
           vec![
-            TemplateFile::Dir(format!("{}", template_dir_path_string)),
-            TemplateFile::Dir(format!("{}", input_dir_path_string)),
-            TemplateFile::Dir(format!("{}", output_dir_path_string)),
-            TemplateFile::Dir(format!("{}", working_dir_path_string)),
+            TemplateFile::Dir(template_dir_path_string.to_owned()),
+            TemplateFile::Dir(input_dir_path_string.to_owned()),
+            TemplateFile::Dir(output_dir_path_string.to_owned()),
+            TemplateFile::Dir(working_dir_path_string.to_owned()),
 
             TemplateFile::File(format!("{}/blee.txt", template_dir_path_string)),
             TemplateFile::File(format!("{}/blah.txt", template_dir_path_string)),
@@ -167,9 +168,9 @@ mod tests {
           let output_dir_path_string = output_dir_path.0;
 
         vec![
-            TemplateFile::Dir(format!("{}", template_dir_path_string)),
-            TemplateFile::Dir(format!("{}", input_dir_path_string)),
-            TemplateFile::Dir(format!("{}", output_dir_path_string)),
+            TemplateFile::Dir(template_dir_path_string.to_owned()),
+            TemplateFile::Dir(input_dir_path_string.to_owned()),
+            TemplateFile::Dir(output_dir_path_string.to_owned()),
 
             TemplateFile::File(format!("{}/blee.txt", template_dir_path_string)),
             TemplateFile::File(format!("{}/blah.txt", template_dir_path_string)),
@@ -315,7 +316,7 @@ mod tests {
     }
 
     fn write_file(dir: &Path, file_name: &str, content: &str) -> io::Result<()> {
-      println!("writing path: {}, filename: {}", dir.to_string_lossy().to_string(), file_name);
+      println!("writing path: {}, filename: {}", dir.to_string_lossy(), file_name);
       let file_path = dir.join(file_name);
       let mut file = File::create(file_path)?;
       writeln!(file, "{}", content)?;

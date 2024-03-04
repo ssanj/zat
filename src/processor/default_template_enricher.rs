@@ -67,22 +67,22 @@ mod tests {
       let (template_directory, template_files_directory) = temp_dir_with_parent_child_pair(TEMPLATE_FILES_DIR);
       let relative_template_path = "relative/source/file.ext";
       let destination_dir = "/some/destination/path";
-      let template_file_path = template_files_directory.join(&relative_template_path);
+      let template_file_path = template_files_directory.join(relative_template_path);
 
-      let file_template = TemplateFile::new_file(&template_file_path.to_str().unwrap());
+      let file_template = TemplateFile::new_file(template_file_path.to_str().unwrap());
 
       let config: UserConfig =
-        UserConfig::new(&template_directory.as_path().to_str().unwrap(), &destination_dir);
+        UserConfig::new(template_directory.as_path().to_str().unwrap(), destination_dir);
 
 
       let enricher = DefaultTemplateEnricher::new(config);
-      let enriched_file = enricher.enrich(file_template).expect(&format!("Could not enrich file: {}", &template_file_path.to_string_lossy().to_string()));
+      let enriched_file = enricher.enrich(file_template).unwrap_or_else(|_| panic!("Could not enrich file: {}", &template_file_path.to_string_lossy()));
 
       let expected_destination_path = "/some/destination/path/relative/source/file.ext";
       let expected_enriched_file =
         EnrichedTemplateFile::File(
-          SourceFile::new(&template_file_path.to_str().unwrap()),
-          DestinationFile::new(&expected_destination_path));
+          SourceFile::new(template_file_path.to_str().unwrap()),
+          DestinationFile::new(expected_destination_path));
 
       assert_eq!(enriched_file, expected_enriched_file)
     }
@@ -93,21 +93,21 @@ mod tests {
       let (template_directory, template_files_directory) = temp_dir_with_parent_child_pair(TEMPLATE_FILES_DIR);
       let relative_template_path = "relative/source/path";
       let destination_dir = "/some/destination/path";
-      let template_file_path = template_files_directory.join(&relative_template_path);
+      let template_file_path = template_files_directory.join(relative_template_path);
 
-      let file_template = TemplateFile::new_dir(&template_file_path.to_str().unwrap());
+      let file_template = TemplateFile::new_dir(template_file_path.to_str().unwrap());
 
       let config: UserConfig =
-        UserConfig::new(&template_directory.as_path().to_str().unwrap(), &destination_dir);
+        UserConfig::new(template_directory.as_path().to_str().unwrap(), destination_dir);
 
 
       let enricher = DefaultTemplateEnricher::new(config);
-      let enriched_dir = enricher.enrich(file_template).expect(&format!("Could not enrich file: {}", &template_file_path.to_string_lossy().to_string()));
+      let enriched_dir = enricher.enrich(file_template).unwrap_or_else(|_| panic!("Could not enrich file: {}", &template_file_path.to_string_lossy()));
 
       let expected_destination_path = "/some/destination/path/relative/source/path";
       let expected_enriched_dir =
         EnrichedTemplateFile::Dir(
-          DestinationFile::new(&expected_destination_path)
+          DestinationFile::new(expected_destination_path)
         );
 
       assert_eq!(enriched_dir, expected_enriched_dir)

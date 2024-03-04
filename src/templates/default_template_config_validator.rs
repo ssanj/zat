@@ -258,7 +258,7 @@ impl Cli {
 
 
   fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
-    let mut result = Self::print_menu(prompt, &items);
+    let mut result = Self::print_menu(prompt, items);
     while let Err(error) = result {
       let error_message = match error {
         ChoiceError::CouldNotReadInput(error) => format!("Could not read input: {error}"),
@@ -318,7 +318,7 @@ use super::super::TemplateVariable;
 use super::*;
 use pretty_assertions::assert_eq;
 use crate::config::user_config::UserConfig;
-use crate::templates::{ArgType, PluginRunStatus};
+use crate::templates::PluginRunStatus;
 
   #[derive(Debug, Default)]
   struct SimpleInput {
@@ -422,13 +422,13 @@ use crate::templates::{ArgType, PluginRunStatus};
   }
 
   fn user_template_variables(key_values: &[(&str, &str)]) -> HashMap<UserVariableKey, UserVariableValue> {
-    key_values.into_iter().map(|kv|{
+    key_values.iter().map(|kv|{
       (UserVariableKey::new(kv.0.to_owned()), UserVariableValue::new(kv.1.to_owned()))
     }).collect()
   }
 
   fn user_choices(key_values: &[(&str, &str, &str, &str)]) -> HashMap<UserChoiceKey, UserChoiceValue> {
-    key_values.into_iter().map(|kv|{
+    key_values.iter().map(|kv|{
       (UserChoiceKey::new(kv.0.to_owned()), UserChoiceValue::from((kv.1, kv.2, kv.3)))
     }).collect()
   }
@@ -507,7 +507,7 @@ use crate::templates::{ArgType, PluginRunStatus};
   #[test]
   fn returns_rejected_input() {
     let input = SimpleInput::default();
-    let user_variable_validator = RejectedUserTemplateVariables::default();
+    let user_variable_validator = RejectedUserTemplateVariables;
     let config_validator = DefaultTemplateConfigValidator::with_all_dependencies(Box::new(input), Box::new(user_variable_validator));
     let template_variables = TemplateVariables::default();
 
@@ -568,9 +568,9 @@ use crate::templates::{ArgType, PluginRunStatus};
     let result: DynamicValueType = Cli::get_dynamic_values(None, Some(plugin_result).as_ref());
 
     match result {
-      r @ DynamicValueType::DefaultValue(..) => assert!(false, "Expected PluginValue, got DefaultValue: {:?}", r),
+      r @ DynamicValueType::DefaultValue(..) => panic!("Expected PluginValue, got DefaultValue: {:?}", r),
       DynamicValueType::PluginValue(_, value) => assert_eq!(value, plugin_result_value),
-      DynamicValueType::Neither => assert!(false, "Expected PluginValue, got NeitherValue"),
+      DynamicValueType::Neither => panic!("Expected PluginValue, got NeitherValue"),
     }
   }
 
@@ -581,8 +581,8 @@ use crate::templates::{ArgType, PluginRunStatus};
 
     match result {
       DynamicValueType::DefaultValue(_, value) => assert_eq!(value, default_value),
-      r @ DynamicValueType::PluginValue(..) => assert!(false, "Expected DefaultValue, got PluginValue: {:?}", r),
-      DynamicValueType::Neither => assert!(false, "Expected PluginValue, got NeitherValue"),
+      r @ DynamicValueType::PluginValue(..) => panic!("Expected DefaultValue, got PluginValue: {:?}", r),
+      DynamicValueType::Neither => panic!("Expected PluginValue, got NeitherValue"),
     }
   }
 
@@ -603,9 +603,9 @@ fn get_dynamic_values_returns_plugin_preferrentially() {
   let result = Cli::get_dynamic_values(Some(default_value), Some(plugin_result).as_ref());
 
     match result {
-      r @ DynamicValueType::DefaultValue(..) => assert!(false, "Expected PluginValue, got DefaultValue: {:?}", r),
+      r @ DynamicValueType::DefaultValue(..) => panic!("Expected PluginValue, got DefaultValue: {:?}", r),
       DynamicValueType::PluginValue(_, value) => assert_eq!(value, plugin_result_value),
-      DynamicValueType::Neither => assert!(false, "Expected PluginValue, got NeitherValue"),
+      DynamicValueType::Neither => panic!("Expected PluginValue, got NeitherValue"),
     }
 }
 

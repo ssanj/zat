@@ -11,11 +11,11 @@ pub fn temp_dir_with(child: &str) -> TempDir {
 
   std::fs::create_dir(
     child_path.as_path())
-      .expect(
-        &format!(
+      .unwrap_or_else(|_|
+        panic!(
           "could not create child path: {} inside: {}",
-          child_path.as_path().to_string_lossy().to_string(),
-          temp_dir.path().to_string_lossy().to_string()));
+          child_path.as_path().to_string_lossy(),
+          temp_dir.path().to_string_lossy()));
   temp_dir
 }
 
@@ -28,10 +28,10 @@ pub fn temp_dir_with_parent_child_pair(child: &str) -> (PathBuf, PathBuf) {
 
   std::fs::create_dir_all(
     child_path.as_path())
-      .expect(
-        &format!(
+      .unwrap_or_else(|_|
+        panic!(
           "could not create child path: {}",
-          child_path.as_path().to_string_lossy().to_string()));
+          child_path.as_path().to_string_lossy()));
 
   println!("child_path: {:?} - {}", child_path.as_path(), child_path.as_path().exists());
 
@@ -59,17 +59,17 @@ pub fn temp_dir_with_file_pair(file: &str, content: &[u8], maybe_permissions: Op
 
   file_options
     .open(&file_path)
-    .expect(&format!("Could not create file: {}", &file_path.to_string_lossy().to_string()));
+    .unwrap_or_else(|_| panic!("Could not create file: {}", &file_path.to_string_lossy().to_string()));
 
   std::fs::write(
     file_path.as_path(),
     content
   )
-  .expect(
-    &format!(
+  .unwrap_or_else(|_|
+    panic!(
       "could not create file contents for: {} inside: {}",
-      file_path.as_path().to_string_lossy().to_string(),
-      temp_dir.path().to_string_lossy().to_string()));
+      file_path.as_path().to_string_lossy(),
+      temp_dir.path().to_string_lossy()));
 
   (temp_dir, Path::new(&file_path).to_owned())
 }
@@ -92,17 +92,17 @@ pub fn create_file_in(parent_dir: &Path, file: &str, content: &[u8], maybe_permi
 
   let new_file = file_options
     .open(&file_path)
-    .expect(&format!("Could not create file: {}", &file_path.to_string_lossy().to_string()));
+    .unwrap_or_else(|_| panic!("Could not create file: {}", &file_path.to_string_lossy()));
 
   std::fs::write(
     file_path.as_path(),
     content
   )
-  .expect(
-    &format!(
+  .unwrap_or_else(|_|
+    panic!(
       "could not create file contents for: {} inside: {}",
-      file_path.as_path().to_string_lossy().to_string(),
-      parent_dir.to_string_lossy().to_string()));
+      file_path.as_path().to_string_lossy(),
+      parent_dir.to_string_lossy()));
 
   drop(new_file); // This should close the file explicitly
   Path::new(&file_path).to_owned()

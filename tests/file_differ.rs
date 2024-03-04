@@ -3,9 +3,10 @@ use std::{path::Path, collections::HashSet, fmt, println, format};
 use walkdir::{WalkDir, DirEntry};
 use similar::{ChangeTag, TextDiff};
 use ansi_term::Colour;
-use binaryornot;
 
+// TODO: Fix deadcode
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
+#[allow(dead_code)]
 enum FileType {
   File(String),
   Dir(String)
@@ -28,6 +29,8 @@ struct OnlyInSource(pub FileType);
 struct OnlyInDestination(pub FileType);
 
 
+// TODO: Fix deadcode
+#[allow(dead_code)]
 struct Changes {
   only_in_source: Vec<OnlyInSource>,
   only_in_destination: Vec<OnlyInDestination>,
@@ -35,6 +38,8 @@ struct Changes {
 }
 
 // TODO: This definitely needs colour
+// TODO: Fix deadcode
+#[allow(dead_code)]
 pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: S, target_directory: D) {
   let changes = diff(&expected_target_directory, &target_directory);
 
@@ -44,7 +49,7 @@ pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: 
     for source in changes.only_in_source {
       println!("{}", source.0)
     }
-    println!("");
+    println!();
   } else {
     println!("No changes in example render");
   }
@@ -55,12 +60,12 @@ pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: 
     for destination in changes.only_in_destination {
       println!("{}", destination.0)
     }
-    println!("");
+    println!();
   } else {
     println!("No changes in actual render");
   }
 
-  println!("");
+  println!();
 
   let files: Vec<_> =
     changes
@@ -84,13 +89,13 @@ pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: 
           let actual_content = read_file(actual_file);
 
           if expected_content != actual_content {
-            println!("Changes found in: {}", Colour::Red.paint(file.as_str()).to_string());
+            println!("Changes found in: {}", Colour::Red.paint(file.as_str()));
             let text_diff = TextDiff::from_lines(&expected_content, &actual_content);
             for change in text_diff.iter_all_changes() {
                 let sign = match change.tag() {
-                    ChangeTag::Delete => Colour::Red.paint("-").to_string(),
-                    ChangeTag::Insert => Colour::Green.paint("+").to_string(),
-                    ChangeTag::Equal => Colour::RGB(128, 128, 128).paint("|").to_string(),
+                    ChangeTag::Delete => Colour::Red.paint("-"),
+                    ChangeTag::Insert => Colour::Green.paint("+"),
+                    ChangeTag::Equal => Colour::RGB(128, 128, 128).paint("|"),
                 };
                 print!("  {}{}", sign, change);
             }
@@ -99,13 +104,15 @@ pub fn print_changes<S: AsRef<Path>, D: AsRef<Path>>(expected_target_directory: 
         (Ok(true), Ok(true))  => println!("Expected file: '{}' and actual file: '{}' are binary. Not comparing", &expected_file.to_string_lossy(), &actual_file.to_string_lossy()),
         (Ok(true), Ok(false)) => println!("Expected file: '{}' is binary but the actual file: '{}' is not. Not comparing", &expected_file.to_string_lossy(), &actual_file.to_string_lossy()),
         (Ok(false), Ok(true)) => println!("Expected file: '{}' is not binary but the actual file: '{}' is binary. Not comparing", &expected_file.to_string_lossy(), &actual_file.to_string_lossy()),
-        (Ok(_), Err(e2))      => eprintln!("Binary checking actual file: '{}' raised error: '{}'", &actual_file.to_string_lossy(), e2.to_string()),
-        (Err(e1), Ok(_))      => eprintln!("Binary checking expected file: '{}' raised error: '{}'", &expected_file.to_string_lossy(), e1.to_string()),
-        (Err(e1), Err(e2))    => eprintln!("Binary checking actual file: '{}' and expected file: '{}' raised error: {}", &actual_file.to_string_lossy(), e1.to_string(), e2.to_string()),
+        (Ok(_), Err(e2))      => eprintln!("Binary checking actual file: '{}' raised error: '{}'", &actual_file.to_string_lossy(), e2),
+        (Err(e1), Ok(_))      => eprintln!("Binary checking expected file: '{}' raised error: '{}'", &expected_file.to_string_lossy(), e1),
+        (Err(e1), Err(e2))    => eprintln!("Binary checking actual file: '{}' and expected file: '{}' raised error: {}", &actual_file.to_string_lossy(), e1, e2),
     }
   }
 }
 
+// TODO: Fix deadcode
+#[allow(dead_code)]
 pub fn print_diff(actual_content: &str, expected_content: &str) {
   if expected_content != actual_content {
     println!("\n>>>\nChanges found:\n>>>\n");
@@ -122,10 +129,14 @@ pub fn print_diff(actual_content: &str, expected_content: &str) {
   }
 }
 
+// TODO: Fix deadcode
+#[allow(dead_code)]
 fn read_file(file: std::path::PathBuf) -> String {
-    std::fs::read_to_string(&file).expect(&format!("could not read file: {}", file.to_string_lossy().to_string()))
+    std::fs::read_to_string(&file).unwrap_or_else(|_| panic!("could not read file: {}", file.to_string_lossy()))
 }
 
+// TODO: Fix deadcode
+#[allow(dead_code)]
 fn diff<S: AsRef<Path>, D: AsRef<Path>>(source_dir: S, destination_dir: D) -> Changes {
   let source_files: HashSet<FileType> =
     WalkDir::new(&source_dir)
@@ -172,6 +183,8 @@ fn diff<S: AsRef<Path>, D: AsRef<Path>>(source_dir: S, destination_dir: D) -> Ch
   }
 }
 
+// TODO: Fix deadcode
+#[allow(dead_code)]
 fn categorise_files(dir_entry: &DirEntry, path: &Path) -> Option<FileType> {
   let string_path = path.to_string_lossy().to_string();
   let entry_file_type = dir_entry.file_type();
@@ -184,8 +197,10 @@ fn categorise_files(dir_entry: &DirEntry, path: &Path) -> Option<FileType> {
     }
 }
 
+// TODO: Fix deadcode
+#[allow(dead_code)]
 pub fn list_directory_contents<P: AsRef<Path>>(location: P) -> Vec<String> {
-  WalkDir::new(&location.as_ref())
+  WalkDir::new(location.as_ref())
     .into_iter()
     .filter_map(|re| re.ok())
     .map(|f| format!("{}", f.into_path().to_string_lossy()))

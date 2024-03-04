@@ -115,7 +115,7 @@ mod tests {
       let user_choices = UserChoices::default();
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from $project__underscore$";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer = EchoingStringTokenReplacer;
 
@@ -147,7 +147,7 @@ mod tests {
       let user_choices = UserChoices::default();
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from $project__underscore$";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer =
         ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my-cool-project")]);
@@ -165,7 +165,7 @@ mod tests {
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&token_replaced_destination_file)
-          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+          .unwrap_or_else(|_| panic!("Could not find file: {}", &token_replaced_destination_file));
 
       let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let source_content_utf = std::str::from_utf8(source_content).unwrap();
@@ -188,7 +188,7 @@ mod tests {
       let user_choices = UserChoices::default();
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from $project$";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer =
         ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
@@ -206,7 +206,7 @@ mod tests {
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&token_replaced_destination_file)
-          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+          .unwrap_or_else(|_| panic!("Could not find file: {}", &token_replaced_destination_file));
 
       let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let source_content_utf = std::str::from_utf8(source_content).unwrap();
@@ -229,7 +229,7 @@ mod tests {
       let user_choices = UserChoices::default();
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from {% if option=\"1\" %}my first{% else %}my second{% endif %} $project$";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer =
         ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
@@ -247,7 +247,7 @@ mod tests {
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&token_replaced_destination_file)
-          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+          .unwrap_or_else(|_| panic!("Could not find file: {}", &token_replaced_destination_file));
 
       let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let source_content_utf = std::str::from_utf8(source_content).unwrap();
@@ -270,7 +270,7 @@ mod tests {
       let user_choices = UserChoices::default();
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from $project$";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer =
         ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my-cool-project"), ("$project$", "My Cool Project")]);
@@ -290,7 +290,7 @@ mod tests {
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&token_replaced_destination_file)
-          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+          .unwrap_or_else(|_| panic!("Could not find file: {}", &token_replaced_destination_file));
 
       let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
@@ -314,7 +314,7 @@ mod tests {
       let user_choices = UserChoices::default();
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from $project$";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer =
         ReplacingStringTokenReplacer::new(&[("$project$", "My Cool Project")]);
@@ -334,7 +334,7 @@ mod tests {
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&template_replaced_destination_file)
-          .expect(&format!("Could not find file: {}", &template_replaced_destination_file));
+          .unwrap_or_else(|_| panic!("Could not find file: {}", &template_replaced_destination_file));
 
       let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
@@ -357,7 +357,7 @@ mod tests {
       let user_choices = UserChoices::new(HashMap::from_iter([("project_type".into(), ("X", "Y", "first").into())]));
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from {% if project_type == \"first\" %}first $project${% else %}next $project${% endif%}";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer =
         ReplacingStringTokenReplacer::new(&[("$project$", "Cool Project")]);
@@ -377,7 +377,7 @@ mod tests {
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&template_replaced_destination_file)
-          .expect(&format!("Could not find file: {}", &template_replaced_destination_file));
+          .unwrap_or_else(|_| panic!("Could not find file: {}", &template_replaced_destination_file));
 
       let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
@@ -399,7 +399,7 @@ mod tests {
       let user_choices = UserChoices::new(HashMap::from_iter([("project_type".into(), ("X", "Y", "first").into())]));
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from {% if project_type == \"first\" %}first $project${% else %}next $project${% endif%}";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer =
         ReplacingStringTokenReplacer::new(&[("$project$", "Cool Project")]);
@@ -419,7 +419,7 @@ mod tests {
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&destination_template_file)
-          .expect(&format!("Could not find file: {}", &destination_template_file));
+          .unwrap_or_else(|_| panic!("Could not find file: {}", &destination_template_file));
 
       let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
@@ -442,7 +442,7 @@ mod tests {
       let user_choices = UserChoices::new(HashMap::from_iter([("project_type".into(), ("X", "Y", "first").into())]));
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from {% raw %}{% if project_type == \"first\" %}first $project${% else %}next $project${% endif%}{% endraw %}";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer =
         ReplacingStringTokenReplacer::new(&[("$project$", "Cool Project")]);
@@ -462,7 +462,7 @@ mod tests {
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&template_replaced_destination_file)
-          .expect(&format!("Could not find file: {}", &template_replaced_destination_file));
+          .unwrap_or_else(|_| panic!("Could not find file: {}", &template_replaced_destination_file));
 
       let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();
@@ -485,7 +485,7 @@ mod tests {
       let user_choices = UserChoices::new(HashMap::from_iter([("project_type".into(), ("X", "Y", "second").into())]));
       let file_writer = DefaultFileWriter::new(&user_config, &user_choices);
       let source_content = b"HelloWorld from {% if project_type == \"first\" %}first $project${% else %}next $project${% endif%}";
-      fs::write(&source_file, &source_content).unwrap();
+      fs::write(&source_file, source_content).unwrap();
 
       let replacer =
         ReplacingStringTokenReplacer::new(&[("$project__underscore$", "my_cool_project"), ("$project$", "Cool Project")]);
@@ -505,7 +505,7 @@ mod tests {
           .read(true)
           .create(false) // don't create this if it does not exist
           .open(&token_replaced_destination_file)
-          .expect(&format!("Could not find file: {}", &token_replaced_destination_file));
+          .unwrap_or_else(|_| panic!("Could not find file: {}", &token_replaced_destination_file));
 
       let _ = destination_file.read_to_string(&mut destination_content).unwrap();
       let expected_destination_content = std::str::from_utf8(token_replaced_destination_content).unwrap();

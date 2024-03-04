@@ -490,12 +490,12 @@ impl ZatError {
   // -------------------------------------------------------------------------------------------------------------------
 
   pub fn generic_error(error: &str, exception: String) -> ZatError {
-    let fix = s!("This is an unexpected error. Please raise an issue with this error");
+    let fix = "This is an unexpected error. Please raise an issue with this error".to_owned();
 
     ZatError::GenericError(
       GenericErrorReason {
         error: error.to_owned(),
-        exception: exception,
+        exception,
         fix
       }
     )
