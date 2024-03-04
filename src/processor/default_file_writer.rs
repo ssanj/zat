@@ -26,8 +26,15 @@ impl FileWriter for DefaultFileWriter<'_> {
       VerboseLogger::log_content(self.user_config, &s!("Writing template file: {}", &target_file_name_tokens_applied));
       let mut content = source_file.read_text()?;
 
-      // TODO: We should check if we have user tokens before trying this
-      if content.contains("{% if") || content.contains("{%if") { // It's Tera template, with an 'if' condition.
+      let tera_tokens =
+        [
+          "{% if",
+          "{%if",
+          "{%- if",
+          "{%-if",
+        ];
+
+      if self.user_choices.has_choices() && tera_tokens.iter().any(|tt| content.contains(tt)) { // It's Tera template, with an 'if' condition.
         VerboseLogger::log_content(self.user_config, &s!("Found Tera template file: {}", &target_file_name_tokens_applied));
         // Mutates content by rendering the Tera template
         self.render_str(&mut content, &source_file.0)?;
