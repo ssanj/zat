@@ -25,8 +25,8 @@ impl Lines for TemplateVariables {
                 s!("Variable name: {}", token.variable_name),
                 s!("Description: {}", token.description),
                 s!("Prompt: {}", token.prompt),
-                s!("Default value: {}", token.default_value.as_ref().map(|v| v.as_str()).unwrap_or_else(|| "-")),
-                s!("Plugin: {}", token.plugin.as_ref().map(|p| Self::plugin_lines(p)).unwrap_or_else(|| "-".to_owned())),
+                s!("Default value: {}", token.default_value.as_deref().unwrap_or("-")),
+                s!("Plugin: {}", token.plugin.as_ref().map(Self::plugin_lines).unwrap_or_else(|| "-".to_owned())),
                 s!("Choices: {}", Self::choice_lines(&token, &token.choice.iter().collect::<Vec<_>>())),
                 s!(""),
               ]
@@ -58,7 +58,7 @@ impl TemplateVariables {
       super::PluginRunStatus::Run(result) => result.result.clone(),
     };
 
-    vec![
+    [
       "".to_owned(),
       s!("Id: {id}"),
       s!("Args: {args}"),
@@ -120,7 +120,7 @@ impl TemplateVariable {
       variable_name: variable_name.to_owned(),
       description:description.to_owned(),
       prompt: prompt.to_owned(),
-      filters: Vec::from_iter(filters.iter().map(|v| v.clone())),
+      filters: Vec::from_iter(filters.iter().cloned()),
       default_value: default_value.map(|v| v.to_owned()),
       plugin: None,
       choice: Default::default()
@@ -187,7 +187,6 @@ impl UserChoiceValue {
     }
   }
 }
-
 
 impl From<(&str, &str, &str)> for UserChoiceValue {
 
@@ -298,7 +297,7 @@ mod test {
       ]
     "#;
 
-    let variables: Vec<TemplateVariable> = serde_json::from_str(&variables_config).unwrap();
+    let variables: Vec<TemplateVariable> = serde_json::from_str(variables_config).unwrap();
 
     let expected_first = TemplateVariable {
       variable_name: "project".to_owned(),

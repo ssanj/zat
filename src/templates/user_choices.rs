@@ -13,4 +13,12 @@ impl UserChoices {
       value
     }
   }
+
+  pub fn is_empty(&self) -> bool {
+    self.value.is_empty()
+  }
+
+  pub fn has_choices(&self) -> bool {
+    !self.is_empty()
+  }
 }

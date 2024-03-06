@@ -108,7 +108,7 @@ mod tests {
 
     let variables: TemplateVariables =
       TemplateVariables {
-        tokens: serde_json::from_str(&variables_config).unwrap()
+        tokens: serde_json::from_str(variables_config).unwrap()
       };
 
     let variable_expander = DefaultTemplateVariableExpander::with_filter_applicator(Box::new(FilterNameFilterApplicator));
@@ -159,7 +159,7 @@ mod tests {
 
     let variables: TemplateVariables =
       TemplateVariables {
-        tokens: serde_json::from_str(&variables_config).unwrap()
+        tokens: serde_json::from_str(variables_config).unwrap()
       };
 
     let variable_expander = DefaultTemplateVariableExpander::with_filter_applicator(Box::new(FilterNameFilterApplicator));
@@ -201,7 +201,7 @@ mod tests {
 
     let variables: TemplateVariables =
       TemplateVariables {
-        tokens: serde_json::from_str(&variables_config).unwrap()
+        tokens: serde_json::from_str(variables_config).unwrap()
       };
 
     let variable_expander = DefaultTemplateVariableExpander::with_filter_applicator(Box::new(FilterNameFilterApplicator));

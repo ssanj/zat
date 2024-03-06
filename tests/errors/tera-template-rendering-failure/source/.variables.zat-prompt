@@ -3,5 +3,22 @@
     "variable_name": "description",
     "description": "What your project is about",
     "prompt": "Please a description of your project"
+  },
+  {
+    "variable_name": "readme_type",
+    "description": "Type of README",
+    "prompt": "Please choose your type of README",
+    "choice": [
+      {
+        "display": "Short",
+        "description": "A shorter README",
+        "value": "short"
+      },
+      {
+        "display": "Long",
+        "description": "A longer README",
+        "value": "long"
+      }
+    ]
   }
 ]

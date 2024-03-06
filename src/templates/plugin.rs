@@ -52,8 +52,10 @@ pub struct Plugin {
 }
 
 impl Plugin {
+
+  #[cfg(test)]
   pub fn new(id: &str, args: &[&str]) -> Self {
-    let args = args.into_iter().map(|i| (*i).to_owned()).collect::<Vec<String>>();
+    let args = args.iter().map(|i| (*i).to_owned()).collect::<Vec<String>>();
     Self {
       id: id.to_owned(),
       args: Some(ArgType::ArgLine(args)),
@@ -263,7 +265,7 @@ mod tests {
 
     assert!(plugin_result.is_err(), "expected an error but was {:?}", plugin_result);
     let predicate = predicates::str::starts_with("Could not decode 'args' field. It should be one of: List of string or List (name, value, prefix)");
-    assert_eq!(true, predicate.eval(plugin_result.unwrap_err().as_str()))
+    assert!(predicate.eval(plugin_result.unwrap_err().as_str()))
   }
 
 
@@ -282,7 +284,7 @@ mod tests {
 
     assert!(plugin_result.is_err(), "expected an error but was {:?}", plugin_result);
     let predicate = predicates::str::starts_with("'args' field can't be empty. Remove the 'args' field if there are no arguments or supplyone of: List of string or List (name, value, prefix)");
-    assert_eq!(true, predicate.eval(plugin_result.unwrap_err().as_str()))
+    assert!(predicate.eval(plugin_result.unwrap_err().as_str()))
   }
 
 

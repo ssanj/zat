@@ -180,10 +180,10 @@ fn error_message_plugin_failure() -> Result<(), Box<dyn std::error::Error>> {
 
   let error_parts =
     ErrorParts::with_exception(
-      s!("There was an error running a plugin"),
-      s!("Plugin 'failure.sh' returned the following error: Something went wrong."),
-      s!("Born to fail"),
-      s!("Run the success.sh plugin instead."),
+      "There was an error running a plugin".to_owned(),
+      "Plugin 'failure.sh' returned the following error: Something went wrong.".to_owned(),
+      "Born to fail".to_owned(),
+      "Run the success.sh plugin instead.".to_owned(),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -198,9 +198,9 @@ fn error_message_incorrect_plugin_invocation() -> Result<(), Box<dyn std::error:
 
   let error_parts =
     ErrorParts::new(
-      s!("There was an error running a plugin"),
-      s!("Plugin 'tests/plugins/failure.sh' returned the following error: Plugin failed with status code 1. The plugin failed with a non-zero error code signifying an error."),
-      s!("Try running the plugin manually to fix the above error."),
+      "There was an error running a plugin".to_owned(),
+      "Plugin 'tests/plugins/failure.sh' returned the following error: Plugin failed with status code 1. The plugin failed with a non-zero error code signifying an error.".to_owned(),
+      "Try running the plugin manually to fix the above error.".to_owned(),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -215,10 +215,10 @@ fn error_message_plugin_did_not_return_json() -> Result<(), Box<dyn std::error::
 
   let error_parts =
     ErrorParts::with_exception(
-      s!("There was an error running a plugin"),
-      s!("Plugin 'tests/plugins/failure-not-json.sh I am not JSON' returned the following error: Could not decode result from plugin. The plugin returned: 'I am not JSON'."),
-      s!("expected value at line 1 column 1"),
-      s!("Try running the plugin manually verify the output format of the plugin adheres to the Zat Plugin Specification."),
+      "There was an error running a plugin".to_owned(),
+      "Plugin 'tests/plugins/failure-not-json.sh I am not JSON' returned the following error: Could not decode result from plugin. The plugin returned: 'I am not JSON'.".to_owned(),
+      "expected value at line 1 column 1".to_owned(),
+      "Try running the plugin manually verify the output format of the plugin adheres to the Zat Plugin Specification.".to_owned(),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -233,10 +233,10 @@ fn error_message_plugin_did_not_return_utf8_in_stdout() -> Result<(), Box<dyn st
 
   let error_parts =
     ErrorParts::with_exception(
-      s!("There was an error running a plugin"),
-      s!("Plugin 'tests/plugins/failure-not-utf8-stdout.sh' returned the following error: The plugin return invalid UTF8 characters."),
-      s!("invalid utf-8 sequence of 1 bytes from index 0"),
-      s!("Try running the plugin manually to fix the above error."),
+      "There was an error running a plugin".to_owned(),
+      "Plugin 'tests/plugins/failure-not-utf8-stdout.sh' returned the following error: The plugin return invalid UTF8 characters.".to_owned(),
+      "invalid utf-8 sequence of 1 bytes from index 0".to_owned(),
+      "Try running the plugin manually to fix the above error.".to_owned(),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -251,10 +251,10 @@ fn error_message_plugin_did_not_return_utf8_in_stderr() -> Result<(), Box<dyn st
 
   let error_parts =
     ErrorParts::with_exception(
-      s!("There was an error running a plugin"),
-      s!("Plugin 'tests/plugins/failure-not-utf8-stderr.sh' returned the following error: The plugin return invalid UTF8 characters to stderr."),
-      s!("invalid utf-8 sequence of 1 bytes from index 0"),
-      s!("Try running the plugin manually to fix the above error."),
+      "There was an error running a plugin".to_string(),
+      "Plugin 'tests/plugins/failure-not-utf8-stderr.sh' returned the following error: The plugin return invalid UTF8 characters to stderr.".to_string(),
+      "invalid utf-8 sequence of 1 bytes from index 0".to_string(),
+      "Try running the plugin manually to fix the above error.".to_string(),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -269,10 +269,10 @@ fn error_message_plugin_does_not_exist() -> Result<(), Box<dyn std::error::Error
 
   let error_parts =
     ErrorParts::with_exception(
-      s!("There was an error running a plugin"),
-      s!("Plugin 'tests/plugins/a-failure.sh one two' returned the following error: Plugin could not be run. Does it exist and is it executable?"),
-      s!("No such file or directory (os error 2)"),
-      s!("Try running the plugin manually to fix the above error."),
+      "There was an error running a plugin".to_owned(),
+      "Plugin 'tests/plugins/a-failure.sh one two' returned the following error: Plugin could not be run. Does it exist and is it executable?".to_owned(),
+      "No such file or directory (os error 2)".to_owned(),
+      "Try running the plugin manually to fix the above error.".to_owned(),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);
@@ -309,7 +309,7 @@ fn error_message_on_bootstrap_repository_exists() -> Result<(), Box<dyn std::err
     ErrorParts::new(
       "There was an error running the bootstrap process".to_owned(),
       s!("The repository directory '{}' should not exist. It will be created by the Zat bootstrap process.", repository_directory.as_str()),
-      s!("Please supply an empty directory for the repository.")
+      "Please supply an empty directory for the repository.".to_owned()
     );
 
   let bootstrap_error_config = BootstrapErrorTestConfig::new(repository_directory.as_str(), error_parts);
@@ -376,13 +376,13 @@ fn error_message_on_tera_template_rendering_failure() -> Result<(), Box<dyn std:
   let source_directory = get_source_directory(test_directory);
   let error_parts =
     ErrorParts::with_exception(
-      s!("There was an error running the template"),
+      "There was an error running the template".to_owned(),
       s!("Could not render conditional template in file '{}/template/README.md.tmpl'. The conditional template uses user supplied choices to render the template. Offending lines: [\"{{% if dummy_value == \\\"something\\\" %}}something{{% endif %}}\"]", &source_directory),
-      s!("Failed to render '__tera_one_off'"),
+      "Failed to render '__tera_one_off'".to_owned(),
       s!("Ensure the template file '{}/template/README.md.tmpl' has all necessary user choices defined in '.variables.zat-prompt' to render itself.", &source_directory),
     );
 
-  let input = &["This will fail to render", "y"];
+  let input = &["This will fail to render", "1", "y"];
   let error_test_config = ErrorTestConfig::run_template(test_directory, input, error_parts);
 
   run_error_test(error_test_config)
@@ -396,6 +396,8 @@ fn error_message_on_tera_template_rendering_failure() -> Result<(), Box<dyn std:
 #[derive(Clone)]
 enum AssertionType {
   Equals(String),
+
+  #[allow(dead_code)]
   Contains(String),
 }
 
@@ -759,15 +761,15 @@ fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
     let line1 = assert_line(1, lines[1], AssertionType::Equals(error_colour.paint("Zat failed an with error.").to_string()));
 
     let line2 = assert_line(2, lines[2], AssertionType::Equals("".to_owned()));
-    let line3 = assert_line(3, lines[3], error_type.map(|et| s!("{}{}:", heading_indent, heading_colour.paint(et).to_string())));
+    let line3 = assert_line(3, lines[3], error_type.map(|et| s!("{}{}:", heading_indent, heading_colour.paint(et))));
     let line4 = assert_line(4, lines[4], error.map(|e| s!("{}{}", content_indent, e)));
 
     let line5 = assert_line(5, lines[5], AssertionType::Equals("".to_owned()));
-    let line6 = assert_line(6, lines[6], AssertionType::Equals(s!("{}{}:", heading_indent, heading_colour.paint("Exception").to_string())));
+    let line6 = assert_line(6, lines[6], AssertionType::Equals(s!("{}{}:", heading_indent, heading_colour.paint("Exception"))));
     let line7 = assert_line(7, lines[7], exception.map(|e| s!("{}{}", content_indent, e)));
 
     let line8 = assert_line(8, lines[8], AssertionType::Equals("".to_owned()));
-    let line9 = assert_line(9, lines[9], AssertionType::Equals(s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string())));
+    let line9 = assert_line(9, lines[9], AssertionType::Equals(s!("{}{}:", heading_indent, heading_colour.paint("Possible fix"))));
     let line10 = assert_line(10, lines[10], fix.map(|f| s!("{}{}", content_indent, f)));
     let line11 = assert_line(11, lines[11], AssertionType::Equals("".to_owned()));
 
@@ -807,11 +809,11 @@ fn assert_error_message(lines: &[&str], error_parts: ErrorParts) -> bool {
     let line1 = assert_line(1, lines[first_line + 1], AssertionType::Equals(error_colour.paint("Zat failed an with error.").to_string()));
 
     let line2 = assert_line(2, lines[first_line + 2], AssertionType::Equals("".to_owned()));
-    let line3 = assert_line(3, lines[first_line + 3], error_type.map(|et| s!("{}{}:", heading_indent, heading_colour.paint(et).to_string())));
+    let line3 = assert_line(3, lines[first_line + 3], error_type.map(|et| s!("{}{}:", heading_indent, heading_colour.paint(et))));
     let line4 = assert_line(4, lines[first_line + 4], error.map(|e| s!("{}{}", content_indent, e)));
 
     let line5 = assert_line(5, lines[first_line + 5], AssertionType::Equals("".to_owned()));
-    let line6 = assert_line(6, lines[first_line + 6], AssertionType::Equals(s!("{}{}:", heading_indent, heading_colour.paint("Possible fix").to_string())));
+    let line6 = assert_line(6, lines[first_line + 6], AssertionType::Equals(s!("{}{}:", heading_indent, heading_colour.paint("Possible fix"))));
     let line7 = assert_line(7, lines[first_line + 7], fix.map(|f| s!("{}{}", content_indent, f)));
 
     let line8 = assert_line(8, lines[first_line + 8], AssertionType::Equals("".to_owned()));

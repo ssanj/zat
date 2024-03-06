@@ -180,7 +180,7 @@ fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
     ];
 
   let bootstrap_test_config =
-    BootstrapExampleTestConfig::new(&repository_directory, &files_that_should_exist, &output_messages);
+    BootstrapExampleTestConfig::new(repository_directory, &files_that_should_exist, &output_messages);
 
   assert_run_bootstrap_example(bootstrap_test_config)
 }
@@ -329,14 +329,10 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
       .assert()
       .success();
 
-  match example_config.maybe_stdout_assertions {
-    Some(AssertionType::Contains(contents)) => {
-      for content in contents {
-        output = output.stdout(std_out_contains(content));
-      }
-    },
-
-    None => ()
+  if let Some(AssertionType::Contains(contents)) = example_config.maybe_stdout_assertions {
+    for content in contents {
+      output = output.stdout(std_out_contains(content));
+    }
   }
 
   assert!(Path::new(&target_directory).exists(), "{}", Red.paint(s!("target directory `{}` does not exist", &target_directory)));
@@ -384,7 +380,7 @@ fn assert_run_bootstrap_example(bootstrap_example_config: BootstrapExampleTestCo
   cmd
     .arg("bootstrap")
     .arg("--repository-dir")
-    .arg(&working_directory_path);
+    .arg(working_directory_path);
 
   let mut output =
     cmd
@@ -397,14 +393,10 @@ fn assert_run_bootstrap_example(bootstrap_example_config: BootstrapExampleTestCo
     assert!(file.exists(), "{}", Red.paint(s!("Expected file `{}` does not exist: ", file.to_string_lossy())));
   }
 
-  match bootstrap_example_config.maybe_stdout_assertions {
-    Some(AssertionType::Contains(contents)) => {
-      for content in contents {
-        output = output.stdout(std_out_contains(content));
-      }
-    },
-
-    None => ()
+  if let Some(AssertionType::Contains(contents)) = bootstrap_example_config.maybe_stdout_assertions {
+    for content in contents {
+      output = output.stdout(std_out_contains(content));
+    }
   }
 
   Ok(())

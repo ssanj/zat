@@ -78,6 +78,19 @@ following format:
 
 Using the above example:
 
+
+```
+{% if variable_name == "value1 %}
+  //block1
+{% elif variable_name == "value2" %}
+  //block2
+{% else %}
+  //block3
+{% endif %}
+```
+
+Using the above example:
+
 ```
 {% if language_type == "french" %}
 Bonjour!

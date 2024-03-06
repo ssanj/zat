@@ -93,8 +93,8 @@ mod tests {
         p!("config: {:?}", &config);
 
         let assert_error_ends_with = |error_message: String| {
-          let expected_error = s!("failed with an error.");
-          assert!(error_message.ends_with(expected_error.as_str()), "Assertion did not match. Error received: {}", error_message.as_str())
+          let expected_error = "failed with an error.";
+          assert!(error_message.as_str().ends_with(expected_error), "Assertion did not match. Error received: {}", error_message.as_str())
         };
 
        assert_error_with!{

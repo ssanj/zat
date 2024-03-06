@@ -47,7 +47,7 @@ mod tests {
     struct FailingPluginRunner(String, String, String, String);
 
     impl PluginRunner for PanicingPluginRunner {
-        fn run_plugin(&self, plugin: crate::templates::Plugin) -> crate::error::ZatResult<PluginResult> {
+        fn run_plugin(&self, _plugin: crate::templates::Plugin) -> crate::error::ZatResult<PluginResult> {
             panic!("Running the plugin failed")
         }
     }
