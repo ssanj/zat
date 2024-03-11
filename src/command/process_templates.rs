@@ -23,6 +23,10 @@ impl ProcessTemplates {
     let mut template_variables: TemplateVariables = template_variable_provider.get_tokens(user_config.clone())?;
     VerboseLogger::log_template_variables(&user_config, &template_variables);
 
+    // TODO: for scopes
+    // Run choices first (partition variables by choices and the rest)
+    // Filter all non-choice variables by scope, to create a new TemplateVariables
+
     // Runs any plugins that have been defined and updates template_variables with results
     let plugin_runner = DefaultPluginRunner::new();
     PluginRunnerWorkflow::run_plugins(plugin_runner, &mut template_variables)?;

@@ -1,13 +1,12 @@
 use std::collections::HashMap;
-use std::io::{stdin, BufRead, Read};
-use std::fmt::{self, Display};
+use std::io::{stdin, BufRead};
 
-use super::{Choice, Plugin, TemplateConfigValidator, TemplateVariable, TemplateVariableReview, ValidConfig};
+use super::{Plugin, TemplateConfigValidator, TemplateVariable, TemplateVariableReview, ValidConfig};
 use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue, TemplateVariables};
 use crate::config::UserConfig;
-use crate::error::{ZatError, ZatResult};
+use crate::error::ZatResult;
 use crate::templates::PluginRunResult;
-use ansi_term::Colour::{Yellow, Green, Blue, Red};
+use ansi_term::Colour::{Yellow, Green, Blue};
 use ansi_term::Style;
 use std::{println as p, format as s};
 use crate::logging::Logger;
@@ -52,23 +51,6 @@ enum DynamicValueType {
 
 struct DynamicPair(String, String);
 
-#[derive(Debug, Clone, PartialEq)]
-enum ChoiceError {
-  CouldNotReadInput(String),
-  NotANumber(String),
-  OutOfBounds(usize),
-}
-
-impl Display for ChoiceError {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let prefix = match self {
-      ChoiceError::CouldNotReadInput(input) => s!("Could not read input: {}", input),
-      ChoiceError::NotANumber(input) => s!("Expected a number for choice, but got: {}", input),
-      ChoiceError::OutOfBounds(number) => s!("Invalid index supplied: {}", number),
-    };
-    write!(f, "{}", prefix)
-  }
-}
 
 impl UserInputProvider for Cli {
   fn get_user_input(&self, template_variables: TemplateVariables) -> ZatResult<UserInput> {
@@ -79,7 +61,7 @@ impl UserInputProvider for Cli {
       p!();
 
       // TODO: Make this an ADT
-      if v.choice.is_empty() {
+      // if v.choice.is_empty() {
         let default_value = Cli::get_default_value(v.default_value.as_deref());
         let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
           );
@@ -93,11 +75,11 @@ impl UserInputProvider for Cli {
         }
 
         Cli::read_user_input(&mut token_map, &v, &dynamic_value);
-      } else {
-        let choices = v.choice.iter().collect::<Vec<_>>();
-        let choice_value = Cli::get_choice(&v.prompt, &choices)?;
-        choices_map.insert(UserChoiceKey::new(v.variable_name), UserChoiceValue::new(choice_value.clone()));
-      }
+      // } else {
+      //   let choices = v.choice.iter().collect::<Vec<_>>();
+      //   let choice_value = Cli::get_choice(&v.prompt, &choices)?;
+      //   choices_map.insert(UserChoiceKey::new(v.variable_name), UserChoiceValue::new(choice_value.clone()));
+      // }
     }
 
     Ok(UserInput::new(token_map, choices_map))
@@ -221,60 +203,6 @@ impl Cli {
       crate::templates::PluginRunStatus::NotRun => None,
       crate::templates::PluginRunStatus::Run(run_result) => Some(run_result.to_owned()),
     }
-  }
-
-  fn print_menu<'a>(prompt: &str, items: &'a [&'a Choice]) -> Result<&'a Choice, ChoiceError> {
-    println!("{}", Yellow.paint(prompt));
-
-    let it =
-      items
-        .iter()
-        .enumerate()
-        .map(|(n, v)| format!("  {} {} {}", n + 1, v.display, v.description))
-        .collect::<Vec<_>>();
-
-    println!("{}", it.join("\n"));
-
-    let mut buffer = String::new();
-    stdin()
-      .read_line(&mut buffer)
-      .map_err(|e| ChoiceError::CouldNotReadInput(e.to_string()))
-      .and({
-        buffer
-          .trim()
-          .parse::<usize>()
-          .map_err(|_| ChoiceError::NotANumber(buffer.clone()))
-          .and_then(|n| {
-            if n > 0 && n <= items.len() {
-              Ok(
-                items[n-1]
-              )
-            } else {
-              Err(ChoiceError::OutOfBounds(n))
-            }
-          })
-      })
-  }
-
-
-  fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
-    let mut result = Self::print_menu(prompt, items);
-    while let Err(error) = result {
-      let error_message = match error {
-        ChoiceError::CouldNotReadInput(error) => format!("Could not read input: {error}"),
-        ChoiceError::NotANumber(input) => format!("Selection has to be a number: {} is not a number.", input.trim()),
-        ChoiceError::OutOfBounds(index) => format!("Selected index: {} is out of bounds. It should be between 1 - {}", index, items.len())
-      };
-      println!("{}", Red.paint(error_message));
-      println!("press {} to continue", Style::new().underline().paint("ENTER"));
-      let mut char_buf = [0;1];
-      let _ = stdin().read(&mut char_buf);
-      println!();
-      println!();
-      result = Self::print_menu(prompt, items);
-    }
-
-    result.map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
   }
 }
 
