@@ -1,6 +1,7 @@
 use super::{ChoiceRunner, ChoiceError, SelectedChoices};
 use crate::error::{ZatError, ZatResult};
-use crate::templates::{Choice, TemplateVariables, TemplateVariable};
+use crate::templates::{Choice, TemplateVariable, TemplateVariables, UserChoiceKey, UserChoiceValue};
+use std::collections::HashMap;
 use std::{format as s, io::Read, println as p};
 use ansi_term::Color::{Yellow, Red};
 use ansi_term::Style;
@@ -10,30 +11,40 @@ pub struct DefaultChoiceRunner;
 
 impl ChoiceRunner for DefaultChoiceRunner {
   fn run_choices(templates: TemplateVariables) -> ZatResult<SelectedChoices> {
-    let choices: Vec<TemplateVariable> =
+
+    let (choice_variables, other_variables): (Vec<TemplateVariable>, Vec<TemplateVariable>) =
       templates
         .tokens
         .into_iter()
-        .filter(|v| {
-          v.choice.is_empty()
-        })
-        .collect::<Vec<_>>();
+        .partition(|v| !v.choice.is_empty());
 
     let choice_refs =
-      choices
+      choice_variables
         .iter()
-        .map(|v| (v.prompt.as_str(), v.choice.iter().collect::<Vec<_>>()) )
+        .map(|v| (v, v.choice.iter().collect::<Vec<_>>()))
         .collect::<Vec<_>>();
 
 
-    let user_result: Vec<Choice> =
+    let user_choices: Vec<(&TemplateVariable, Choice)> =
       choice_refs
         .into_iter()
-        .map(|(pr, ch)| Self::get_choice(pr, &ch).cloned())
-        .collect::<ZatResult<Vec<_>>>()?;
+        .map(|(v, ch)| {
+          Self::get_choice(v, &ch)
+            .cloned()
+            .map(|c| (v, c))
+        })
+        .collect::<ZatResult<Vec<(&TemplateVariable, Choice)>>>()?;
 
 
-    Ok(SelectedChoices::new(user_result))
+    let choices =
+      user_choices
+        .into_iter()
+        .map(|(variable, choice)| {
+          (UserChoiceKey::from(variable.variable_name.as_str()), UserChoiceValue::new(choice))
+        })
+        .collect::<HashMap<UserChoiceKey, UserChoiceValue>>();
+
+    Ok(SelectedChoices::new(choices, other_variables))
   }
 }
 
@@ -73,8 +84,8 @@ impl DefaultChoiceRunner {
   }
 
 
-  fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
-    let mut result = Self::print_menu(prompt, items);
+  fn get_choice<'a>(variable: &TemplateVariable, items: &'a [&'a Choice]) -> ZatResult<(&'a Choice)> {
+    let mut result = Self::print_menu(variable.prompt.as_str(), items);
     while let Err(error) = result {
       let error_message = match error {
         ChoiceError::CouldNotReadInput(error) => s!("Could not read input: {error}"),
@@ -87,9 +98,10 @@ impl DefaultChoiceRunner {
       let _ = stdin().read(&mut char_buf);
       p!();
       p!();
-      result = Self::print_menu(prompt, items);
+      result = Self::print_menu(variable.prompt.as_str(), items);
     }
 
-    result.map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
+    result
+      .map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
   }
 }

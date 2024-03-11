@@ -10,6 +10,15 @@ pub struct TemplateVariables {
   pub tokens: Vec<TemplateVariable>
 }
 
+impl TemplateVariables {
+  pub fn new(tokens: Vec<TemplateVariable>) -> Self {
+    Self {
+      tokens
+    }
+
+  }
+}
+
 
 impl Lines for TemplateVariables {
 
