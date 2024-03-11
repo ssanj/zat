@@ -1,4 +1,4 @@
-use crate::choice::{ChoiceRunner, DefaultChoiceRunner, SelectedChoices};
+use crate::choice::{ChoiceRunner, DefaultChoiceRunner, DefaultChoiceScopeFilter, ChoiceScopeFilter, SelectedChoices};
 use crate::error::ZatAction;
 use crate::logging::{VerboseLogger, Logger};
 use crate::post_processor::{PostProcessingHook, ShellHook};
@@ -27,6 +27,7 @@ impl ProcessTemplates {
     // Ask for user choices and separate choices from other variables
     let SelectedChoices { choices, mut other_variables } = DefaultChoiceRunner::run_choices(template_variables)?;
 
+    DefaultChoiceScopeFilter::filter_scopes(&choices, &mut other_variables);
     // TODO: for scopes
     // TODO: Filter all non-choice variables by scope, to create a new TemplateVariables
 
