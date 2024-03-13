@@ -39,6 +39,29 @@ pub enum Scope {
   ExcludeChoiceScope(ExcludeChoice),
 }
 
+impl Scope {
+  #[cfg(test)]
+  pub fn new_include_choice(value: &str) -> Self {
+    Scope::IncludeChoiceScope(IncludeChoice::new(value))
+  }
+
+  #[cfg(test)]
+  pub fn new_include_choice_value(key: &str, value: &str) -> Self {
+    Scope::IncludeChoiceValueScope(IncludeChoiceValue::new(key, value))
+  }
+
+  #[cfg(test)]
+  pub fn new_exclude_choice(value: &str) -> Self {
+    Scope::ExcludeChoiceScope(ExcludeChoice::new(value))
+  }
+
+  #[cfg(test)]
+  pub fn new_exclude_choice_value(key: &str, value: &str) -> Self {
+    Scope::ExcludeChoiceValueScope(ExcludeChoiceValue::new(key, value))
+  }
+
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct IncludeChoice {
   pub choice: String

@@ -137,6 +137,21 @@ impl TemplateVariable {
       scope: Option::default()
     }
   }
+
+  #[cfg(test)]
+  pub fn with_scopes(variable_name: &str, scopes: Vec<Scope>) -> Self {
+
+    Self {
+      variable_name: variable_name.to_owned(),
+      description: s!("{}-description", variable_name),
+      prompt: s!("{}-prompt", variable_name).to_owned(),
+      filters: Vec::default(),
+      default_value: Option::default(),
+      plugin: Option::default(),
+      choice: Default::default(),
+      scope: Some(scopes)
+    }
+  }
 }
 
 #[derive(Hash, Debug, Clone, PartialEq, Eq)]
