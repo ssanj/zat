@@ -322,7 +322,7 @@ mod tests {
 
 
     #[test]
-    fn filter_scopes_without_matching_scope_returns_matching_variables() {
+    fn filter_scopes_with_matching_scope_returns_matching_variables() {
       let choices =
         (0 .. 5)
           .into_iter()
@@ -360,6 +360,57 @@ mod tests {
             tokens.get(0).cloned().unwrap(), // included by choice-2
             tokens.get(1).cloned().unwrap(), // included by choice-3
             tokens.get(2).cloned().unwrap(), // included by choice-4
+          ]
+        );
+
+      DefaultChoiceScopeFilter::filter_scopes(&choices_map, &mut template_variables);
+
+      assert_eq!(expected_template_variables, template_variables)
+    }
+
+    #[test]
+    fn filter_scopes_with_matching_scope_value_returns_matching_variables() {
+      let choices =
+        vec![
+          (
+              UserChoiceKey::from(s!("choice-x").as_str()),
+              UserChoiceValue::from(
+                (
+                  s!("choice-x-display").as_str(),
+                  s!("choice-x-desc").as_str(),
+                  s!("choice-x-value").as_str()))
+          ),
+          (
+              UserChoiceKey::from(s!("choice-2").as_str()),
+              UserChoiceValue::from(
+                (
+                  s!("choice-2-display").as_str(),
+                  s!("choice-2-desc").as_str(),
+                  s!("choice-2-value").as_str()))
+          )
+        ];
+
+      let choices_map = HashMap::from_iter(choices);
+
+      let tokens =
+        (0 .. 5)
+          .into_iter()
+          .map(|n| {
+            TemplateVariable::with_scopes(
+              s!("variable_{n}").as_str(),
+              vec![Scope::new_include_choice_value(s!("choice-{}", n).as_str(), s!("choice-{}-value", n).as_str())]
+            )
+        })
+        .collect::<Vec<_>>();
+
+
+      let mut template_variables =
+        TemplateVariables::new(tokens.clone());
+
+      let expected_template_variables =
+        TemplateVariables::new(
+          vec![
+            tokens.get(2).cloned().unwrap(), // included by choice-2, choice-2-value
           ]
         );
 
