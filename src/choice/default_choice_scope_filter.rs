@@ -21,12 +21,50 @@ impl ChoiceScopeFilter for DefaultChoiceScopeFilter {
     }
 }
 
+enum ChoicesAndScopesDefined {
+  ChoicesOnly,
+  ScopesOnly,
+  ChoicesAndScopes,
+  BothMissing,
+}
+
 impl DefaultChoiceScopeFilter {
 
   fn filter_scopes_by_choices(choices: &HashMap<UserChoiceKey, UserChoiceValue>, scopes: &[Scope]) -> bool {
-      scopes
-        .into_iter()
-        .any(|scope| Self::is_scope_included(choices, scope))
+      // Not having any choices defined is a special case.
+      // If there are any "include" scopes they should not be included when we don't have the choices defined that should filter them in. Likewise any "exclude" scopes should be included as there are no choices to exclude them.
+
+      let choices_and_scopes = {
+        match (choices.is_empty(), scopes.is_empty()) {
+          (true, true)   => ChoicesAndScopesDefined::BothMissing,
+          (true, false)  => ChoicesAndScopesDefined::ScopesOnly,
+          (false, true)  => ChoicesAndScopesDefined::ChoicesOnly,
+          (false, false) => ChoicesAndScopesDefined::ChoicesAndScopes,
+        }
+      };
+
+      match choices_and_scopes {
+        ChoicesAndScopesDefined::ChoicesOnly => true, // no scopes to filter by, so include everything
+        ChoicesAndScopesDefined::ScopesOnly => {
+          scopes
+            .iter()
+            .map(|scope| match scope {
+              //We don't have a matching choice, so these should be excluded
+              Scope::IncludeChoiceScope(..)      => false,
+              Scope::IncludeChoiceValueScope(..) => false,
+              //We don't have a matching choice, so these should be included
+              Scope::ExcludeChoiceScope(..)      => true,
+              Scope::ExcludeChoiceValueScope(..) => true,
+            })
+            .fold(false, |acc, v| acc || v)
+        },
+        ChoicesAndScopesDefined::ChoicesAndScopes => {
+          scopes
+            .into_iter()
+            .any(|scope| Self::is_scope_included(choices, scope))
+        },
+        ChoicesAndScopesDefined::BothMissing => true, // no choices or scopes, so include everything
+    }
   }
 
   fn is_scope_included(choices: &HashMap<UserChoiceKey, UserChoiceValue>, scope: &Scope) -> bool {
@@ -253,7 +291,7 @@ mod tests {
       use super::*;
 
       #[test]
-      fn filter_scopes_without_choices_returns_all_variables() {
+      fn without_choices_returns_all_excludes_and_non_scoped_variables_only() {
         let no_choices = HashMap::new();
         let variable_1 =
           TemplateVariable::with_scopes("variable_1", vec![Scope::new_include_choice("my-included-choice")]);
@@ -269,20 +307,32 @@ mod tests {
         let variable_5 =
           TemplateVariable::new("variable_5", "variable_5-description", "variable_5-prompt", &[], Some("my-value"));
 
+        let variable_6 =
+          TemplateVariable::with_scopes("variable_6", vec![Scope::new_include_choice("my-other-included-choice")]);
+
+
         let tokens =
           vec![
             variable_1,
             variable_2,
-            variable_3,
-            variable_4,
-            variable_5,
+            variable_3.clone(),
+            variable_4.clone(),
+            variable_5.clone(),
+            variable_6,
           ];
 
         let mut template_variables =
           TemplateVariables::new(tokens);
 
+        let expected_tokens =
+          vec![
+            variable_3, // excluded, so include when there are no choices to exclude them
+            variable_4, // excluded, so include when there are no choices to exclude them
+            variable_5, // no scope
+          ];
+
         let expected_template_variables =
-          template_variables.clone();
+          TemplateVariables::new(expected_tokens);
 
         DefaultChoiceScopeFilter::filter_scopes(&no_choices, &mut template_variables);
 
@@ -291,7 +341,7 @@ mod tests {
 
 
       #[test]
-      fn filter_scopes_without_scopes_returns_all_variables() {
+      fn without_scopes_returns_all_variables() {
         let choices =
           (0 .. 5)
             .into_iter()
@@ -329,7 +379,37 @@ mod tests {
 
 
       #[test]
-      fn filter_scopes_with_matching_scope_returns_matching_variables() {
+      fn without_scopes_or_choices_returns_all_variables() {
+        let choices_map = HashMap::new();
+
+        let tokens =
+          (0 .. 5)
+            .into_iter()
+            .map(|n| {
+              TemplateVariable::new(
+                s!("variable_{n}").as_str(),
+                s!("variable_{n}-description").as_str(),
+                s!("variable_{n}-prompt").as_str(),
+                &[VariableFilter::new(s!("filter-{n}").as_str(), &FilterType::Camel)],
+                Some(s!("my-{n}-value").as_str())
+              )
+          })
+          .collect::<Vec<_>>();
+
+        let mut template_variables =
+          TemplateVariables::new(tokens);
+
+        let expected_template_variables =
+          template_variables.clone();
+
+        DefaultChoiceScopeFilter::filter_scopes(&choices_map, &mut template_variables);
+
+        assert_eq!(expected_template_variables, template_variables)
+      }
+
+
+      #[test]
+      fn with_matching_scope_returns_matching_variables() {
         let choices =
           (0 .. 5)
             .into_iter()
@@ -376,7 +456,7 @@ mod tests {
       }
 
       #[test]
-      fn filter_scopes_with_matching_scope_value_returns_matching_variables() {
+      fn with_matching_scope_value_returns_matching_variables() {
         let choices =
           vec![
             (
