@@ -611,6 +611,71 @@ mod tests {
         assert_eq!(expected_template_variables, template_variables)
       }
 
+
+      // includes always override excludes.
+      // excludes have to be unanimous.
+      #[test]
+      fn with_include_overrides_exclude_for_variable_scope() {
+        let choices =
+          vec![
+            (
+                UserChoiceKey::from(s!("choice-x").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-x-display").as_str(),
+                    s!("choice-x-desc").as_str(),
+                    s!("choice-x-value").as_str()))
+            ),
+            (
+                UserChoiceKey::from(s!("choice-2").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-2-display").as_str(),
+                    s!("choice-2-desc").as_str(),
+                    s!("choice-2-value").as_str()))
+            )
+          ];
+
+        let choices_map = HashMap::from_iter(choices);
+
+        let tokens =
+          (0 .. 5)
+            .into_iter()
+            .map(|n| {
+              if n == 2 {
+                TemplateVariable::with_scopes(
+                  s!("variable_2").as_str(),
+                  vec![
+                    Scope::new_exclude_choice_value("choice-2", "choice-2-value"), // exclude for choice-2
+                    Scope::new_include_choice_value("choice-2", "choice-2-value"), // include for choice-2
+                  ]
+                )
+              } else {
+                TemplateVariable::with_scopes(
+                  s!("variable_{n}").as_str(),
+                  vec![]
+                )
+              }
+          })
+          .collect::<Vec<_>>();
+
+
+        let mut template_variables =
+          TemplateVariables::new(tokens.clone());
+
+        let expected_template_variables =
+          TemplateVariables::new(
+              tokens
+                .into_iter()
+                .collect::<Vec<_>>(),
+          );
+
+        DefaultChoiceScopeFilter::filter_scopes(&choices_map, &mut template_variables);
+
+        assert_eq!(expected_template_variables, template_variables)
+      }
+
+
       #[test]
       fn with_a_mix_of_scopes_and_choices() {
         let choices =
