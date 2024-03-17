@@ -506,5 +506,249 @@ mod tests {
         assert_eq!(expected_template_variables, template_variables)
       }
 
+      #[test]
+      fn with_matching_exclude_scope_returns_all_but_excluded_variables() {
+        let choices =
+          vec![
+            (
+                UserChoiceKey::from(s!("choice-x").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-x-display").as_str(),
+                    s!("choice-x-desc").as_str(),
+                    s!("choice-x-value").as_str()))
+            ),
+            (
+                UserChoiceKey::from(s!("choice-2").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-2-display").as_str(),
+                    s!("choice-2-desc").as_str(),
+                    s!("choice-2-value").as_str()))
+            )
+          ];
+
+        let choices_map = HashMap::from_iter(choices);
+
+        let tokens =
+          (0 .. 5)
+            .into_iter()
+            .map(|n| {
+              TemplateVariable::with_scopes(
+                s!("variable_{n}").as_str(),
+                vec![Scope::new_exclude_choice(s!("choice-{}", n).as_str())]
+              )
+          })
+          .collect::<Vec<_>>();
+
+
+        let mut template_variables =
+          TemplateVariables::new(tokens.clone());
+
+        let expected_template_variables =
+          TemplateVariables::new(
+              tokens
+                .into_iter()
+                .filter(|i| i.variable_name != "variable_2")
+                .collect::<Vec<_>>(), //Variable 0, 1, 3, 4. Variable 2 is excluded
+          );
+
+        DefaultChoiceScopeFilter::filter_scopes(&choices_map, &mut template_variables);
+
+        assert_eq!(expected_template_variables, template_variables)
+      }
+
+
+      #[test]
+      fn with_matching_exclude_scope_value_returns_all_but_excluded_variables() {
+        let choices =
+          vec![
+            (
+                UserChoiceKey::from(s!("choice-x").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-x-display").as_str(),
+                    s!("choice-x-desc").as_str(),
+                    s!("choice-x-value").as_str()))
+            ),
+            (
+                UserChoiceKey::from(s!("choice-2").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-2-display").as_str(),
+                    s!("choice-2-desc").as_str(),
+                    s!("choice-2-value").as_str()))
+            )
+          ];
+
+        let choices_map = HashMap::from_iter(choices);
+
+        let tokens =
+          (0 .. 5)
+            .into_iter()
+            .map(|n| {
+              TemplateVariable::with_scopes(
+                s!("variable_{n}").as_str(),
+                vec![Scope::new_exclude_choice_value(s!("choice-{}", n).as_str(), s!("choice-{}-value", n).as_str())]
+              )
+          })
+          .collect::<Vec<_>>();
+
+
+        let mut template_variables =
+          TemplateVariables::new(tokens.clone());
+
+        let expected_template_variables =
+          TemplateVariables::new(
+              tokens
+                .into_iter()
+                .filter(|i| i.variable_name != "variable_2")
+                .collect::<Vec<_>>(), //Variable 0, 1, 3, 4. Variable 2 is excluded
+          );
+
+        DefaultChoiceScopeFilter::filter_scopes(&choices_map, &mut template_variables);
+
+        assert_eq!(expected_template_variables, template_variables)
+      }
+
+      #[test]
+      fn with_a_mix_of_scopes_and_choices() {
+        let choices =
+          vec![
+            (
+                UserChoiceKey::from(s!("choice-x").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-x-display").as_str(),
+                    s!("choice-x-desc").as_str(),
+                    s!("choice-x-value").as_str()))
+            ),
+            (
+                UserChoiceKey::from(s!("choice-2").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-2-display").as_str(),
+                    s!("choice-2-desc").as_str(),
+                    s!("choice-2-value").as_str()))
+            ),
+            (
+                UserChoiceKey::from(s!("choice-y").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-y-display").as_str(),
+                    s!("choice-y-desc").as_str(),
+                    s!("choice-y-value").as_str()))
+            ),
+            (
+                UserChoiceKey::from(s!("choice-z").as_str()),
+                UserChoiceValue::from(
+                  (
+                    s!("choice-z-display").as_str(),
+                    s!("choice-z-desc").as_str(),
+                    s!("choice-z-value").as_str()))
+            ),
+          ];
+
+        let choices_map = HashMap::from_iter(choices);
+
+        let tokens =
+          vec![
+              // included, include choice value overrides exclude choice value, irrespective of order
+              TemplateVariable::with_scopes(
+                s!("variable_x").as_str(),
+                vec![ // include, then exclude
+                  Scope::new_include_choice_value("choice-x", "choice-x-value"),
+                  Scope::new_exclude_choice_value("choice-2", "choice-2-value"),
+                ]
+
+              ),
+              // included, include choice value overrides exclude choice value, irrespective of order
+              TemplateVariable::with_scopes(
+                s!("variable_2").as_str(),
+                vec![ // exclude, then include
+                  Scope::new_exclude_choice_value("choice-2", "choice-2-value"),
+                  Scope::new_include_choice_value("choice-x", "choice-x-value"),
+                ]
+              ),
+              // included, because excludes only work if a choice is not present
+              // excluded, because include choice not found
+              // if at least one scope matches, then include
+              TemplateVariable::with_scopes(
+                s!("variable_w").as_str(),
+                vec![ // exclude, then include. Since we don't have a choice-w, the exclude is negated (because an include) and the include does not work because we don't have choice-w
+                  Scope::new_exclude_choice_value("choice-w", "choice-w-value-1"),
+                  Scope::new_include_choice_value("choice-w", "choice-w-value-2"),
+                ]
+              ),
+              // excluded, choice value exclude
+              TemplateVariable::with_scopes(
+                s!("variable_3").as_str(),
+                vec![
+                  Scope::new_exclude_choice_value("choice-2", "choice-2-value"),
+                ]
+              ),
+              // included - no scope
+              TemplateVariable::new(
+                s!("variable_4").as_str(),
+                s!("variable_4_description").as_str(),
+                s!("variable_4_prompt").as_str(),
+                &[],
+                Option::default()
+              ),
+              // included, choice include
+              TemplateVariable::with_scopes(
+                s!("variable_y").as_str(),
+                vec![
+                  Scope::new_include_choice("choice-y"),
+                ]
+              ),
+              // excluded, choice exclude
+              TemplateVariable::with_scopes(
+                s!("variable_z").as_str(),
+                vec![
+                  Scope::new_exclude_choice("choice-z"),
+                ]
+              ),
+              // excluded, choice include not found
+              TemplateVariable::with_scopes(
+                s!("variable_a").as_str(),
+                vec![
+                  Scope::new_include_choice("choice-a"),
+                ]
+              ),
+              // included, choice exclude not found (exclude negated)
+              TemplateVariable::with_scopes(
+                s!("variable_b").as_str(),
+                vec![
+                  Scope::new_exclude_choice("choice-b"),
+                ]
+              ),
+          ];
+
+
+        let mut template_variables =
+          TemplateVariables::new(tokens.clone());
+
+        let expected_template_variables =
+          TemplateVariables::new(
+              vec![
+                tokens.get(0).unwrap().clone(), // variable_x
+                tokens.get(1).unwrap().clone(), // variable_2
+                tokens.get(2).unwrap().clone(), // variable_w
+                // variable_3 is excluded
+                tokens.get(4).unwrap().clone(), // variable_4
+                tokens.get(5).unwrap().clone(), // variable_y
+                // variable_z is excluded
+                // variable_a is excluded
+                tokens.get(8).unwrap().clone()  // variable_b
+              ]
+          );
+
+        DefaultChoiceScopeFilter::filter_scopes(&choices_map, &mut template_variables);
+
+        assert_eq!(expected_template_variables, template_variables)
+      }
     }
+
+    // TODO: Add test missing choices and scopes
 }
