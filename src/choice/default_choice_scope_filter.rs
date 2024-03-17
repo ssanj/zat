@@ -6,10 +6,9 @@ pub struct DefaultChoiceScopeFilter;
 
 impl ChoiceScopeFilter for DefaultChoiceScopeFilter {
 
-    // TODO: Test all combinations through this function.
     fn filter_scopes(choices: &HashMap<UserChoiceKey, UserChoiceValue>, variables: &mut TemplateVariables) {
 
-       //filter variables that have don't have a scope or where the scope matches one of the choices
+      //filter variables that have don't have a scope or where the scope matches one of the choices
       variables
         .tokens
         .retain(|v| {
@@ -44,15 +43,15 @@ impl DefaultChoiceScopeFilter {
       };
 
       match choices_and_scopes {
-        ChoicesAndScopesDefined::ChoicesOnly => true, // no scopes to filter by, so include everything
+        ChoicesAndScopesDefined::ChoicesOnly => true, // No scopes to filter by, so include everything
         ChoicesAndScopesDefined::ScopesOnly => {
           scopes
             .iter()
             .map(|scope| match scope {
-              //We don't have a matching choice, so these should be excluded
+              // We don't have a matching choice, so these should be excluded
               Scope::IncludeChoiceScope(..)      => false,
               Scope::IncludeChoiceValueScope(..) => false,
-              //We don't have a matching choice, so these should be included
+              // We don't have a matching choice, so these should be included
               Scope::ExcludeChoiceScope(..)      => true,
               Scope::ExcludeChoiceValueScope(..) => true,
             })
@@ -61,7 +60,9 @@ impl DefaultChoiceScopeFilter {
         ChoicesAndScopesDefined::ChoicesAndScopes => {
           scopes
             .into_iter()
-            .any(|scope| Self::is_scope_included(choices, scope))
+            .any(|scope| Self::is_scope_included(choices, scope)) // If any one of these returns true, the variable is included.
+            // - An include that matches always overrides an exclude that matches
+            // - An exclude that does not match (is included) always overrides and include that does not match (is excluded)
         },
         ChoicesAndScopesDefined::BothMissing => true, // no choices or scopes, so include everything
     }
@@ -73,7 +74,6 @@ impl DefaultChoiceScopeFilter {
       } else {
         match scope {
           Scope::IncludeChoiceValueScope(IncludeChoiceValue { choice, value }) => {
-            println!("IncludeChoiceValueScope");
             let key = UserChoiceKey::new(choice.to_owned());
             choices
               .get(&key)
@@ -82,13 +82,11 @@ impl DefaultChoiceScopeFilter {
           },
           Scope::IncludeChoiceScope(IncludeChoice { choice }) => {
             let key = UserChoiceKey::new(choice.to_owned());
-            println!("IncludeChoiceScope: key: {}, choices: {:?}", &key.value, &choices);
             choices
               .get(&key)
               .is_some()
           },
           Scope::ExcludeChoiceValueScope(ExcludeChoiceValue { choice, not_value }) => {
-            println!("ExcludeChoiceValueScope");
             let key = UserChoiceKey::new(choice.to_owned());
 
             // We want to include the scope if
@@ -100,7 +98,6 @@ impl DefaultChoiceScopeFilter {
               .is_none()
           },
           Scope::ExcludeChoiceScope(ExcludeChoice { not_choice }) => {
-            println!("ExcludeChoiceScope");
             let key = UserChoiceKey::new(not_choice.to_owned());
 
             // We want to include the scope if

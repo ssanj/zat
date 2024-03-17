@@ -18,13 +18,14 @@ impl ChoiceRunner for DefaultChoiceRunner {
         .into_iter()
         .partition(|v| !v.choice.is_empty());
 
-    let choice_refs =
+    let choice_refs: Vec<(&TemplateVariable, Vec<&Choice>)> =
       choice_variables
         .iter()
         .map(|v| (v, v.choice.iter().collect::<Vec<_>>()))
         .collect::<Vec<_>>();
 
 
+    // Ask user to select a single choice
     let user_choices: Vec<(&TemplateVariable, Choice)> =
       choice_refs
         .into_iter()
