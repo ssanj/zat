@@ -45,10 +45,10 @@ impl Display for Scope {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
       let value =
         match self {
-          Scope::IncludeChoiceValueScope(IncludeChoiceValue { choice, value }) => s!("include by choice:{} and value:{}", choice, value),
-          Scope::ExcludeChoiceValueScope(ExcludeChoiceValue { choice, not_value }) => s!("exclude by choice:{} and value:{}", choice, not_value),
-          Scope::IncludeChoiceScope(IncludeChoice { choice }) => s!("include by choice:{}", choice),
-          Scope::ExcludeChoiceScope(ExcludeChoice { not_choice }) => s!("exclude by choice:{}", not_choice),
+          Scope::IncludeChoiceValueScope(IncludeChoiceValue { choice, value }) => s!("include if choice: {} has value: {}", choice, value),
+          Scope::ExcludeChoiceValueScope(ExcludeChoiceValue { choice, not_value }) => s!("exclude if choice: {} has value: {}", choice, not_value),
+          Scope::IncludeChoiceScope(IncludeChoice { choice }) => s!("include if choice: {} is chosen with any value", choice),
+          Scope::ExcludeChoiceScope(ExcludeChoice { not_choice }) => s!("exclude if choice: {} is chosen with any value", not_choice),
       };
 
       f.write_str(value.as_str())

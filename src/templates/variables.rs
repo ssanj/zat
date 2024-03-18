@@ -85,13 +85,14 @@ impl TemplateVariables {
         choices
           .iter()
           .map(|c| {
-            s!("Display: {}, Description: {}, Value: {}", c.display, c.description, c.value)
+            s!("display: {}, description: {}, value: {}", c.display, c.description, c.value)
           })
           .collect::<Vec<_>>();
 
-      let item_str = items.join("\n      ");
+      let header = "      ";
+      let item_str = items.join(s!("\n{header}").as_str());
 
-      s!("{item_str}")
+      s!("\n{header}{item_str}")
     }
   }
 
@@ -111,7 +112,7 @@ impl TemplateVariables {
           let header = "      ";
           let item_str = items.join(s!("\n{header}").as_str());
 
-          s!("{header}{item_str}")
+          s!("\n{header}{item_str}")
         },
         None => "-".to_owned(),
     }
