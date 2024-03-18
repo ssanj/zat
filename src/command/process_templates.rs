@@ -25,22 +25,22 @@ impl ProcessTemplates {
     VerboseLogger::log_template_variables(&user_config, &template_variables);
 
     // Ask for user choices and separate choices from other variables
-    let SelectedChoices { choices, mut other_variables } = DefaultChoiceRunner::run_choices(template_variables)?;
+    let SelectedChoices { choices, mut variables } = DefaultChoiceRunner::run_choices(template_variables)?;
 
-    DefaultChoiceScopeFilter::filter_scopes(&choices, &mut other_variables);
-    VerboseLogger::log_template_variables_after_scope_filter(&user_config, &other_variables);
+    DefaultChoiceScopeFilter::filter_scopes(&choices, &mut variables);
+    VerboseLogger::log_template_variables_after_scope_filter(&user_config, &variables);
 
     // Runs any plugins that have been defined and updates template_variables with results
     let plugin_runner = DefaultPluginRunner::new();
-    PluginRunnerWorkflow::run_plugins(plugin_runner, &mut other_variables)?;
-    VerboseLogger::log_template_variables_after_plugins_run(&user_config, &other_variables);
+    PluginRunnerWorkflow::run_plugins(plugin_runner, &mut variables)?;
+    VerboseLogger::log_template_variables_after_plugins_run(&user_config, &variables);
 
     // Ask for the user for the value of each variable
     // Then verify all the variables supplied are correct
     let template_config_validator = DefaultTemplateConfigValidator::new();
 
     // TODO: Do we need this template_variables.clone()?
-    let template_variable_review = template_config_validator.validate(user_config.clone(), &SelectedChoices::new(choices, other_variables.clone().tokens))?;
+    let template_variable_review = template_config_validator.validate(user_config.clone(), &SelectedChoices::new(choices, variables.clone().tokens))?;
 
     match template_variable_review {
       TemplateVariableReview::Accepted(vc) => {
@@ -48,7 +48,7 @@ impl ProcessTemplates {
         let user_variables = vc.user_variables;
         let user_choices = UserChoices::new(vc.user_choices);
         let expand_filters = DefaultExpandFilters::new();
-        let tokenized_key_expanded_variables = expand_filters.expand_filers(other_variables, user_variables);
+        let tokenized_key_expanded_variables = expand_filters.expand_filers(variables, user_variables);
 
         VerboseLogger::expanded_tokens(&user_config, &tokenized_key_expanded_variables);
         DefaultProcessTemplates.process_templates(user_config.clone(), tokenized_key_expanded_variables, user_choices)?;

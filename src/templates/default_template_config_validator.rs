@@ -57,15 +57,13 @@ impl UserInputProvider for Cli {
   fn get_user_input(&self, selected_choices: &SelectedChoices) -> ZatResult<UserInput> {
     let mut token_map = HashMap::new();
 
-    for v in selected_choices.clone().other_variables.tokens {
+    for v in &selected_choices.variables.tokens {
       p!();
 
-      // TODO: Make this an ADT
-      // if v.choice.is_empty() {
-        let default_value = Cli::get_default_value(v.default_value.as_deref());
-        let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
-          );
-        let dynamic_value = Cli::get_dynamic_values(default_value.as_deref(), plugin_result_value.as_ref());
+      let default_value = Cli::get_default_value(v.default_value.as_deref());
+      let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
+        );
+      let dynamic_value = Cli::get_dynamic_values(default_value.as_deref(), plugin_result_value.as_ref());
 
         // Ask the user of values for each token
         match &dynamic_value {
@@ -75,11 +73,6 @@ impl UserInputProvider for Cli {
         }
 
         Cli::read_user_input(&mut token_map, &v, &dynamic_value);
-      // } else {
-      //   let choices = v.choice.iter().collect::<Vec<_>>();
-      //   let choice_value = Cli::get_choice(&v.prompt, &choices)?;
-      //   choices_map.insert(UserChoiceKey::new(v.variable_name), UserChoiceValue::new(choice_value.clone()));
-      // }
     }
 
     Ok(UserInput::new(token_map, selected_choices.choices.clone()))
@@ -267,7 +260,7 @@ use crate::templates::PluginRunStatus;
 
   impl UserInputProvider for SimpleInput {
     fn get_user_input(&self, selected_choices: &SelectedChoices) -> ZatResult<UserInput> {
-      let variables = selected_choices.other_variables;
+      let variables = &selected_choices.variables;
 
       let token_pairs =
         variables
@@ -279,17 +272,6 @@ use crate::templates::PluginRunStatus;
               (UserVariableKey::new(tv.variable_name.to_owned()), UserVariableValue::new(variable.to_owned()))
             })
         });
-
-      // let choice_pairs =
-      //   variables
-      //   .tokens
-      //   .iter()
-      //   .filter_map(|tv| {
-      //     self.choices.get(tv.variable_name.as_str())
-      //       .map(|(dis, des, val)|{
-      //         (UserChoiceKey::new(tv.variable_name.to_owned()), UserChoiceValue::from((dis.as_str(), des.as_str(), val.as_str())))
-      //       })
-      //   });
 
         let variables = HashMap::from_iter(token_pairs);
         let choices = selected_choices.choices.clone();
@@ -414,7 +396,9 @@ use crate::templates::PluginRunStatus;
 
     let config_validator = DefaultTemplateConfigValidator::with_all_dependencies(Box::new(input), Box::new(user_template_variables));
 
-    let validation_result = config_validator.validate(user_config.clone(), template_variables).expect("validation failed");
+    let selected_choices =
+      SelectedChoices::new(HashMap::new(), template_variables.tokens);
+    let validation_result = config_validator.validate(user_config.clone(), &selected_choices).expect("validation failed");
 
     let expected_config =
       ValidConfig {
@@ -444,7 +428,9 @@ use crate::templates::PluginRunStatus;
     let user_config =
       UserConfig::new("template_dir", "target_idr");
 
-    let validation_result = config_validator.validate(user_config, template_variables).expect("validation failed.");
+    let selected_choices =
+      SelectedChoices::new(HashMap::new(), template_variables.tokens);
+    let validation_result = config_validator.validate(user_config, &selected_choices).expect("validation failed.");
 
     assert_eq!(validation_result, TemplateVariableReview::Rejected)
   }
