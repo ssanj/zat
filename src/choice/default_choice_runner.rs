@@ -16,12 +16,12 @@ impl ChoiceRunner for DefaultChoiceRunner {
       templates
         .tokens
         .into_iter()
-        .partition(|v| !v.choice.is_empty());
+        .partition(|v| !v.choices.is_empty());
 
     let choice_refs: Vec<(&TemplateVariable, Vec<&Choice>)> =
       choice_variables
         .iter()
-        .map(|v| (v, v.choice.iter().collect::<Vec<_>>()))
+        .map(|v| (v, v.choices.iter().collect::<Vec<_>>()))
         .collect::<Vec<_>>();
 
 

@@ -11,7 +11,7 @@ Choices can be defined via the `.variables.zat-prompt` file:
     "variable_name": "YOUR_CHOICE_NAME",
     "description": "YOUR_CHOICE_DESCRIPTION",
     "prompt": "YOUR_CHOICE_PROMPT",
-    "choice": [
+    "choices": [
       {
         "display": "WHAT_TO_DISPLAY_FOR_CHOICE_ONE",
         "description": "EXTENDED_INFORMATION_FOR_CHOICE_ONE",
@@ -33,7 +33,7 @@ For example:
     "variable_name": "language_type",
     "description": "Language to use in the README",
     "prompt": "Please choose your language for the README",
-    "choice": [
+    "choices": [
       {
         "display": "French",
         "description": "README in French",

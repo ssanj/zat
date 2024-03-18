@@ -8,7 +8,7 @@
     "variable_name": "readme_type",
     "description": "Type of README",
     "prompt": "Please choose your type of README",
-    "choice": [
+    "choices": [
       {
         "display": "Short",
         "description": "A shorter README",

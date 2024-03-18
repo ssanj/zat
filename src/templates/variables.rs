@@ -15,7 +15,6 @@ impl TemplateVariables {
     Self {
       tokens
     }
-
   }
 }
 
@@ -35,7 +34,7 @@ impl Lines for TemplateVariables {
                 s!("Prompt: {}", token.prompt),
                 s!("Default value: {}", token.default_value.as_deref().unwrap_or("-")),
                 s!("Plugin: {}", token.plugin.as_ref().map(Self::plugin_lines).unwrap_or_else(|| "-".to_owned())),
-                s!("Choices: {}", Self::choice_lines(&token, &token.choice.iter().collect::<Vec<_>>())),
+                s!("Choices: {}", Self::choice_lines(&token, &token.choices.iter().collect::<Vec<_>>())),
                 s!("Scopes: {}", Self::scope_lines(&token.scopes.map(|v| v.iter().cloned().collect::<Vec<_>>()))),
 
                 s!(""),
@@ -135,7 +134,7 @@ pub struct TemplateVariable {
   pub plugin: Option<Plugin>,
 
   #[serde(default)] // use default value if not found in the input
-  pub choice: Vec<Choice>,
+  pub choices: Vec<Choice>,
 
   pub scopes: Option<Vec<Scope>>
 }
@@ -151,7 +150,7 @@ impl TemplateVariable {
       filters: Vec::from_iter(filters.iter().cloned()),
       default_value: default_value.map(|v| v.to_owned()),
       plugin: None,
-      choice: Default::default(),
+      choices: Default::default(),
       scopes: Option::default()
     }
   }
@@ -166,7 +165,7 @@ impl TemplateVariable {
       filters: Vec::default(),
       default_value: Option::default(),
       plugin: Option::default(),
-      choice: Default::default(),
+      choices: Default::default(),
       scopes: Some(scopes)
     }
   }
@@ -315,7 +314,7 @@ mod test {
           "variable_name": "readme_type",
           "description": "Type of README",
           "prompt": "Please choose your type of README",
-          "choice": [
+          "choices": [
             {
               "display": "Short",
               "description": "A shorter README",
@@ -356,7 +355,7 @@ mod test {
       prompt: "Please enter your project name".to_owned(),
       default_value: Some("Some Project".to_owned()),
       plugin: None,
-      choice: Default::default(),
+      choices: Default::default(),
       scopes: Option::default(),
       filters: vec![
         VariableFilter {
@@ -376,7 +375,7 @@ mod test {
       prompt: "Please enter your plugin description".to_owned(),
       default_value: None,
       plugin: None,
-      choice: Default::default(),
+      choices: Default::default(),
       filters: vec![],
       scopes: Option::default(),
     };
@@ -387,7 +386,7 @@ mod test {
       prompt: "Please choose your type of README".to_owned(),
       default_value: None,
       plugin: None,
-      choice:
+      choices:
         vec![
           Choice::new("Short", "A shorter README", "short"),
           Choice::new("Long", "A longer README", "long"),
@@ -407,7 +406,7 @@ mod test {
       prompt: "Please a description of your project".to_owned(),
       default_value: None,
       plugin: Some(Plugin::new("tests/plugins/success.sh", &["Testing 123"])),
-      choice: Vec::default(),
+      choices: Vec::default(),
       filters: Vec::default(),
       scopes: Some(expected_scope)
     };

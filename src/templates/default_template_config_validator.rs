@@ -328,7 +328,7 @@ use crate::templates::PluginRunStatus;
       default_value: None,
       plugin: None,
       filters: Vec::default(),
-      choice: Vec::default(),
+      choices: Vec::default(),
       scopes: Option::default()
     }
   }
