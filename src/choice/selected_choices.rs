@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::templates::{TemplateVariable, TemplateVariables, UserChoiceKey, UserChoiceValue};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct SelectedChoices {
   pub choices: HashMap<UserChoiceKey, UserChoiceValue>,
   pub other_variables: TemplateVariables

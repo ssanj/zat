@@ -3,6 +3,7 @@ use std::io::{stdin, BufRead};
 
 use super::{Plugin, TemplateConfigValidator, TemplateVariable, TemplateVariableReview, ValidConfig};
 use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue, TemplateVariables};
+use crate::choice::selected_choices::{self, SelectedChoices};
 use crate::config::UserConfig;
 use crate::error::ZatResult;
 use crate::templates::PluginRunResult;
@@ -28,7 +29,7 @@ impl UserInput {
 
 // This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
 trait UserInputProvider {
-  fn get_user_input(&self, variables: TemplateVariables) -> ZatResult<UserInput>;
+  fn get_user_input(&self, selected_choices: &SelectedChoices) -> ZatResult<UserInput>;
 }
 
 trait UserTemplateVariableValidator {
@@ -53,11 +54,10 @@ struct DynamicPair(String, String);
 
 
 impl UserInputProvider for Cli {
-  fn get_user_input(&self, template_variables: TemplateVariables) -> ZatResult<UserInput> {
+  fn get_user_input(&self, selected_choices: &SelectedChoices) -> ZatResult<UserInput> {
     let mut token_map = HashMap::new();
-    let mut choices_map = HashMap::new();
 
-    for v in template_variables.tokens {
+    for v in selected_choices.clone().other_variables.tokens {
       p!();
 
       // TODO: Make this an ADT
@@ -82,7 +82,7 @@ impl UserInputProvider for Cli {
       // }
     }
 
-    Ok(UserInput::new(token_map, choices_map))
+    Ok(UserInput::new(token_map, selected_choices.choices.clone()))
   }
 }
 
@@ -233,8 +233,8 @@ impl DefaultTemplateConfigValidator {
 
 impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 
-  fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> ZatResult<TemplateVariableReview> {
-      let user_variables = self.user_input_provider.get_user_input(template_variables)?;
+  fn validate(&self, user_config: UserConfig, selected_choices: &SelectedChoices) -> ZatResult<TemplateVariableReview> {
+      let user_variables = self.user_input_provider.get_user_input(selected_choices)?;
       Ok(self.user_template_variable_validator.review_user_template_variables(user_config, user_variables))
   }
 }
@@ -266,7 +266,8 @@ use crate::templates::PluginRunStatus;
 
 
   impl UserInputProvider for SimpleInput {
-    fn get_user_input(&self, variables: TemplateVariables) -> ZatResult<UserInput> {
+    fn get_user_input(&self, selected_choices: &SelectedChoices) -> ZatResult<UserInput> {
+      let variables = selected_choices.other_variables;
 
       let token_pairs =
         variables
@@ -279,19 +280,19 @@ use crate::templates::PluginRunStatus;
             })
         });
 
-      let choice_pairs =
-        variables
-        .tokens
-        .iter()
-        .filter_map(|tv| {
-          self.choices.get(tv.variable_name.as_str())
-            .map(|(dis, des, val)|{
-              (UserChoiceKey::new(tv.variable_name.to_owned()), UserChoiceValue::from((dis.as_str(), des.as_str(), val.as_str())))
-            })
-        });
+      // let choice_pairs =
+      //   variables
+      //   .tokens
+      //   .iter()
+      //   .filter_map(|tv| {
+      //     self.choices.get(tv.variable_name.as_str())
+      //       .map(|(dis, des, val)|{
+      //         (UserChoiceKey::new(tv.variable_name.to_owned()), UserChoiceValue::from((dis.as_str(), des.as_str(), val.as_str())))
+      //       })
+      //   });
 
         let variables = HashMap::from_iter(token_pairs);
-        let choices = HashMap::from_iter(choice_pairs);
+        let choices = selected_choices.choices.clone();
 
         Ok(UserInput::new(variables, choices))
     }
@@ -346,7 +347,7 @@ use crate::templates::PluginRunStatus;
       plugin: None,
       filters: Vec::default(),
       choice: Vec::default(),
-      scope: Option::default()
+      scopes: Option::default()
     }
   }
 

@@ -12,7 +12,7 @@ impl ChoiceScopeFilter for DefaultChoiceScopeFilter {
       variables
         .tokens
         .retain(|v| {
-          match &v.scope {
+          match &v.scopes {
             Some(scopes) => Self::filter_scopes_by_choices(choices, scopes),
             None => true // No scopes so include everything
           }

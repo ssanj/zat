@@ -1,7 +1,9 @@
 use serde::Deserialize;
+use std::format as s;
+use std::fmt::Display;
 
 // IncludeChoiceValueScope
-//   "scope": [
+//   "scopes": [
 //   {
 //     "choice": "test_framework", // only this value for this choice
 //     "value": "scalatest"
@@ -9,7 +11,7 @@ use serde::Deserialize;
 // ]
 
 // ExcludeChoiceValueScope
-// "scope": [
+// "scopes": [
 //   {
 //     "choice": "test_framework",
 //     "not_value": "scalatest" // any value in the test_framework choice that is not scalatest
@@ -17,14 +19,14 @@ use serde::Deserialize;
 // ]
 
 // IncludeChoiceScope
-// "scope": [
+// "scopes": [
 //   {
 //     "choice": "test_framework" // any choice in test_framework
 //   }
 // ]
 
 // IncludeChoiceScope
-// "scope": [
+// "scopes": [
 //   {
 //     "not_choice": "test_framework" // any choice but this
 //   }
@@ -37,6 +39,20 @@ pub enum Scope {
   ExcludeChoiceValueScope(ExcludeChoiceValue),
   IncludeChoiceScope(IncludeChoice),
   ExcludeChoiceScope(ExcludeChoice),
+}
+
+impl Display for Scope {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+      let value =
+        match self {
+          Scope::IncludeChoiceValueScope(IncludeChoiceValue { choice, value }) => s!("include by choice:{} and value:{}", choice, value),
+          Scope::ExcludeChoiceValueScope(ExcludeChoiceValue { choice, not_value }) => s!("exclude by choice:{} and value:{}", choice, not_value),
+          Scope::IncludeChoiceScope(IncludeChoice { choice }) => s!("include by choice:{}", choice),
+          Scope::ExcludeChoiceScope(ExcludeChoice { not_choice }) => s!("exclude by choice:{}", not_choice),
+      };
+
+      f.write_str(value.as_str())
+  }
 }
 
 impl Scope {

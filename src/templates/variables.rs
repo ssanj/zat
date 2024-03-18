@@ -36,6 +36,8 @@ impl Lines for TemplateVariables {
                 s!("Default value: {}", token.default_value.as_deref().unwrap_or("-")),
                 s!("Plugin: {}", token.plugin.as_ref().map(Self::plugin_lines).unwrap_or_else(|| "-".to_owned())),
                 s!("Choices: {}", Self::choice_lines(&token, &token.choice.iter().collect::<Vec<_>>())),
+                s!("Scopes: {}", Self::scope_lines(&token.scopes.map(|v| v.iter().cloned().collect::<Vec<_>>()))),
+
                 s!(""),
               ]
           })
@@ -74,30 +76,45 @@ impl TemplateVariables {
     ].join("\n    ")
   }
 
-  fn choice_lines(token: &TemplateVariable, choices: &[&Choice]) -> String {
-    let mut items =
-      choices
-        .iter()
-        .map(|c| {
-          s!("Display: {}, Description: {}, Value: {}", c.display, c.description, c.value)
-        })
-        .collect::<Vec<_>>();
+  fn choice_lines(_token: &TemplateVariable, choices: &[&Choice]) -> String {
 
-    let top_attributes =
-      vec![
-        "".to_owned(),
-        s!("Variable name: {}", token.variable_name),
-        s!("Description: {}", token.description),
-        s!("Prompt: {}", token.prompt),
-      ];
+    if choices.is_empty() {
+      "-".to_owned()
+    } else {
+      let items =
+        choices
+          .iter()
+          .map(|c| {
+            s!("Display: {}, Description: {}, Value: {}", c.display, c.description, c.value)
+          })
+          .collect::<Vec<_>>();
 
+      let item_str = items.join("\n      ");
 
-    let top_level_str = top_attributes.join("\n    ");
-    let mut items_format = vec!["".to_owned()];
-    items_format.append(&mut items);
-    let item_str = items_format.join("\n      ");
+      s!("{item_str}")
+    }
+  }
 
-    s!("{top_level_str}{item_str:>6}")
+  fn scope_lines(maybe_scopes: &Option<Vec<Scope>>) -> String {
+
+    match maybe_scopes {
+        Some(xs) if xs.is_empty() => "-".to_owned(),
+        Some(scopes) => {
+          let items =
+            scopes
+              .iter()
+              .map(|scope| {
+                s!("{}", scope)
+              })
+              .collect::<Vec<_>>();
+
+          let header = "      ";
+          let item_str = items.join(s!("\n{header}").as_str());
+
+          s!("{header}{item_str}")
+        },
+        None => "-".to_owned(),
+    }
   }
 }
 
@@ -119,7 +136,7 @@ pub struct TemplateVariable {
   #[serde(default)] // use default value if not found in the input
   pub choice: Vec<Choice>,
 
-  pub scope: Option<Vec<Scope>>
+  pub scopes: Option<Vec<Scope>>
 }
 
 impl TemplateVariable {
@@ -134,7 +151,7 @@ impl TemplateVariable {
       default_value: default_value.map(|v| v.to_owned()),
       plugin: None,
       choice: Default::default(),
-      scope: Option::default()
+      scopes: Option::default()
     }
   }
 
@@ -149,7 +166,7 @@ impl TemplateVariable {
       default_value: Option::default(),
       plugin: Option::default(),
       choice: Default::default(),
-      scope: Some(scopes)
+      scopes: Some(scopes)
     }
   }
 }
@@ -320,7 +337,7 @@ mod test {
               "Testing 123"
             ]
           },
-          "scope": [
+          "scopes": [
             {
               "choice": "readme_type",
               "value": "short"
@@ -339,7 +356,7 @@ mod test {
       default_value: Some("Some Project".to_owned()),
       plugin: None,
       choice: Default::default(),
-      scope: Option::default(),
+      scopes: Option::default(),
       filters: vec![
         VariableFilter {
           name: "python".to_owned(),
@@ -360,7 +377,7 @@ mod test {
       plugin: None,
       choice: Default::default(),
       filters: vec![],
-      scope: Option::default(),
+      scopes: Option::default(),
     };
 
     let expected_third = TemplateVariable {
@@ -375,7 +392,7 @@ mod test {
           Choice::new("Long", "A longer README", "long"),
         ],
       filters: vec![],
-      scope: Option::default(),
+      scopes: Option::default(),
     };
 
     let expected_scope =
@@ -391,7 +408,7 @@ mod test {
       plugin: Some(Plugin::new("tests/plugins/success.sh", &["Testing 123"])),
       choice: Vec::default(),
       filters: Vec::default(),
-      scope: Some(expected_scope)
+      scopes: Some(expected_scope)
     };
 
     let expected_variables =

@@ -28,8 +28,7 @@ impl ProcessTemplates {
     let SelectedChoices { choices, mut other_variables } = DefaultChoiceRunner::run_choices(template_variables)?;
 
     DefaultChoiceScopeFilter::filter_scopes(&choices, &mut other_variables);
-    // TODO: for scopes
-    // TODO: Filter all non-choice variables by scope, to create a new TemplateVariables
+    VerboseLogger::log_template_variables_after_scope_filter(&user_config, &other_variables);
 
     // Runs any plugins that have been defined and updates template_variables with results
     let plugin_runner = DefaultPluginRunner::new();
@@ -41,7 +40,7 @@ impl ProcessTemplates {
     let template_config_validator = DefaultTemplateConfigValidator::new();
 
     // TODO: Do we need this template_variables.clone()?
-    let template_variable_review = template_config_validator.validate(user_config.clone(), other_variables.clone())?;
+    let template_variable_review = template_config_validator.validate(user_config.clone(), &SelectedChoices::new(choices, other_variables.clone().tokens))?;
 
     match template_variable_review {
       TemplateVariableReview::Accepted(vc) => {

@@ -75,7 +75,7 @@ mod tests {
         default_value: Option::default(),
         plugin: Option::default(),
         choice: Vec::default(),
-        scope: Option::default(),
+        scopes: Option::default(),
       }
     }
 
