@@ -91,7 +91,7 @@ fn runs_a_simple_template_with_choices() -> Result<(), Box<dyn std::error::Error
   let example_test_config =
     ExampleTestConfig::with_input(
       "simple-with-choices",
-      &["YouOnlyLiveOnce", "2", "y"]
+      &["2", "YouOnlyLiveOnce", "y"]
     );
 
   assert_run_example(example_test_config)
