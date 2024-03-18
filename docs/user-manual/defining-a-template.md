@@ -24,4 +24,5 @@ MyCoolTemplate /        <-- Zat repository.
 - [Example templates](defining-a-template/example-templates.md)
 - [Defining a shell hook](defining-a-template/shell-hooks.md)
 - [Defining a plugin](defining-a-template/plugins.md)
-- [Defining a choice](defining-a-template/choices.md)
+- [Defining choices](defining-a-template/choices.md)
+- [Defining scopes](defining-a-template/scopes.md)
