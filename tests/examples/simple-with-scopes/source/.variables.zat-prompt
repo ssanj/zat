@@ -1,0 +1,43 @@
+[
+  {
+    "variable_name": "project",
+    "description": "Name of project",
+    "prompt": "Please enter your project name",
+    "filters": [
+      { "name": "__default__",
+        "filter": "Pascal"
+      },
+      { "name": "underscore",
+        "filter": "Snake"
+      }
+    ]
+  },
+  {
+    "variable_name": "readme_type",
+    "description": "Type of README",
+    "prompt": "Please choose your type of README",
+    "choice": [
+      {
+        "display": "Short",
+        "description": "A shorter README",
+        "value": "short"
+      },
+      {
+        "display": "Long",
+        "description": "A longer README",
+        "value": "long"
+      }
+    ]
+  },
+  {
+    "variable_name":"summary",
+    "description": "summary for longer README",
+    "prompt": "Please choose your summary",
+    "scopes": [
+      {
+        "choice": "readme_type",
+        "value": "long"
+      }
+    ]
+  }
+]
