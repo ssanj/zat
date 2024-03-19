@@ -9,11 +9,11 @@ There are four different types of scopes.
 
 ### Include by choice
 
-These scopes will include variables only when a particular choice has been taken (with any value). The variable will not be displayed if the choice has not been made.
+These scopes will include variables only when a particular choice has been taken (with any value). The variable will not be used if the choice has not been made.
 
 For example, to only ask for a `summary`, when `readme_type` has been chosen:
 
-```
+```json
 [
   {
     "variable_name":"summary",
@@ -30,11 +30,11 @@ For example, to only ask for a `summary`, when `readme_type` has been chosen:
 
 ### Include by choice and value
 
-These scopes will include variables only when a particular choice has been taken with a specific value. The variable will not be displayed if the choice has not been made with that specific value.
+These scopes will include variables only when a particular choice has been taken with a specific value. The variable will not be used if the choice has not been made with that specific value.
 
 For example, to only ask for a `summary`, when `readme_type` of `long` has been chosen:
 
-```
+```json
 [
   {
     "variable_name":"summary",
@@ -53,11 +53,11 @@ For example, to only ask for a `summary`, when `readme_type` of `long` has been 
 
 ### Exclude by choice
 
-These scopes will exclude variables only when a particular choice has been taken (with any value). The variable will be displayed if the choice has not been made (since this is an exclusion).
+These scopes will exclude variables only when a particular choice has been taken (with any value). The variable will be used if the choice has not been made (since this is an exclusion).
 
-For example, to not ask for a `summary`, when `readme_type` has been chosen:
+For example, to not use `summary`, when `readme_type` has been chosen:
 
-```
+```json
 [
   {
     "variable_name":"summary",
@@ -75,11 +75,11 @@ For example, to not ask for a `summary`, when `readme_type` has been chosen:
 
 ### Exclude by choice and value
 
-These scopes will exclude variables only when a particular choice has been taken with a specific value. The variable will be displayed if the choice has not been made or the choice has been made with a different value.
+These scopes will exclude variables only when a particular choice has been taken with a specific value. The variable will be used if the choice has not been made or the choice has been made with a different value.
 
 For example, to not ask for a `summary`, when a `readme_type` of `short` has been chosen:
 
-```
+```json
 [
   {
     "variable_name":"summary",
@@ -100,7 +100,7 @@ For example, to not ask for a `summary`, when a `readme_type` of `short` has bee
 
 Here's a full example of asking the user to make a choice on a type of README and then asking for a summary value only if the chosen type is a `long`:
 
-```
+```json
 [
   {
     "variable_name": "project",
