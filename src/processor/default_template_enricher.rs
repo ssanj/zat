@@ -12,9 +12,9 @@ pub struct DefaultTemplateEnricher {
 }
 
 impl DefaultTemplateEnricher {
-  pub fn new(config: UserConfig) -> Self {
+  pub fn new(config: &UserConfig) -> Self {
     Self {
-      config
+      config: config.clone()
     }
   }
 
@@ -75,7 +75,7 @@ mod tests {
         UserConfig::new(template_directory.as_path().to_str().unwrap(), destination_dir);
 
 
-      let enricher = DefaultTemplateEnricher::new(config);
+      let enricher = DefaultTemplateEnricher::new(&config);
       let enriched_file = enricher.enrich(file_template).unwrap_or_else(|_| panic!("Could not enrich file: {}", &template_file_path.to_string_lossy()));
 
       let expected_destination_path = "/some/destination/path/relative/source/file.ext";
@@ -101,7 +101,7 @@ mod tests {
         UserConfig::new(template_directory.as_path().to_str().unwrap(), destination_dir);
 
 
-      let enricher = DefaultTemplateEnricher::new(config);
+      let enricher = DefaultTemplateEnricher::new(&config);
       let enriched_dir = enricher.enrich(file_template).unwrap_or_else(|_| panic!("Could not enrich file: {}", &template_file_path.to_string_lossy()));
 
       let expected_destination_path = "/some/destination/path/relative/source/path";

@@ -39,8 +39,7 @@ impl ProcessTemplates {
     // Then verify all the variables supplied are correct
     let template_config_validator = DefaultTemplateConfigValidator::new();
 
-    // TODO: Do we need this template_variables.clone()?
-    let template_variable_review = template_config_validator.validate(user_config.clone(), &SelectedChoices::new(choices, variables.clone().tokens))?;
+    let template_variable_review = template_config_validator.validate(&user_config, &SelectedChoices::new(choices, variables.clone().tokens))?;
 
     match template_variable_review {
       TemplateVariableReview::Accepted(vc) => {
@@ -51,7 +50,7 @@ impl ProcessTemplates {
         let tokenized_key_expanded_variables = expand_filters.expand_filers(variables, user_variables);
 
         VerboseLogger::expanded_tokens(&user_config, &tokenized_key_expanded_variables);
-        DefaultProcessTemplates.process_templates(user_config.clone(), tokenized_key_expanded_variables, user_choices)?;
+        DefaultProcessTemplates.process_templates(&user_config, tokenized_key_expanded_variables, user_choices)?;
 
         // Run post-processor if one exists
         ShellHook.run(&user_config)?;

@@ -33,7 +33,7 @@ trait UserInputProvider {
 }
 
 trait UserTemplateVariableValidator {
-  fn review_user_template_variables(&self, user_config: UserConfig, user_input: UserInput) -> TemplateVariableReview;
+  fn review_user_template_variables(&self, user_config: &UserConfig, user_input: UserInput) -> TemplateVariableReview;
 }
 
 enum UserVariablesValidity {
@@ -80,12 +80,12 @@ impl UserInputProvider for Cli {
 }
 
 impl UserTemplateVariableValidator for Cli {
-    fn review_user_template_variables(&self, user_config: UserConfig, user_input: UserInput) -> TemplateVariableReview {
+    fn review_user_template_variables(&self, user_config: &UserConfig, user_input: UserInput) -> TemplateVariableReview {
         Cli::print_user_input(&user_input.variables);
         Cli::print_user_choices(&user_input.choices);
         match  Cli::check_user_input() {
           UserVariablesValidity::Valid => {
-            let valid_config = ValidConfig::new(user_input.variables, user_input.choices, user_config);
+            let valid_config = ValidConfig::new(user_input.variables, user_input.choices, user_config.clone());
             TemplateVariableReview::Accepted(valid_config)
           },
           UserVariablesValidity::Invalid => TemplateVariableReview::Rejected,
@@ -226,9 +226,9 @@ impl DefaultTemplateConfigValidator {
 
 impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 
-  fn validate(&self, user_config: UserConfig, selected_choices: &SelectedChoices) -> ZatResult<TemplateVariableReview> {
+  fn validate(&self, user_config: &UserConfig, selected_choices: &SelectedChoices) -> ZatResult<TemplateVariableReview> {
       let user_variables = self.user_input_provider.get_user_input(selected_choices)?;
-      Ok(self.user_template_variable_validator.review_user_template_variables(user_config, user_variables))
+      Ok(self.user_template_variable_validator.review_user_template_variables(&user_config, user_variables))
   }
 }
 
@@ -301,13 +301,13 @@ use crate::templates::PluginRunStatus;
 
 
   impl UserTemplateVariableValidator for RejectedUserTemplateVariables {
-    fn review_user_template_variables(&self, _user_config_: UserConfig, _user_input_: UserInput) -> TemplateVariableReview {
+    fn review_user_template_variables(&self, _user_config_: &UserConfig, _user_input_: UserInput) -> TemplateVariableReview {
         TemplateVariableReview::Rejected
     }
   }
 
   impl UserTemplateVariableValidator for AcceptedUserTemplateVariables {
-    fn review_user_template_variables(&self, _user_config_: UserConfig, _user_input_: UserInput) -> TemplateVariableReview {
+    fn review_user_template_variables(&self, _user_config_: &UserConfig, _user_input_: UserInput) -> TemplateVariableReview {
       let valid_config: ValidConfig = ValidConfig::from(self);
       TemplateVariableReview::Accepted(valid_config)
     }
@@ -398,7 +398,7 @@ use crate::templates::PluginRunStatus;
 
     let selected_choices =
       SelectedChoices::new(HashMap::new(), template_variables.tokens);
-    let validation_result = config_validator.validate(user_config.clone(), &selected_choices).expect("validation failed");
+    let validation_result = config_validator.validate(&user_config, &selected_choices).expect("validation failed");
 
     let expected_config =
       ValidConfig {
@@ -430,7 +430,7 @@ use crate::templates::PluginRunStatus;
 
     let selected_choices =
       SelectedChoices::new(HashMap::new(), template_variables.tokens);
-    let validation_result = config_validator.validate(user_config, &selected_choices).expect("validation failed.");
+    let validation_result = config_validator.validate(&user_config, &selected_choices).expect("validation failed.");
 
     assert_eq!(validation_result, TemplateVariableReview::Rejected)
   }

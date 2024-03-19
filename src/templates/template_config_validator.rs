@@ -56,5 +56,5 @@ pub enum TemplateVariableReview {
 }
 
 pub trait TemplateConfigValidator {
-  fn validate(&self, user_config: UserConfig, selected_choices: &SelectedChoices) -> ZatResult<TemplateVariableReview>;
+  fn validate(&self, user_config: &UserConfig, selected_choices: &SelectedChoices) -> ZatResult<TemplateVariableReview>;
 }
