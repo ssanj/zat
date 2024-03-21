@@ -85,7 +85,7 @@ impl DefaultChoiceRunner {
   }
 
 
-  fn get_choice<'a>(variable: &TemplateVariable, items: &'a [&'a Choice]) -> ZatResult<(&'a Choice)> {
+  fn get_choice<'a>(variable: &TemplateVariable, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
     let mut result = Self::print_menu(variable.prompt.as_str(), items);
     while let Err(error) = result {
       let error_message = match error {

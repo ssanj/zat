@@ -55,11 +55,11 @@ impl DefaultChoiceScopeFilter {
               Scope::ExcludeChoiceScope(..)      => true,
               Scope::ExcludeChoiceValueScope(..) => true,
             })
-            .fold(false, |acc, v| acc || v)
+            .any(|v| v)
         },
         ChoicesAndScopesDefined::ChoicesAndScopes => {
           scopes
-            .into_iter()
+            .iter()
             .any(|scope| Self::is_scope_included(choices, scope)) // If any one of these returns true, the variable is included.
             // - An include that matches always overrides an exclude that matches
             // - An exclude that does not match (is included) always overrides and include that does not match (is excluded)
@@ -70,7 +70,7 @@ impl DefaultChoiceScopeFilter {
 
   fn is_scope_included(choices: &HashMap<UserChoiceKey, UserChoiceValue>, scope: &Scope) -> bool {
       if choices.is_empty() {
-        return true
+        true
       } else {
         match scope {
           Scope::IncludeChoiceValueScope(IncludeChoiceValue { choice, value }) => {
@@ -341,9 +341,17 @@ mod tests {
       fn without_scopes_returns_all_variables() {
         let choices =
           (0 .. 5)
-            .into_iter()
             .map(|n| {
-              (UserChoiceKey::from("choice-1"), UserChoiceValue::from(("choice-1-display", "choice-1-desc", "choice-1-value")))
+              (
+                  UserChoiceKey::from(s!("choice-{n}").as_str()),
+                  UserChoiceValue::from(
+                    (
+                      s!("choice-{n}-display").as_str(),
+                      s!("choice-{n}-desc").as_str(),
+                      s!("choice-{n}-value").as_str()
+                    )
+                  )
+              )
             })
             .collect::<Vec<_>>();
 
@@ -351,7 +359,6 @@ mod tests {
 
         let tokens =
           (0 .. 5)
-            .into_iter()
             .map(|n| {
               TemplateVariable::new(
                 s!("variable_{n}").as_str(),
@@ -381,7 +388,6 @@ mod tests {
 
         let tokens =
           (0 .. 5)
-            .into_iter()
             .map(|n| {
               TemplateVariable::new(
                 s!("variable_{n}").as_str(),
@@ -409,7 +415,6 @@ mod tests {
       fn with_matching_scope_returns_matching_variables() {
         let choices =
           (0 .. 5)
-            .into_iter()
             .map(|n| {
               (
                 UserChoiceKey::from(s!("choice-{n}").as_str()),
@@ -426,7 +431,6 @@ mod tests {
 
         let tokens =
           (0 .. 5)
-            .into_iter()
             .map(|n| {
               TemplateVariable::with_scopes(
                 s!("variable_{n}").as_str(),
@@ -438,6 +442,7 @@ mod tests {
         let mut template_variables =
           TemplateVariables::new(tokens.clone());
 
+        #[allow(clippy::get_first)]
         let expected_template_variables =
           TemplateVariables::new(
             vec![
@@ -457,20 +462,24 @@ mod tests {
         let choices =
           vec![
             (
-                UserChoiceKey::from(s!("choice-x").as_str()),
+                UserChoiceKey::from("choice-x"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-x-display").as_str(),
-                    s!("choice-x-desc").as_str(),
-                    s!("choice-x-value").as_str()))
+                    "choice-x-display",
+                    "choice-x-desc",
+                    "choice-x-value"
+                  )
+                )
             ),
             (
-                UserChoiceKey::from(s!("choice-2").as_str()),
+                UserChoiceKey::from("choice-2"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-2-display").as_str(),
-                    s!("choice-2-desc").as_str(),
-                    s!("choice-2-value").as_str()))
+                    "choice-2-display",
+                    "choice-2-desc",
+                    "choice-2-value"
+                  )
+                )
             )
           ];
 
@@ -478,7 +487,6 @@ mod tests {
 
         let tokens =
           (0 .. 5)
-            .into_iter()
             .map(|n| {
               TemplateVariable::with_scopes(
                 s!("variable_{n}").as_str(),
@@ -508,20 +516,24 @@ mod tests {
         let choices =
           vec![
             (
-                UserChoiceKey::from(s!("choice-x").as_str()),
+                UserChoiceKey::from("choice-x"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-x-display").as_str(),
-                    s!("choice-x-desc").as_str(),
-                    s!("choice-x-value").as_str()))
+                    "choice-x-display",
+                    "choice-x-desc",
+                    "choice-x-value"
+                  )
+                )
             ),
             (
-                UserChoiceKey::from(s!("choice-2").as_str()),
+                UserChoiceKey::from("choice-2"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-2-display").as_str(),
-                    s!("choice-2-desc").as_str(),
-                    s!("choice-2-value").as_str()))
+                    "choice-2-display",
+                    "choice-2-desc",
+                    "choice-2-value"
+                  )
+                )
             )
           ];
 
@@ -529,7 +541,6 @@ mod tests {
 
         let tokens =
           (0 .. 5)
-            .into_iter()
             .map(|n| {
               TemplateVariable::with_scopes(
                 s!("variable_{n}").as_str(),
@@ -561,20 +572,24 @@ mod tests {
         let choices =
           vec![
             (
-                UserChoiceKey::from(s!("choice-x").as_str()),
+                UserChoiceKey::from("choice-x"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-x-display").as_str(),
-                    s!("choice-x-desc").as_str(),
-                    s!("choice-x-value").as_str()))
+                    "choice-x-display",
+                    "choice-x-desc",
+                    "choice-x-value"
+                  )
+                )
             ),
             (
-                UserChoiceKey::from(s!("choice-2").as_str()),
+                UserChoiceKey::from("choice-2"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-2-display").as_str(),
-                    s!("choice-2-desc").as_str(),
-                    s!("choice-2-value").as_str()))
+                    "choice-2-display",
+                    "choice-2-desc",
+                    "choice-2-value"
+                  )
+                )
             )
           ];
 
@@ -582,7 +597,6 @@ mod tests {
 
         let tokens =
           (0 .. 5)
-            .into_iter()
             .map(|n| {
               TemplateVariable::with_scopes(
                 s!("variable_{n}").as_str(),
@@ -616,20 +630,24 @@ mod tests {
         let choices =
           vec![
             (
-                UserChoiceKey::from(s!("choice-x").as_str()),
+                UserChoiceKey::from("choice-x"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-x-display").as_str(),
-                    s!("choice-x-desc").as_str(),
-                    s!("choice-x-value").as_str()))
+                    "choice-x-display",
+                    "choice-x-desc",
+                    "choice-x-value"
+                  )
+                )
             ),
             (
-                UserChoiceKey::from(s!("choice-2").as_str()),
+                UserChoiceKey::from("choice-2"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-2-display").as_str(),
-                    s!("choice-2-desc").as_str(),
-                    s!("choice-2-value").as_str()))
+                    "choice-2-display",
+                    "choice-2-desc",
+                    "choice-2-value"
+                  )
+                )
             )
           ];
 
@@ -637,11 +655,10 @@ mod tests {
 
         let tokens =
           (0 .. 5)
-            .into_iter()
             .map(|n| {
               if n == 2 {
                 TemplateVariable::with_scopes(
-                  s!("variable_2").as_str(),
+                  "variable_2",
                   vec![
                     Scope::new_exclude_choice_value("choice-2", "choice-2-value"), // exclude for choice-2
                     Scope::new_include_choice_value("choice-2", "choice-2-value"), // include for choice-2
@@ -678,36 +695,44 @@ mod tests {
         let choices =
           vec![
             (
-                UserChoiceKey::from(s!("choice-x").as_str()),
+                UserChoiceKey::from("choice-x"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-x-display").as_str(),
-                    s!("choice-x-desc").as_str(),
-                    s!("choice-x-value").as_str()))
+                    "choice-x-display",
+                    "choice-x-desc",
+                    "choice-x-value"
+                  )
+                )
             ),
             (
-                UserChoiceKey::from(s!("choice-2").as_str()),
+                UserChoiceKey::from("choice-2"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-2-display").as_str(),
-                    s!("choice-2-desc").as_str(),
-                    s!("choice-2-value").as_str()))
+                    "choice-2-display",
+                    "choice-2-desc",
+                    "choice-2-value"
+                  )
+                )
             ),
             (
-                UserChoiceKey::from(s!("choice-y").as_str()),
+                UserChoiceKey::from("choice-y"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-y-display").as_str(),
-                    s!("choice-y-desc").as_str(),
-                    s!("choice-y-value").as_str()))
+                    "choice-y-display",
+                    "choice-y-desc",
+                    "choice-y-value"
+                  )
+                )
             ),
             (
-                UserChoiceKey::from(s!("choice-z").as_str()),
+                UserChoiceKey::from("choice-z"),
                 UserChoiceValue::from(
                   (
-                    s!("choice-z-display").as_str(),
-                    s!("choice-z-desc").as_str(),
-                    s!("choice-z-value").as_str()))
+                    "choice-z-display",
+                    "choice-z-desc",
+                    "choice-z-value"
+                  )
+                )
             ),
           ];
 
@@ -717,7 +742,7 @@ mod tests {
           vec![
               // included, include choice value overrides exclude choice value, irrespective of order
               TemplateVariable::with_scopes(
-                s!("variable_x").as_str(),
+                "variable_x",
                 vec![ // include, then exclude
                   Scope::new_include_choice_value("choice-x", "choice-x-value"),
                   Scope::new_exclude_choice_value("choice-2", "choice-2-value"),
@@ -726,7 +751,7 @@ mod tests {
               ),
               // included, include choice value overrides exclude choice value, irrespective of order
               TemplateVariable::with_scopes(
-                s!("variable_2").as_str(),
+                "variable_2",
                 vec![ // exclude, then include
                   Scope::new_exclude_choice_value("choice-2", "choice-2-value"),
                   Scope::new_include_choice_value("choice-x", "choice-x-value"),
@@ -736,7 +761,7 @@ mod tests {
               // excluded, because include choice not found
               // if at least one scope matches, then include
               TemplateVariable::with_scopes(
-                s!("variable_w").as_str(),
+                "variable_w",
                 vec![ // exclude, then include. Since we don't have a choice-w, the exclude is negated (because an include) and the include does not work because we don't have choice-w
                   Scope::new_exclude_choice_value("choice-w", "choice-w-value-1"),
                   Scope::new_include_choice_value("choice-w", "choice-w-value-2"),
@@ -744,43 +769,43 @@ mod tests {
               ),
               // excluded, choice value exclude
               TemplateVariable::with_scopes(
-                s!("variable_3").as_str(),
+                "variable_3",
                 vec![
                   Scope::new_exclude_choice_value("choice-2", "choice-2-value"),
                 ]
               ),
               // included - no scope
               TemplateVariable::new(
-                s!("variable_4").as_str(),
-                s!("variable_4_description").as_str(),
-                s!("variable_4_prompt").as_str(),
+                "variable_4",
+                "variable_4_description",
+                "variable_4_prompt",
                 &[],
                 Option::default()
               ),
               // included, choice include
               TemplateVariable::with_scopes(
-                s!("variable_y").as_str(),
+                "variable_y",
                 vec![
                   Scope::new_include_choice("choice-y"),
                 ]
               ),
               // excluded, choice exclude
               TemplateVariable::with_scopes(
-                s!("variable_z").as_str(),
+                "variable_z",
                 vec![
                   Scope::new_exclude_choice("choice-z"),
                 ]
               ),
               // excluded, choice include not found
               TemplateVariable::with_scopes(
-                s!("variable_a").as_str(),
+                "variable_a",
                 vec![
                   Scope::new_include_choice("choice-a"),
                 ]
               ),
               // included, choice exclude not found (exclude negated)
               TemplateVariable::with_scopes(
-                s!("variable_b").as_str(),
+                "variable_b",
                 vec![
                   Scope::new_exclude_choice("choice-b"),
                 ]
@@ -791,6 +816,7 @@ mod tests {
         let mut template_variables =
           TemplateVariables::new(tokens.clone());
 
+        #[allow(clippy::get_first)]
         let expected_template_variables =
           TemplateVariables::new(
               vec![
@@ -811,6 +837,4 @@ mod tests {
         assert_eq!(expected_template_variables, template_variables)
       }
     }
-
-    // TODO: Add test missing choices and scopes
 }

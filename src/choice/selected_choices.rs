@@ -14,8 +14,4 @@ impl SelectedChoices {
       variables: TemplateVariables::new(variables)
     }
   }
-
-  pub fn has_choices(&self) -> bool {
-    !self.choices.is_empty()
-  }
 }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{choice::SelectedChoices, config::UserConfig, error::ZatResult, logging::Lines};
-use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue, TemplateVariables};
+use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue};
 use std::{format as s};
 
 #[derive(Debug, Clone, PartialEq)]

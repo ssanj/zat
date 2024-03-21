@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::io::{stdin, BufRead};
 
 use super::{Plugin, TemplateConfigValidator, TemplateVariable, TemplateVariableReview, ValidConfig};
-use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue, TemplateVariables};
-use crate::choice::selected_choices::{self, SelectedChoices};
+use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue};
+use crate::choice::selected_choices::SelectedChoices;
 use crate::config::UserConfig;
 use crate::error::ZatResult;
 use crate::templates::PluginRunResult;
@@ -72,7 +72,7 @@ impl UserInputProvider for Cli {
           DynamicValueType::Neither => p!("{}", Yellow.paint(&v.prompt)),
         }
 
-        Cli::read_user_input(&mut token_map, &v, &dynamic_value);
+        Cli::read_user_input(&mut token_map, v, &dynamic_value);
     }
 
     Ok(UserInput::new(token_map, selected_choices.choices.clone()))
@@ -228,14 +228,14 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 
   fn validate(&self, user_config: &UserConfig, selected_choices: &SelectedChoices) -> ZatResult<TemplateVariableReview> {
       let user_variables = self.user_input_provider.get_user_input(selected_choices)?;
-      Ok(self.user_template_variable_validator.review_user_template_variables(&user_config, user_variables))
+      Ok(self.user_template_variable_validator.review_user_template_variables(user_config, user_variables))
   }
 }
 
 #[cfg(test)]
 mod tests {
 
-use super::super::TemplateVariable;
+use super::super::{TemplateVariable, TemplateVariables};
 use super::*;
 use pretty_assertions::assert_eq;
 use crate::config::user_config::UserConfig;
@@ -244,7 +244,6 @@ use crate::templates::PluginRunStatus;
   #[derive(Debug, Default)]
   struct SimpleInput {
     tokens: HashMap<String, String>,
-    choices: HashMap<String, (String, String, String)>
   }
 
   impl SimpleInput {
@@ -252,7 +251,6 @@ use crate::templates::PluginRunStatus;
     fn with_tokens(tokens: HashMap<String, String>) -> Self {
       Self {
         tokens,
-        choices: HashMap::default()
       }
     }
   }

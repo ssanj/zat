@@ -34,6 +34,7 @@ use std::fmt::Display;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(untagged)]
+#[allow(clippy::enum_variant_names)]
 pub enum Scope {
   IncludeChoiceValueScope(IncludeChoiceValue), // The order of these definitions matter. Add the most specific types first; eg. IncludeChoiceValueScope before IncludeChoiceScope
   ExcludeChoiceValueScope(ExcludeChoiceValue),

@@ -35,7 +35,7 @@ impl Lines for TemplateVariables {
                 s!("Default value: {}", token.default_value.as_deref().unwrap_or("-")),
                 s!("Plugin: {}", token.plugin.as_ref().map(Self::plugin_lines).unwrap_or_else(|| "-".to_owned())),
                 s!("Choices: {}", Self::choice_lines(&token, &token.choices.iter().collect::<Vec<_>>())),
-                s!("Scopes: {}", Self::scope_lines(&token.scopes.map(|v| v.iter().cloned().collect::<Vec<_>>()))),
+                s!("Scopes: {}", Self::scope_lines(&token.scopes.map(|v| v.to_vec()))),
 
                 s!(""),
               ]
