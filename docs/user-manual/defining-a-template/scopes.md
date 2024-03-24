@@ -145,3 +145,81 @@ Here's a full example of asking the user to make a choice on a type of README an
   }
 ]
 ```
+
+With a `readme_type` of `short` the `summary` variable is not requested:
+
+![Creating a Bootstrap Project](../../images/zat-scopes-1.gif)
+
+With a `readme_type` of `long` the `summary` variable is requested:
+
+![Creating a Bootstrap Project](../../images/zat-scopes-2.gif)
+
+## Scope resolution
+
+When you define multiple scopes for a single variable, the following rules apply. In general, the scopes are applied in an `or` relationship (at least one of the scopes should apply).
+
+## Multiple includes
+
+If you have multiple `include` scopes, if any one of them is valid, then the variable is requested. For the following example, if either `choice_1` or `choice_2` is defined, then `sample_var` is requested:
+
+```json
+[
+  {
+    "variable_name":"sample_var",
+    "description": "sample variable",
+    "prompt": "Please enter your sample variable value",
+    "scopes": [
+      {
+        "choice": "choice_1",
+        "choice": "choice_2",
+      }
+    ]
+  }
+]
+```
+
+## Multiple includes and excludes
+
+If you have multiple `include` and `exclude` scopes, if any one of the `include`s or `exclude`s is valid, then the variable is requested.
+
+For the following example, if `choice_1` is defined, then `sample_var` is requested:
+
+```json
+[
+  {
+    "variable_name":"sample_var",
+    "description": "sample variable",
+    "prompt": "Please enter your sample variable value",
+    "scopes": [
+      {
+        "choice": "choice_1",
+        "not_choice": "choice_2",
+        "not_choice": "choice_3",
+      }
+    ]
+  }
+]
+```
+
+In the above example, if `choice_1` is not defined *and* `choice_2` or `choice_3` is not defined then `sample_var` is also requested.
+
+
+## Multiple excludes
+
+If you have multiple `exclude` scopes, if any one of them is valid, then the variable is requested. For the following example, if either `choice_1` or `choice_2` is not defined, then `sample_var` is requested:
+
+```json
+[
+  {
+    "variable_name":"sample_var",
+    "description": "sample variable",
+    "prompt": "Please enter your sample variable value",
+    "scopes": [
+      {
+        "not_choice": "choice_1",
+        "not_choice": "choice_2",
+      }
+    ]
+  }
+]
+```
