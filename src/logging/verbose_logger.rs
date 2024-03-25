@@ -18,6 +18,12 @@ impl VerboseLogger {
     }
   }
 
+  pub(crate) fn log_template_variables_after_scope_filter(user_config: &UserConfig, template_variables: &TemplateVariables) {
+    if user_config.verbose {
+      Printer::print_verbose("Template variables after scope filters", template_variables);
+    }
+  }
+
   pub(crate) fn log_template_variables_after_plugins_run(user_config: &UserConfig, template_variables: &TemplateVariables) {
     // Only show this if some plugins have run, otherwise it's the same as `log_template_variables`.
     if user_config.verbose && template_variables.tokens.iter().any(|t| t.plugin.is_some() ) {

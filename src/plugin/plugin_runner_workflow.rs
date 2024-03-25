@@ -74,7 +74,8 @@ mod tests {
         filters: Vec::default(),
         default_value: Option::default(),
         plugin: Option::default(),
-        choice: Vec::default()
+        choices: Vec::default(),
+        scopes: Option::default(),
       }
     }
 

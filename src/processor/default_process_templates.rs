@@ -21,10 +21,11 @@ use std::format as s;
 pub struct DefaultProcessTemplates;
 
 impl ProcessTemplates for DefaultProcessTemplates {
-    fn process_templates(&self, user_config: UserConfig, tokenized_key_expanded_variables: crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables, user_choices: UserChoices) -> ZatAction {
+    fn process_templates(&self, user_config: &UserConfig, tokenized_key_expanded_variables: crate::token_expander::key_tokenizer::TokenizedKeysExpandedVariables, user_choices: UserChoices) -> ZatAction {
       let ignores: Vec<&str> =
         user_config
-          .ignores.ignores
+          .ignores
+          .ignores
           .iter()
           .map(|i| i.as_str())
           .collect();
@@ -42,15 +43,15 @@ impl ProcessTemplates for DefaultProcessTemplates {
           .collect();
 
       // Converts template files into enriched files that include replaced file name and content tokens
-      let template_enricher = DefaultTemplateEnricher::new(user_config.clone());
+      let template_enricher = DefaultTemplateEnricher::new(user_config);
 
-      let default_file_writer = DefaultFileWriter::new(&user_config, &user_choices);
-      let default_directory_creator = DefaultDirectoryCreator::with_user_config(&user_config);
-      let enriched_template_file_processor = DefaultEnrichedTemplateFileProcessor::new(&default_file_writer, &default_directory_creator, &user_config);
+      let default_file_writer = DefaultFileWriter::new(user_config, &user_choices);
+      let default_directory_creator = DefaultDirectoryCreator::with_user_config(user_config);
+      let enriched_template_file_processor = DefaultEnrichedTemplateFileProcessor::new(&default_file_writer, &default_directory_creator, user_config);
 
       let aho_token_replacer = AhoCorasickTokenReplacer::new(tokenized_key_expanded_variables.clone());
 
-      DefaultProcessTemplates::log_files_to_process(&user_config, &files_to_process);
+      DefaultProcessTemplates::log_files_to_process(user_config, &files_to_process);
 
       if self.has_template_files(&template_files, template_files_dir) {
         files_to_process

@@ -1,13 +1,13 @@
 use std::collections::HashMap;
-use std::io::{stdin, BufRead, Read};
-use std::fmt::{self, Display};
+use std::io::{stdin, BufRead};
 
-use super::{Choice, Plugin, TemplateConfigValidator, TemplateVariable, TemplateVariableReview, ValidConfig};
-use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue, TemplateVariables};
+use super::{Plugin, TemplateConfigValidator, TemplateVariable, TemplateVariableReview, ValidConfig};
+use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue};
+use crate::choice::selected_choices::SelectedChoices;
 use crate::config::UserConfig;
-use crate::error::{ZatError, ZatResult};
+use crate::error::ZatResult;
 use crate::templates::PluginRunResult;
-use ansi_term::Colour::{Yellow, Green, Blue, Red};
+use ansi_term::Colour::{Yellow, Green, Blue};
 use ansi_term::Style;
 use std::{println as p, format as s};
 use crate::logging::Logger;
@@ -29,11 +29,11 @@ impl UserInput {
 
 // This is a support trait to TemplateConfigValidator, so we define it here as opposed to in its own module.
 trait UserInputProvider {
-  fn get_user_input(&self, variables: TemplateVariables) -> ZatResult<UserInput>;
+  fn get_user_input(&self, selected_choices: &SelectedChoices) -> ZatResult<UserInput>;
 }
 
 trait UserTemplateVariableValidator {
-  fn review_user_template_variables(&self, user_config: UserConfig, user_input: UserInput) -> TemplateVariableReview;
+  fn review_user_template_variables(&self, user_config: &UserConfig, user_input: UserInput) -> TemplateVariableReview;
 }
 
 enum UserVariablesValidity {
@@ -52,38 +52,18 @@ enum DynamicValueType {
 
 struct DynamicPair(String, String);
 
-#[derive(Debug, Clone, PartialEq)]
-enum ChoiceError {
-  CouldNotReadInput(String),
-  NotANumber(String),
-  OutOfBounds(usize),
-}
-
-impl Display for ChoiceError {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    let prefix = match self {
-      ChoiceError::CouldNotReadInput(input) => s!("Could not read input: {}", input),
-      ChoiceError::NotANumber(input) => s!("Expected a number for choice, but got: {}", input),
-      ChoiceError::OutOfBounds(number) => s!("Invalid index supplied: {}", number),
-    };
-    write!(f, "{}", prefix)
-  }
-}
 
 impl UserInputProvider for Cli {
-  fn get_user_input(&self, template_variables: TemplateVariables) -> ZatResult<UserInput> {
+  fn get_user_input(&self, selected_choices: &SelectedChoices) -> ZatResult<UserInput> {
     let mut token_map = HashMap::new();
-    let mut choices_map = HashMap::new();
 
-    for v in template_variables.tokens {
+    for v in &selected_choices.variables.tokens {
       p!();
 
-      // TODO: Make this an ADT
-      if v.choice.is_empty() {
-        let default_value = Cli::get_default_value(v.default_value.as_deref());
-        let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
-          );
-        let dynamic_value = Cli::get_dynamic_values(default_value.as_deref(), plugin_result_value.as_ref());
+      let default_value = Cli::get_default_value(v.default_value.as_deref());
+      let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
+        );
+      let dynamic_value = Cli::get_dynamic_values(default_value.as_deref(), plugin_result_value.as_ref());
 
         // Ask the user of values for each token
         match &dynamic_value {
@@ -92,25 +72,20 @@ impl UserInputProvider for Cli {
           DynamicValueType::Neither => p!("{}", Yellow.paint(&v.prompt)),
         }
 
-        Cli::read_user_input(&mut token_map, &v, &dynamic_value);
-      } else {
-        let choices = v.choice.iter().collect::<Vec<_>>();
-        let choice_value = Cli::get_choice(&v.prompt, &choices)?;
-        choices_map.insert(UserChoiceKey::new(v.variable_name), UserChoiceValue::new(choice_value.clone()));
-      }
+        Cli::read_user_input(&mut token_map, v, &dynamic_value);
     }
 
-    Ok(UserInput::new(token_map, choices_map))
+    Ok(UserInput::new(token_map, selected_choices.choices.clone()))
   }
 }
 
 impl UserTemplateVariableValidator for Cli {
-    fn review_user_template_variables(&self, user_config: UserConfig, user_input: UserInput) -> TemplateVariableReview {
+    fn review_user_template_variables(&self, user_config: &UserConfig, user_input: UserInput) -> TemplateVariableReview {
         Cli::print_user_input(&user_input.variables);
         Cli::print_user_choices(&user_input.choices);
         match  Cli::check_user_input() {
           UserVariablesValidity::Valid => {
-            let valid_config = ValidConfig::new(user_input.variables, user_input.choices, user_config);
+            let valid_config = ValidConfig::new(user_input.variables, user_input.choices, user_config.clone());
             TemplateVariableReview::Accepted(valid_config)
           },
           UserVariablesValidity::Invalid => TemplateVariableReview::Rejected,
@@ -222,60 +197,6 @@ impl Cli {
       crate::templates::PluginRunStatus::Run(run_result) => Some(run_result.to_owned()),
     }
   }
-
-  fn print_menu<'a>(prompt: &str, items: &'a [&'a Choice]) -> Result<&'a Choice, ChoiceError> {
-    println!("{}", Yellow.paint(prompt));
-
-    let it =
-      items
-        .iter()
-        .enumerate()
-        .map(|(n, v)| format!("  {} {} {}", n + 1, v.display, v.description))
-        .collect::<Vec<_>>();
-
-    println!("{}", it.join("\n"));
-
-    let mut buffer = String::new();
-    stdin()
-      .read_line(&mut buffer)
-      .map_err(|e| ChoiceError::CouldNotReadInput(e.to_string()))
-      .and({
-        buffer
-          .trim()
-          .parse::<usize>()
-          .map_err(|_| ChoiceError::NotANumber(buffer.clone()))
-          .and_then(|n| {
-            if n > 0 && n <= items.len() {
-              Ok(
-                items[n-1]
-              )
-            } else {
-              Err(ChoiceError::OutOfBounds(n))
-            }
-          })
-      })
-  }
-
-
-  fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
-    let mut result = Self::print_menu(prompt, items);
-    while let Err(error) = result {
-      let error_message = match error {
-        ChoiceError::CouldNotReadInput(error) => format!("Could not read input: {error}"),
-        ChoiceError::NotANumber(input) => format!("Selection has to be a number: {} is not a number.", input.trim()),
-        ChoiceError::OutOfBounds(index) => format!("Selected index: {} is out of bounds. It should be between 1 - {}", index, items.len())
-      };
-      println!("{}", Red.paint(error_message));
-      println!("press {} to continue", Style::new().underline().paint("ENTER"));
-      let mut char_buf = [0;1];
-      let _ = stdin().read(&mut char_buf);
-      println!();
-      println!();
-      result = Self::print_menu(prompt, items);
-    }
-
-    result.map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
-  }
 }
 
 
@@ -305,8 +226,8 @@ impl DefaultTemplateConfigValidator {
 
 impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 
-  fn validate(&self, user_config: UserConfig, template_variables: TemplateVariables) -> ZatResult<TemplateVariableReview> {
-      let user_variables = self.user_input_provider.get_user_input(template_variables)?;
+  fn validate(&self, user_config: &UserConfig, selected_choices: &SelectedChoices) -> ZatResult<TemplateVariableReview> {
+      let user_variables = self.user_input_provider.get_user_input(selected_choices)?;
       Ok(self.user_template_variable_validator.review_user_template_variables(user_config, user_variables))
   }
 }
@@ -314,7 +235,7 @@ impl TemplateConfigValidator for DefaultTemplateConfigValidator {
 #[cfg(test)]
 mod tests {
 
-use super::super::TemplateVariable;
+use super::super::{TemplateVariable, TemplateVariables};
 use super::*;
 use pretty_assertions::assert_eq;
 use crate::config::user_config::UserConfig;
@@ -323,7 +244,6 @@ use crate::templates::PluginRunStatus;
   #[derive(Debug, Default)]
   struct SimpleInput {
     tokens: HashMap<String, String>,
-    choices: HashMap<String, (String, String, String)>
   }
 
   impl SimpleInput {
@@ -331,14 +251,14 @@ use crate::templates::PluginRunStatus;
     fn with_tokens(tokens: HashMap<String, String>) -> Self {
       Self {
         tokens,
-        choices: HashMap::default()
       }
     }
   }
 
 
   impl UserInputProvider for SimpleInput {
-    fn get_user_input(&self, variables: TemplateVariables) -> ZatResult<UserInput> {
+    fn get_user_input(&self, selected_choices: &SelectedChoices) -> ZatResult<UserInput> {
+      let variables = &selected_choices.variables;
 
       let token_pairs =
         variables
@@ -351,19 +271,8 @@ use crate::templates::PluginRunStatus;
             })
         });
 
-      let choice_pairs =
-        variables
-        .tokens
-        .iter()
-        .filter_map(|tv| {
-          self.choices.get(tv.variable_name.as_str())
-            .map(|(dis, des, val)|{
-              (UserChoiceKey::new(tv.variable_name.to_owned()), UserChoiceValue::from((dis.as_str(), des.as_str(), val.as_str())))
-            })
-        });
-
         let variables = HashMap::from_iter(token_pairs);
-        let choices = HashMap::from_iter(choice_pairs);
+        let choices = selected_choices.choices.clone();
 
         Ok(UserInput::new(variables, choices))
     }
@@ -390,13 +299,13 @@ use crate::templates::PluginRunStatus;
 
 
   impl UserTemplateVariableValidator for RejectedUserTemplateVariables {
-    fn review_user_template_variables(&self, _user_config_: UserConfig, _user_input_: UserInput) -> TemplateVariableReview {
+    fn review_user_template_variables(&self, _user_config_: &UserConfig, _user_input_: UserInput) -> TemplateVariableReview {
         TemplateVariableReview::Rejected
     }
   }
 
   impl UserTemplateVariableValidator for AcceptedUserTemplateVariables {
-    fn review_user_template_variables(&self, _user_config_: UserConfig, _user_input_: UserInput) -> TemplateVariableReview {
+    fn review_user_template_variables(&self, _user_config_: &UserConfig, _user_input_: UserInput) -> TemplateVariableReview {
       let valid_config: ValidConfig = ValidConfig::from(self);
       TemplateVariableReview::Accepted(valid_config)
     }
@@ -417,7 +326,8 @@ use crate::templates::PluginRunStatus;
       default_value: None,
       plugin: None,
       filters: Vec::default(),
-      choice: Vec::default()
+      choices: Vec::default(),
+      scopes: Option::default()
     }
   }
 
@@ -484,7 +394,9 @@ use crate::templates::PluginRunStatus;
 
     let config_validator = DefaultTemplateConfigValidator::with_all_dependencies(Box::new(input), Box::new(user_template_variables));
 
-    let validation_result = config_validator.validate(user_config.clone(), template_variables).expect("validation failed");
+    let selected_choices =
+      SelectedChoices::new(HashMap::new(), template_variables.tokens);
+    let validation_result = config_validator.validate(&user_config, &selected_choices).expect("validation failed");
 
     let expected_config =
       ValidConfig {
@@ -514,7 +426,9 @@ use crate::templates::PluginRunStatus;
     let user_config =
       UserConfig::new("template_dir", "target_idr");
 
-    let validation_result = config_validator.validate(user_config, template_variables).expect("validation failed.");
+    let selected_choices =
+      SelectedChoices::new(HashMap::new(), template_variables.tokens);
+    let validation_result = config_validator.validate(&user_config, &selected_choices).expect("validation failed.");
 
     assert_eq!(validation_result, TemplateVariableReview::Rejected)
   }

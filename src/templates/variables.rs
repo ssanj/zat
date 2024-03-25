@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::logging::Lines;
 use std::format as s;
-use super::{Choice, Plugin};
+use super::{Choice, Plugin, Scope};
 use super::ArgType;
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Default)]
@@ -10,10 +10,17 @@ pub struct TemplateVariables {
   pub tokens: Vec<TemplateVariable>
 }
 
+impl TemplateVariables {
+  pub fn new(tokens: Vec<TemplateVariable>) -> Self {
+    Self {
+      tokens
+    }
+  }
+}
+
 
 impl Lines for TemplateVariables {
 
-    // TODO: Add Plugin and Choices to this list
     fn lines(&self) -> Vec<String> {
         self
           .tokens
@@ -27,7 +34,9 @@ impl Lines for TemplateVariables {
                 s!("Prompt: {}", token.prompt),
                 s!("Default value: {}", token.default_value.as_deref().unwrap_or("-")),
                 s!("Plugin: {}", token.plugin.as_ref().map(Self::plugin_lines).unwrap_or_else(|| "-".to_owned())),
-                s!("Choices: {}", Self::choice_lines(&token, &token.choice.iter().collect::<Vec<_>>())),
+                s!("Choices: {}", Self::choice_lines(&token, &token.choices.iter().collect::<Vec<_>>())),
+                s!("Scopes: {}", Self::scope_lines(&token.scopes.map(|v| v.to_vec()))),
+
                 s!(""),
               ]
           })
@@ -66,30 +75,46 @@ impl TemplateVariables {
     ].join("\n    ")
   }
 
-  fn choice_lines(token: &TemplateVariable, choices: &[&Choice]) -> String {
-    let mut items =
-      choices
-        .iter()
-        .map(|c| {
-          s!("Display: {}, Description: {}, Value: {}", c.display, c.description, c.value)
-        })
-        .collect::<Vec<_>>();
+  fn choice_lines(_token: &TemplateVariable, choices: &[&Choice]) -> String {
 
-    let top_attributes =
-      vec![
-        "".to_owned(),
-        s!("Variable name: {}", token.variable_name),
-        s!("Description: {}", token.description),
-        s!("Prompt: {}", token.prompt),
-      ];
+    if choices.is_empty() {
+      "-".to_owned()
+    } else {
+      let items =
+        choices
+          .iter()
+          .map(|c| {
+            s!("display: {}, description: {}, value: {}", c.display, c.description, c.value)
+          })
+          .collect::<Vec<_>>();
 
+      let header = "      ";
+      let item_str = items.join(s!("\n{header}").as_str());
 
-    let top_level_str = top_attributes.join("\n    ");
-    let mut items_format = vec!["".to_owned()];
-    items_format.append(&mut items);
-    let item_str = items_format.join("\n      ");
+      s!("\n{header}{item_str}")
+    }
+  }
 
-    s!("{top_level_str}{item_str:>6}")
+  fn scope_lines(maybe_scopes: &Option<Vec<Scope>>) -> String {
+
+    match maybe_scopes {
+        Some(xs) if xs.is_empty() => "-".to_owned(),
+        Some(scopes) => {
+          let items =
+            scopes
+              .iter()
+              .map(|scope| {
+                s!("{}", scope)
+              })
+              .collect::<Vec<_>>();
+
+          let header = "      ";
+          let item_str = items.join(s!("\n{header}").as_str());
+
+          s!("\n{header}{item_str}")
+        },
+        None => "-".to_owned(),
+    }
   }
 }
 
@@ -109,7 +134,9 @@ pub struct TemplateVariable {
   pub plugin: Option<Plugin>,
 
   #[serde(default)] // use default value if not found in the input
-  pub choice: Vec<Choice>
+  pub choices: Vec<Choice>,
+
+  pub scopes: Option<Vec<Scope>>
 }
 
 impl TemplateVariable {
@@ -123,7 +150,23 @@ impl TemplateVariable {
       filters: Vec::from_iter(filters.iter().cloned()),
       default_value: default_value.map(|v| v.to_owned()),
       plugin: None,
-      choice: Default::default()
+      choices: Default::default(),
+      scopes: Option::default()
+    }
+  }
+
+  #[cfg(test)]
+  pub fn with_scopes(variable_name: &str, scopes: Vec<Scope>) -> Self {
+
+    Self {
+      variable_name: variable_name.to_owned(),
+      description: s!("{}-description", variable_name),
+      prompt: s!("{}-prompt", variable_name).to_owned(),
+      filters: Vec::default(),
+      default_value: Option::default(),
+      plugin: Option::default(),
+      choices: Default::default(),
+      scopes: Some(scopes)
     }
   }
 }
@@ -241,6 +284,7 @@ pub enum FilterType {
 mod test {
   use pretty_assertions::assert_eq;
   use super::*;
+  use super::super::scope::IncludeChoiceValue;
 
   #[test]
   fn load_json_config() {
@@ -270,7 +314,7 @@ mod test {
           "variable_name": "readme_type",
           "description": "Type of README",
           "prompt": "Please choose your type of README",
-          "choice": [
+          "choices": [
             {
               "display": "Short",
               "description": "A shorter README",
@@ -292,7 +336,13 @@ mod test {
             "args":[
               "Testing 123"
             ]
-          }
+          },
+          "scopes": [
+            {
+              "choice": "readme_type",
+              "value": "short"
+            }
+          ]
         }
       ]
     "#;
@@ -305,7 +355,8 @@ mod test {
       prompt: "Please enter your project name".to_owned(),
       default_value: Some("Some Project".to_owned()),
       plugin: None,
-      choice: Default::default(),
+      choices: Default::default(),
+      scopes: Option::default(),
       filters: vec![
         VariableFilter {
           name: "python".to_owned(),
@@ -324,8 +375,9 @@ mod test {
       prompt: "Please enter your plugin description".to_owned(),
       default_value: None,
       plugin: None,
-      choice: Default::default(),
-      filters: vec![]
+      choices: Default::default(),
+      filters: vec![],
+      scopes: Option::default(),
     };
 
     let expected_third = TemplateVariable {
@@ -334,13 +386,19 @@ mod test {
       prompt: "Please choose your type of README".to_owned(),
       default_value: None,
       plugin: None,
-      choice:
+      choices:
         vec![
           Choice::new("Short", "A shorter README", "short"),
           Choice::new("Long", "A longer README", "long"),
         ],
-      filters: vec![]
+      filters: vec![],
+      scopes: Option::default(),
     };
+
+    let expected_scope =
+      vec![
+        Scope::IncludeChoiceValueScope(IncludeChoiceValue::new("readme_type", "short"))
+      ];
 
     let expected_fourth = TemplateVariable {
       variable_name: "description".to_owned(),
@@ -348,8 +406,9 @@ mod test {
       prompt: "Please a description of your project".to_owned(),
       default_value: None,
       plugin: Some(Plugin::new("tests/plugins/success.sh", &["Testing 123"])),
-      choice: Vec::default(),
-      filters: Vec::default()
+      choices: Vec::default(),
+      filters: Vec::default(),
+      scopes: Some(expected_scope)
     };
 
     let expected_variables =

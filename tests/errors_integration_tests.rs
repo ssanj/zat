@@ -382,7 +382,7 @@ fn error_message_on_tera_template_rendering_failure() -> Result<(), Box<dyn std:
       s!("Ensure the template file '{}/template/README.md.tmpl' has all necessary user choices defined in '.variables.zat-prompt' to render itself.", &source_directory),
     );
 
-  let input = &["This will fail to render", "1", "y"];
+  let input = &["1", "This will fail to render", "y"];
   let error_test_config = ErrorTestConfig::run_template(test_directory, input, error_parts);
 
   run_error_test(error_test_config)

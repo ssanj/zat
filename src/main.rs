@@ -10,6 +10,7 @@ mod logging;
 mod workflow;
 mod command;
 mod plugin;
+mod choice;
 
 use error::ZatAction;
 use logging::Logger;

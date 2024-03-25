@@ -28,5 +28,16 @@
         "value": "long"
       }
     ]
+  },
+  {
+    "variable_name":"summary",
+    "description": "summary for longer README",
+    "prompt": "Please choose your summary",
+    "scopes": [
+      {
+        "choice": "readme_type",
+        "value": "long"
+      }
+    ]
   }
 ]

@@ -11,7 +11,7 @@ Choices can be defined via the `.variables.zat-prompt` file:
     "variable_name": "YOUR_CHOICE_NAME",
     "description": "YOUR_CHOICE_DESCRIPTION",
     "prompt": "YOUR_CHOICE_PROMPT",
-    "choice": [
+    "choices": [
       {
         "display": "WHAT_TO_DISPLAY_FOR_CHOICE_ONE",
         "description": "EXTENDED_INFORMATION_FOR_CHOICE_ONE",
@@ -33,7 +33,7 @@ For example:
     "variable_name": "language_type",
     "description": "Language to use in the README",
     "prompt": "Please choose your language for the README",
-    "choice": [
+    "choices": [
       {
         "display": "French",
         "description": "README in French",
@@ -56,7 +56,7 @@ For example:
 
 When a template with a choice is processed, it will output a menu allowing the user to select an option:
 
-![Select a choice](../../images/zat-choices.gif)
+![Select a choice](../../images/zat-choices-3.gif)
 
 After the user makes a choice, the `value` of the choice is stored against the `variable_name`.  In the above example when the user
 selects the "French" language option the value of `french` will be stored against the `language_type` variable name.
@@ -101,3 +101,4 @@ Hello!
 {% endif %}
 ```
 
+Also note that choices will be displayed first, before all other variables. This is because which variables are displayed next can depend on the choices taken and the scopes added to subsequent variables. See [scopes](scopes.md) for more information.

@@ -91,7 +91,19 @@ fn runs_a_simple_template_with_choices() -> Result<(), Box<dyn std::error::Error
   let example_test_config =
     ExampleTestConfig::with_input(
       "simple-with-choices",
-      &["YouOnlyLiveOnce", "2", "y"]
+      &["2", "YouOnlyLiveOnce", "y"]
+    );
+
+  assert_run_example(example_test_config)
+}
+
+
+#[test]
+fn runs_a_simple_template_with_scopes() -> Result<(), Box<dyn std::error::Error>> {
+  let example_test_config =
+    ExampleTestConfig::with_input(
+      "simple-with-scopes",
+      &["2", "YouOnlyLiveOnce", "Your summary", "y"]
     );
 
   assert_run_example(example_test_config)
@@ -126,6 +138,7 @@ fn runs_template_with_ignores() -> Result<(), Box<dyn std::error::Error>> {
   assert_run_example(example_test_config)
 }
 
+
 #[test]
 fn runs_a_sublime_plugin_template() -> Result<(), Box<dyn std::error::Error>> {
   let example_test_config =
@@ -148,6 +161,7 @@ fn runs_a_template_with_binary_files() -> Result<(), Box<dyn std::error::Error>>
 
   assert_run_example(example_test_config)
 }
+
 
 #[test]
 fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
