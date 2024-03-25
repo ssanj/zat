@@ -1,6 +1,6 @@
 # Scopes
 
-Scopes allow you to choose when a particular variable or plugin is required. Scopes depend on [choices](choices.md).
+Scopes allow you to choose when a particular variable or plugin is required. Scopes depend on [choices](choices.md). An example of using scopes and choices together can be found in the [Scala 2 multiple test frameworks](https://github.com/ssanj/scala-2-multiple-test-frameworks-zat) Zat template.
 
 
 ## Types of Scopes
