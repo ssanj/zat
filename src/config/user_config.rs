@@ -27,7 +27,7 @@ impl fmt::Display for MenuStyle {
 }
 
 
-// Default to numbered for integration tests
+// Default to numbered as it's easier to test
 impl Default for MenuStyle {
   fn default() -> Self {
     MenuStyle::Numbered

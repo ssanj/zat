@@ -1,6 +1,6 @@
 use crate::config::RepositoryDir;
 use crate::error::{ZatAction, ZatError, ZatResult};
-use crate::args::{ProcessRemoteTemplatesArgs, ProcessTemplatesArgs, UserConfigProvider, ChoiceMenuStyle};
+use crate::args::{ProcessRemoteTemplatesArgs, ProcessTemplatesArgs, UserConfigProvider};
 use crate::logging::Logger;
 use std::process::Command;
 use std::format as s;

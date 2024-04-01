@@ -120,9 +120,8 @@ impl UserConfigProvider for DefaultUserConfigProvider {
         };
 
         let menu_style = match choice_menu_style {
-            Some(ChoiceMenuStyle::Numbered) => MenuStyle::Numbered,
-            Some(ChoiceMenuStyle::Selection) => MenuStyle::Selection,
-            None => MenuStyle::Numbered,
+            ChoiceMenuStyle::Numbered => MenuStyle::Numbered,
+            ChoiceMenuStyle::Selection => MenuStyle::Selection,
         };
 
 
@@ -190,7 +189,7 @@ mod tests {
         target_dir: target_dir_path.clone(),
         ignores,
         verbose: false,
-        choice_menu_style: Some(ChoiceMenuStyle::Numbered)
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;
@@ -239,7 +238,7 @@ mod tests {
         target_dir: target_dir_path.clone(),
         ignores,
         verbose: false,
-        choice_menu_style: Some(ChoiceMenuStyle::Numbered)
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;
@@ -278,7 +277,7 @@ mod tests {
         target_dir: target_dir_path.clone(),
         ignores: vec![],
         verbose: false,
-        choice_menu_style: Some(ChoiceMenuStyle::Numbered)
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;
@@ -309,7 +308,7 @@ mod tests {
         target_dir: target_dir_path.clone(),
         ignores: vec![],
         verbose: false,
-        choice_menu_style: Some(ChoiceMenuStyle::Numbered)
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;
@@ -340,7 +339,7 @@ mod tests {
         target_dir: target_dir_path.clone(),
         ignores: vec![],
         verbose: false,
-        choice_menu_style: Some(ChoiceMenuStyle::Numbered)
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;

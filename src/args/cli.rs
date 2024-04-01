@@ -64,8 +64,8 @@ pub struct ProcessTemplatesArgs {
    pub verbose: bool,
 
    /// Choice menu style
-   #[arg(long, value_enum)]
-   pub choice_menu_style: Option<ChoiceMenuStyle>
+   #[arg(long, value_enum, default_value_t = ChoiceMenuStyle::Selection)]
+   pub choice_menu_style: ChoiceMenuStyle
 }
 
 #[derive(SubArgs, Debug, Clone)]
@@ -98,8 +98,8 @@ pub struct ProcessRemoteTemplatesArgs {
    pub verbose: bool,
 
    /// Choice menu style
-   #[arg(long, value_enum)]
-   pub choice_menu_style: Option<ChoiceMenuStyle>
+   #[arg(long, value_enum, default_value_t = ChoiceMenuStyle::Selection)]
+   pub choice_menu_style: ChoiceMenuStyle
 }
 
 

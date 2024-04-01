@@ -14,10 +14,14 @@ use dialoguer::FuzzySelect;
 pub struct DefaultChoiceRunner;
 
 struct NumberedChoiceStyle;
-struct DialoguerChoiceStyle;
+struct SelectionChoiceStyle;
+
+trait ChoiceStyle {
+  fn get_choice<'a>(variable: &TemplateVariable, items: &'a [&'a Choice]) -> ZatResult<&'a Choice>;
+}
 
 impl ChoiceRunner for DefaultChoiceRunner {
-  fn run_choices(templates: TemplateVariables, _user_config: &UserConfig) -> ZatResult<SelectedChoices> {
+  fn run_choices(templates: TemplateVariables, user_config: &UserConfig) -> ZatResult<SelectedChoices> {
 
     let (choice_variables, other_variables): (Vec<TemplateVariable>, Vec<TemplateVariable>) =
       templates
@@ -32,12 +36,17 @@ impl ChoiceRunner for DefaultChoiceRunner {
         .collect::<Vec<_>>();
 
 
+    let choice_style = match user_config.menu_style {
+        crate::config::user_config::MenuStyle::Numbered => <NumberedChoiceStyle as ChoiceStyle>::get_choice,
+        crate::config::user_config::MenuStyle::Selection => <SelectionChoiceStyle as ChoiceStyle>::get_choice,
+    };
+
     // Ask user to select a single choice
     let user_choices: Vec<(&TemplateVariable, Choice)> =
       choice_refs
         .into_iter()
         .map(|(v, ch)| {
-          NumberedChoiceStyle::get_choice(v, &ch)
+          choice_style(v, &ch)
             .cloned()
             .map(|c| (v, c))
         })
@@ -57,7 +66,32 @@ impl ChoiceRunner for DefaultChoiceRunner {
 }
 
 
+impl ChoiceStyle for NumberedChoiceStyle {
+
+  fn get_choice<'a>(variable: &TemplateVariable, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
+    let mut result = Self::print_menu(variable.prompt.as_str(), items);
+    while let Err(error) = result {
+      let error_message = match error {
+        ChoiceError::CouldNotReadInput(error) => s!("Could not read input: {error}"),
+        ChoiceError::NotANumber(input) => s!("Selection has to be a number: {} is not a number.", input.trim()),
+        ChoiceError::OutOfBounds(index) => s!("Selected index: {} is out of bounds. It should be between 1 - {}", index, items.len())
+      };
+      p!("{}", Red.paint(error_message));
+      p!("press {} to continue", Style::new().underline().paint("ENTER"));
+      let mut char_buf = [0;1];
+      let _ = stdin().read(&mut char_buf);
+      p!();
+      p!();
+      result = Self::print_menu(variable.prompt.as_str(), items);
+    }
+
+    result
+      .map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
+  }
+}
+
 impl NumberedChoiceStyle {
+
   fn print_menu<'a>(prompt: &str, items: &'a [&'a Choice]) -> Result<&'a Choice, ChoiceError> {
     p!("{}", Yellow.paint(prompt));
 
@@ -91,31 +125,10 @@ impl NumberedChoiceStyle {
       })
   }
 
-
-  fn get_choice<'a>(variable: &TemplateVariable, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
-    let mut result = Self::print_menu(variable.prompt.as_str(), items);
-    while let Err(error) = result {
-      let error_message = match error {
-        ChoiceError::CouldNotReadInput(error) => s!("Could not read input: {error}"),
-        ChoiceError::NotANumber(input) => s!("Selection has to be a number: {} is not a number.", input.trim()),
-        ChoiceError::OutOfBounds(index) => s!("Selected index: {} is out of bounds. It should be between 1 - {}", index, items.len())
-      };
-      p!("{}", Red.paint(error_message));
-      p!("press {} to continue", Style::new().underline().paint("ENTER"));
-      let mut char_buf = [0;1];
-      let _ = stdin().read(&mut char_buf);
-      p!();
-      p!();
-      result = Self::print_menu(variable.prompt.as_str(), items);
-    }
-
-    result
-      .map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
-  }
 }
 
 
-impl DialoguerChoiceStyle {
+impl ChoiceStyle for SelectionChoiceStyle {
 
   fn get_choice<'a>(variable: &TemplateVariable, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
 
