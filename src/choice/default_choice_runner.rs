@@ -1,11 +1,8 @@
-use super::{ChoiceRunner, ChoiceError, SelectedChoices};
+use super::{ChoiceRunner, SelectedChoices};
 use crate::error::{ZatError, ZatResult};
 use crate::templates::{Choice, TemplateVariable, TemplateVariables, UserChoiceKey, UserChoiceValue};
 use std::collections::HashMap;
-use std::{format as s, io::Read, println as p};
-use ansi_term::Color::{Yellow, Red};
-use ansi_term::Style;
-use std::io::stdin;
+use std::format as s;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::FuzzySelect;
 
@@ -67,7 +64,7 @@ impl DefaultChoiceRunner {
       .default(0)
       .items(&selections)
       .interact()
-      .map_err(|e| ZatError::generic_error("Could jnot get successful result from choice. ERROR_ID: 1000", e.to_string()))
+      .map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
       .and_then(|index| {
         let err = || ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1001", "Invalid selection index: {index}".to_owned());
         items
