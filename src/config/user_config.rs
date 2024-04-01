@@ -8,8 +8,9 @@ use crate::logging::Lines;
 use std::format as s;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum MenuStyle {
+  #[default] // Allows testing through stdin.
   Numbered,
   Selection
 }
@@ -26,13 +27,6 @@ impl fmt::Display for MenuStyle {
     }
 }
 
-
-// Default to numbered as it's easier to test
-impl Default for MenuStyle {
-  fn default() -> Self {
-    MenuStyle::Numbered
-  }
-}
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct UserConfig {
