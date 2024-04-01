@@ -5,7 +5,34 @@ use super::TemplateFilesDir;
 use super::Filters;
 use super::IgnoredFiles;
 use crate::logging::Lines;
-use std::{format as s};
+use std::format as s;
+use std::fmt;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum MenuStyle {
+  Numbered,
+  Selection
+}
+
+
+impl fmt::Display for MenuStyle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      let label = match self {
+        MenuStyle::Numbered => "numbered",
+        MenuStyle::Selection => "selection",
+      };
+
+      write!(f, "{}", label)
+    }
+}
+
+
+// Default to numbered for integration tests
+impl Default for MenuStyle {
+  fn default() -> Self {
+    MenuStyle::Numbered
+  }
+}
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct UserConfig {
@@ -15,7 +42,8 @@ pub struct UserConfig {
   pub filters: Filters,
   pub ignores: IgnoredFiles,
   pub verbose: bool,
-  pub shell_hook_status: ConfigShellHookStatus
+  pub shell_hook_status: ConfigShellHookStatus,
+  pub menu_style: MenuStyle
 }
 
 impl Lines for UserConfig {
@@ -31,7 +59,8 @@ impl Lines for UserConfig {
         s!("Shell hook file: {}", match self.shell_hook_status {
             ConfigShellHookStatus::NoShellHook => "No shell hook found",
             ConfigShellHookStatus::RunShellHook(_) => "Shell hook found",
-        })
+        }),
+        s!("Menu Style: {}", self.menu_style)
       ]
   }
 }
@@ -52,6 +81,7 @@ impl UserConfig {
       ignores: Default::default(),
       verbose: Default::default(),
       shell_hook_status: Default::default(),
+      menu_style: Default::default()
     }
   }
 }

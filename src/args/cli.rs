@@ -1,4 +1,4 @@
-use clap::{Args as SubArgs, Parser, Subcommand};
+use clap::{Args as SubArgs, Parser, Subcommand, ValueEnum};
 
 /// A simple templating system to prevent copy-pasta overload.
 ///
@@ -37,6 +37,12 @@ pub enum ZatCommand {
   ProcessRemote(ProcessRemoteTemplatesArgs),
 }
 
+#[derive(Debug, Clone, ValueEnum)]
+pub enum ChoiceMenuStyle {
+  Numbered,
+  Selection
+}
+
 #[derive(SubArgs, Debug, Clone)]
 pub struct ProcessTemplatesArgs {
    /// The location of the Zat repository. This should exist.
@@ -55,7 +61,11 @@ pub struct ProcessTemplatesArgs {
 
    /// Verbose debug logging
    #[arg(long)]
-   pub verbose: bool
+   pub verbose: bool,
+
+   /// Choice menu style
+   #[arg(long, value_enum)]
+   pub choice_menu_style: Option<ChoiceMenuStyle>
 }
 
 #[derive(SubArgs, Debug, Clone)]
@@ -85,7 +95,11 @@ pub struct ProcessRemoteTemplatesArgs {
 
    /// Verbose debug logging
    #[arg(long)]
-   pub verbose: bool
+   pub verbose: bool,
+
+   /// Choice menu style
+   #[arg(long, value_enum)]
+   pub choice_menu_style: Option<ChoiceMenuStyle>
 }
 
 

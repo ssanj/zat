@@ -1696,6 +1696,7 @@ dependencies = [
  "assert_cmd",
  "binaryornot",
  "clap",
+ "console",
  "convert_case",
  "dialoguer",
  "dir-diff",
