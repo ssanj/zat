@@ -9,5 +9,6 @@ Welcome to the Zat user manual. This manual will cover some Zat topics in more d
 - [Usage](usage.md)
 - [Getting started](getting-started.md)
 - [Repository structure](repository-structure.md)
-- [Defining a template](defining-a-template.md)
+- [Defining a template](defining-a-template.md);
+- [Other Options](other-options.md)
 - [Caveats](caveats.md)
