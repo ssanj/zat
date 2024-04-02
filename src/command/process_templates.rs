@@ -25,7 +25,7 @@ impl ProcessTemplates {
     VerboseLogger::log_template_variables(&user_config, &template_variables);
 
     // Ask for user choices and separate choices from other variables
-    let SelectedChoices { choices, mut variables } = DefaultChoiceRunner::run_choices(template_variables)?;
+    let SelectedChoices { choices, mut variables } = DefaultChoiceRunner::run_choices(template_variables, &user_config)?;
 
     DefaultChoiceScopeFilter::filter_scopes(&choices, &mut variables);
     VerboseLogger::log_template_variables_after_scope_filter(&user_config, &variables);

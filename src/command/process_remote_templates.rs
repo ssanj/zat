@@ -65,7 +65,8 @@ fn create_process_templates_args(repository_directory: RepositoryDir, process_re
     repository_dir: repository_directory.path().to_owned(),
     target_dir: process_remote_templates_args.target_dir,
     ignores: process_remote_templates_args.ignores,
-    verbose: process_remote_templates_args.verbose
+    verbose: process_remote_templates_args.verbose,
+    choice_menu_style: process_remote_templates_args.choice_menu_style
   }
 }
 

@@ -1,6 +1,8 @@
 
+use crate::config::user_config::MenuStyle;
 use crate::config::ConfigShellHookStatus;
 use crate::error::*;
+use super::ChoiceMenuStyle;
 use super::UserConfigProvider;
 use super::cli::ProcessTemplatesArgs;
 use crate::config::UserConfig;
@@ -96,6 +98,8 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 
     let verbose = args.verbose;
 
+    let choice_menu_style = args.choice_menu_style;
+
     match (repository_dir_exists, template_files_dir_exists, target_dir_exists) {
       (RepositoryDirStatus::DoesNotExist, _, _) => {
         Err(ZatError::template_dir_does_not_exist(repository_dir.path()))
@@ -115,6 +119,12 @@ impl UserConfigProvider for DefaultUserConfigProvider {
           ShellHookStatus::DoesNotExist => ConfigShellHookStatus::NoShellHook
         };
 
+        let menu_style = match choice_menu_style {
+            ChoiceMenuStyle::Numbered => MenuStyle::Numbered,
+            ChoiceMenuStyle::Selection => MenuStyle::Selection,
+        };
+
+
         Ok(
           UserConfig {
             repository_dir,
@@ -123,7 +133,8 @@ impl UserConfigProvider for DefaultUserConfigProvider {
             filters,
             ignores,
             verbose,
-            shell_hook_status
+            shell_hook_status,
+            menu_style
           }
         )
       },
@@ -136,7 +147,7 @@ impl UserConfigProvider for DefaultUserConfigProvider {
 mod tests {
   use std::{vec, collections::HashSet};
 
-  use crate::config::TEMPLATE_FILES_DIR;
+  use crate::{args::cli::ChoiceMenuStyle, config::TEMPLATE_FILES_DIR};
   use super::*;
   use tempfile::TempDir;
   use super::super::test_util::temp_dir_with;
@@ -177,7 +188,8 @@ mod tests {
         repository_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores,
-        verbose: false
+        verbose: false,
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;
@@ -225,7 +237,8 @@ mod tests {
         repository_dir: repository_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores,
-        verbose: false
+        verbose: false,
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;
@@ -263,7 +276,8 @@ mod tests {
         repository_dir: repository_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores: vec![],
-        verbose: false
+        verbose: false,
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;
@@ -293,7 +307,8 @@ mod tests {
         repository_dir: repository_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores: vec![],
-        verbose: false
+        verbose: false,
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;
@@ -323,7 +338,8 @@ mod tests {
         repository_dir: template_dir_path.clone(),
         target_dir: target_dir_path.clone(),
         ignores: vec![],
-        verbose: false
+        verbose: false,
+        choice_menu_style: ChoiceMenuStyle::Numbered
       };
 
     let user_config_provider = DefaultUserConfigProvider;

@@ -11,6 +11,8 @@ pub use cli::ProcessTemplatesArgs;
 pub use cli::BootstrapProjectArgs;
 pub use cli::ProcessRemoteTemplatesArgs;
 pub use arg_supplier::ArgSupplier;
+pub use cli::ChoiceMenuStyle;
+
 use cli::Args;
 
 
