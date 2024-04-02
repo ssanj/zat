@@ -627,7 +627,7 @@ fn run_error_test(error_config: ErrorTestConfig<'_>) -> Result<(), Box<dyn std::
       .arg("--target-dir")
       .arg(&target_directory)
       .arg("--choice-menu-style")
-      .arg("numbered"); // The selection menu style can't be tested through stdin the moment; use numbered which can.
+      .arg("numbered"); // The selection menu style can't be tested through stdin at the moment; use numbered which can.
 
   if let Some(input) = error_config.maybe_input {
     command.write_stdin(stdin(input));

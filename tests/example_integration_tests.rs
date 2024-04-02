@@ -328,7 +328,7 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
     .arg("--target-dir")
     .arg(&target_directory)
     .arg("--choice-menu-style")
-    .arg("numbered"); // The selection menu style can't be tested through stdin the moment; use numbered which can.
+    .arg("numbered"); // The selection menu style can't be tested through stdin at the moment; use numbered which can.
 
     for ig in example_config.ignores {
       cmd
