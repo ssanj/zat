@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::io::{stdin, BufRead};
+use std::io::{stdin, BufRead, Read};
 
 use super::{Plugin, TemplateConfigValidator, TemplateVariable, TemplateVariableReview, ValidConfig};
 use super::{UserVariableValue, UserVariableKey, UserChoiceKey, UserChoiceValue};
@@ -7,7 +7,7 @@ use crate::choice::selected_choices::SelectedChoices;
 use crate::config::UserConfig;
 use crate::error::ZatResult;
 use crate::templates::PluginRunResult;
-use ansi_term::Colour::{Yellow, Green, Blue};
+use ansi_term::Colour::{Yellow, Green, Blue, Red};
 use ansi_term::Style;
 use std::{println as p, format as s};
 use crate::logging::Logger;
@@ -59,20 +59,7 @@ impl UserInputProvider for Cli {
 
     for v in &selected_choices.variables.tokens {
       p!();
-
-      let default_value = Cli::get_default_value(v.default_value.as_deref());
-      let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(v.plugin.as_ref()
-        );
-      let dynamic_value = Cli::get_dynamic_values(default_value.as_deref(), plugin_result_value.as_ref());
-
-        // Ask the user of values for each token
-        match &dynamic_value {
-          DynamicValueType::DefaultValue(dstring, _) => p!("{}{}", Yellow.paint(&v.prompt), dstring),
-          DynamicValueType::PluginValue(pstring, _) => p!("{}{}", Yellow.paint(&v.prompt), pstring),
-          DynamicValueType::Neither => p!("{}", Yellow.paint(&v.prompt)),
-        }
-
-        Cli::read_user_input(&mut token_map, v, &dynamic_value);
+      Cli::get_variable(&mut token_map, v)
     }
 
     Ok(UserInput::new(token_map, selected_choices.choices.clone()))
@@ -160,13 +147,34 @@ impl Cli {
     }
   }
 
+
+  fn get_variable(token_map: &mut HashMap<UserVariableKey, UserVariableValue>, template_variable: &TemplateVariable) {
+    let default_value = Cli::get_default_value(template_variable.default_value.as_deref());
+    let plugin_result_value: Option<PluginRunResult> = Cli::get_plugin_value(template_variable.plugin.as_ref()
+      );
+    let dynamic_value = Cli::get_dynamic_values(default_value.as_deref(), plugin_result_value.as_ref());
+
+      // Ask the user of values for each token
+    Cli::prompt_user_for_variable(token_map, template_variable, &dynamic_value)
+  }
+
+  fn prompt_user_for_variable(token_map: &mut HashMap<UserVariableKey, UserVariableValue>, template_variable: &TemplateVariable, dynamic_value: &DynamicValueType) {
+      // Ask the user of values for each token
+      match &dynamic_value {
+        DynamicValueType::DefaultValue(dstring, _) => p!("{}{}", Yellow.paint(&template_variable.prompt), dstring),
+        DynamicValueType::PluginValue(pstring, _) => p!("{}{}", Yellow.paint(&template_variable.prompt), pstring),
+        DynamicValueType::Neither => p!("{}", Yellow.paint(&template_variable.prompt)),
+      }
+
+      Cli::read_user_input(token_map, template_variable, dynamic_value)
+  }
+
+
   fn read_user_input(token_map: &mut HashMap<UserVariableKey, UserVariableValue>, template_variable: &TemplateVariable, dynamic_value: &DynamicValueType) {
-
     let mut variable_value = String::new();
-
     if let Ok(read_count) = stdin().read_line(&mut variable_value) {
       if read_count > 0 { // Read at least one character
-        let _ = variable_value.pop(); // Remove newline //TODO: trim here
+        variable_value = variable_value.trim().to_owned();
         if !variable_value.is_empty() { // User entered a value
           token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(variable_value));
         } else { // User pressed enter
@@ -177,12 +185,25 @@ impl Cli {
             DynamicValueType::PluginValue(_, pvalue) => { // Plugin value
               token_map.insert(UserVariableKey::new(template_variable.variable_name.clone()), UserVariableValue::new(pvalue.to_owned()));
             },
-            // TODO: This allows us to skip entering values for a variable. We should ask for the input again.
-            DynamicValueType::Neither => (), // No plugin or default value, so do nothing
+            DynamicValueType::Neither => {
+              Cli::show_missing_input_error(template_variable);
+              Cli::prompt_user_for_variable(token_map, template_variable, dynamic_value)
+            },
           }
         }
       }
     }
+  }
+
+
+  fn show_missing_input_error(template_variable: &TemplateVariable) {
+    let error_message = s!("Please enter a value for '{}'", template_variable.description);
+    p!("{}", Red.paint(error_message));
+    p!("press {} to continue", Style::new().underline().paint("ENTER"));
+    let mut char_buf = [0;1];
+    let _ = stdin().read(&mut char_buf);
+    p!();
+    p!()
   }
 
   fn get_default_value(opt_default_value: Option<&str>) -> Option<String> {
