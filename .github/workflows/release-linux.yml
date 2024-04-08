@@ -33,6 +33,7 @@ jobs:
       run: |
         rustc -Vv
         cargo -V
+        ls -l target/release
         cargo build --release --target ${{ matrix.target }}
         ZAT_VERSION=$(target/release/zat -V | cut -d' ' -f2)
         echo "ARTIFACT_NAME=target/release/zat" >> "$GITHUB_ENV"
