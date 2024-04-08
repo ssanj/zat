@@ -33,7 +33,7 @@ jobs:
       run: |
         rustc -Vv
         cargo -V
-        echo "$CWD"
+        echo "$PWD"
         ls -l target/
         cargo build --release --target ${{ matrix.target }}
         ZAT_VERSION=$(target/release/zat -V | cut -d' ' -f2)
