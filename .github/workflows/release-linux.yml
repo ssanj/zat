@@ -35,7 +35,7 @@ jobs:
         cargo -V
         echo "$PWD"
         cargo build --release --target ${{ matrix.target }}  --target-dir "$PWD/target"
-        ls -l "$PWD/target/"
+        ls -l "$PWD/target/${{ matrix.target }}"
         ZAT_VERSION=$(target/release/zat -V | cut -d' ' -f2)
         echo "ARTIFACT_NAME=target/release/zat" >> "$GITHUB_ENV"
         echo "RELEASE_ARTIFACT_NAME=target/release/zat-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
