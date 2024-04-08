@@ -36,7 +36,7 @@ jobs:
       run: |
         rustc -Vv
         cargo -V
-        cargo build --release --target ${{ matrix.target }}
+        cargo build --release --target ${{ matrix.target }} --target-dir target
         echo "$PWD"
         ls -l target/
         ZAT_VERSION=$(target/release/zat -V | cut -d' ' -f2)
