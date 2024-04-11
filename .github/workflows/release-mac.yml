@@ -63,7 +63,7 @@ jobs:
         echo "ARTIFACT_NAME=$RELEASE_EXEC" >> "$GITHUB_ENV"
         echo "RELEASE_ARTIFACT_NAME=$RELEASE_EXEC-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
 
-    - name: copy-artifact
+    - name: Copy Artifact
       id: copy-artifact
       run: |
         echo "RELEASE_ARTIFACT_NAME: $RELEASE_ARTIFACT_NAME"
@@ -81,16 +81,19 @@ jobs:
         echo "ZAT_VERSION: $ZAT_VERSION"
         echo "PWD: $PWD"
 
-    - name: Download new source
+    - name: Download Source and SHA256
       run: |
         curl -L -o "$ZAT_VERSION.tar.gz" "https://github.com/ssanj/zat/archive/refs/tags/v$ZAT_VERSION.tar.gz"
         ZAT_SHA256=$(openssl sha256 < "$ZAT_VERSION.tar.gz")
-        echo "ZAT_SHA256: $ZAT_SHA256"
+        echo "ZAT_SHA256=$ZAT_SHA256" >> "$GITHUB_ENV"
 
     - name: Generate Homebrew Formula
       run: |
         cd "$PWD/homebrew-zat"
         cat templates/zat.rb.template | sed "s/\$VERSION/$ZAT_VERSION/g" | sed "s/\$SHA256/$ZAT_SHA256/g" > zat.rb
         cat zat.rb
-        git diff
-
+        BRANCH="version_$ZAT_VERSION"
+        git checkout -b "$BRANCH"
+        git add .
+        git commit -m"Update to Zat version $ZAT_VERSION"
+        git push origin "$BRANCH"

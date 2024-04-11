@@ -13,8 +13,7 @@ jobs:
       matrix:
         os: [macos-12, macos-13]
         target: [
-          x86_64-apple-darwin,
-          aarch64-apple-darwin,
+          x86_64-apple-darwin
         ]
 
     steps:
