@@ -50,6 +50,7 @@ jobs:
         rustc -Vv
         cargo -V
         ZAT_DIR="$PWD/zat"
+        cd "$ZAT_DIR"
         cargo build --release --target ${{ matrix.target }} --target-dir "$ZAT_DIR/target"
         RELEASE_DIR="$ZAT_DIR/target/${{ matrix.target }}/release"
         RELEASE_EXEC="$RELEASE_DIR/zat"
