@@ -32,6 +32,11 @@ jobs:
         repository: ssanj/homebrew-zat
         path: homebrew-zat
 
+    - name: Echo Paths
+      run: |
+        echo "$PWD:"
+        ls -l "$PWD"
+
       # Run build
     # - name: install rustup
     #   run: |
