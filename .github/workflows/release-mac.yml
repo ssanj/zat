@@ -84,7 +84,7 @@ jobs:
     - name: Download Source and SHA256
       run: |
         curl -L -o "$ZAT_VERSION.tar.gz" "https://github.com/ssanj/zat/archive/refs/tags/v$ZAT_VERSION.tar.gz"
-        ZAT_SHA256=$(openssl sha256 < "$ZAT_VERSION.tar.gz")
+        ZAT_SHA256=$(openssl sha256 < "$ZAT_VERSION.tar.gz") | cut -d' ' -f2
         echo "ZAT_SHA256=$ZAT_SHA256" >> "$GITHUB_ENV"
 
     - name: Generate Homebrew Formula
@@ -96,4 +96,4 @@ jobs:
         git checkout -b "$BRANCH"
         git add .
         git commit -m"Update to Zat version $ZAT_VERSION"
-        git push origin "$BRANCH"
+        # git push origin "$BRANCH"
