@@ -87,15 +87,9 @@ jobs:
         ZAT_SHA256=$(openssl sha256 < "$ZAT_VERSION.tar.gz")
         echo "ZAT_SHA256: $ZAT_SHA256"
 
-    # - name: Generate Homebrew Formula
-    #   uses: cuchi/jinja2-action@v1.2.2
-    #   with:
-    #     template: infra/nginx.conf.j2
-    #     output_file: infra/nginx.conf
-    #     strict: true
-    #     variables: |
-    #       ZAT_VERSION=$ZAT_VERSION
-    #       timeout=30s
-
-
+    - name: Generate Homebrew Formula
+      run: |
+        cd "$PWD/homebrew-zat"
+        cat templates/zat.rb.template | sed "s/\$VERSION/$ZAT_VERSION/g" | sed "s/\$SHA256/SHA256/g" > zat2.rb
+        cat zat2.rb
 
