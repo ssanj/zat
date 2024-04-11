@@ -58,7 +58,7 @@ jobs:
         echo "RELEASE_EXEC: $RELEASE_EXEC"
         # ZAT_VERSION=$($RELEASE_EXEC -V | cut -d' ' -f2)
         # TODO: Fix to use actual version
-        # ZAT_VERSION="0.11.10"
+        ZAT_VERSION="0.11.10"
         echo "ZAT_VERSION=$ZAT_VERSION" >> "$GITHUB_ENV"
         echo "ARTIFACT_NAME=$RELEASE_EXEC" >> "$GITHUB_ENV"
         echo "RELEASE_ARTIFACT_NAME=$RELEASE_EXEC-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
