@@ -61,16 +61,17 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: ssanj/homebrew-zat
+        path: homebrew-zat
 
-    - name: Generate Homebrew Formula
-      uses: cuchi/jinja2-action@v1.2.2
-      with:
-        template: infra/nginx.conf.j2
-        output_file: infra/nginx.conf
-        strict: true
-        variables: |
-          server_host=staging.example.com
-          timeout=30s
+    # - name: Generate Homebrew Formula
+    #   uses: cuchi/jinja2-action@v1.2.2
+    #   with:
+    #     template: infra/nginx.conf.j2
+    #     output_file: infra/nginx.conf
+    #     strict: true
+    #     variables: |
+    #       server_host=staging.example.com
+    #       timeout=30s
 
 
 
