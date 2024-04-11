@@ -56,7 +56,9 @@ jobs:
         RELEASE_EXEC="$RELEASE_DIR/zat"
         echo "RELEASE_DIR: $RELEASE_DIR"
         echo "RELEASE_EXEC: $RELEASE_EXEC"
-        ZAT_VERSION=$($RELEASE_EXEC -V | cut -d' ' -f2)
+        # ZAT_VERSION=$($RELEASE_EXEC -V | cut -d' ' -f2)
+        # TODO: Fix to use actual version
+        # ZAT_VERSION="0.11.10"
         echo "ZAT_VERSION=$ZAT_VERSION" >> "$GITHUB_ENV"
         echo "ARTIFACT_NAME=$RELEASE_EXEC" >> "$GITHUB_ENV"
         echo "RELEASE_ARTIFACT_NAME=$RELEASE_EXEC-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
@@ -77,7 +79,13 @@ jobs:
     - name: Echo Parts
       run: |
         echo "ZAT_VERSION: $ZAT_VERSION"
+        echo "PWD: $PWD"
 
+    - name: Download new source
+      run: |
+        curl -L -o "$ZAT_VERSION.tar.gz" "https://github.com/ssanj/zat/archive/refs/tags/v$ZAT_VERSION.tar.gz"
+        ZAT_SHA256=$(openssl sha256 < "$ZAT_VERSION.tar.gz")
+        echo "ZAT_SHA256: $ZAT_SHA256"
 
     # - name: Generate Homebrew Formula
     #   uses: cuchi/jinja2-action@v1.2.2
