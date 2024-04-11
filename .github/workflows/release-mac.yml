@@ -21,8 +21,16 @@ jobs:
         ]
 
     steps:
-    - name: checkout
+    - name: Checkout zat
       uses: actions/checkout@v4
+      with:
+        path: zat
+
+    - name: Checkout homebrew-zat
+      uses: actions/checkout@v4
+      with:
+        repository: ssanj/homebrew-zat
+        path: homebrew-zat
 
       # Run build
     # - name: install rustup
@@ -57,11 +65,6 @@ jobs:
     #     token: ${{ secrets.GITHUB_TOKEN }}
     #     files: ${{ env.RELEASE_ARTIFACT_NAME }}
 
-    - name: checkout
-      uses: actions/checkout@v4
-      with:
-        repository: ssanj/homebrew-zat
-        path: homebrew-zat
 
     # - name: Generate Homebrew Formula
     #   uses: cuchi/jinja2-action@v1.2.2
