@@ -26,17 +26,6 @@ jobs:
       with:
         path: zat
 
-    - name: Checkout homebrew-zat
-      uses: actions/checkout@v4
-      with:
-        repository: ssanj/homebrew-zat
-        path: homebrew-zat
-
-    - name: Echo Paths
-      run: |
-        echo "$PWD:"
-        ls -l "$PWD"
-
       # Run build
     - name: install rustup
       run: |
@@ -76,6 +65,18 @@ jobs:
     #     token: ${{ secrets.GITHUB_TOKEN }}
     #     files: ${{ env.RELEASE_ARTIFACT_NAME }}
 
+    - name: Checkout homebrew-zat
+      uses: actions/checkout@v4
+      with:
+        repository: ssanj/homebrew-zat
+        path: homebrew-zat
+        token: ${{ secrets.HOMEBREW_ZAT }}
+
+    - name: Echo Paths
+      run: |
+        echo "$PWD:"
+        ls -l "$PWD"
+
     - name: Echo Parts
       run: |
         echo "ZAT_VERSION: $ZAT_VERSION"
@@ -97,4 +98,4 @@ jobs:
         git checkout -b "$BRANCH"
         git add .
         git commit -m"Update to Zat version $ZAT_VERSION"
-        # git push origin "$BRANCH"
+        git push origin "$BRANCH"
