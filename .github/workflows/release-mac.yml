@@ -38,37 +38,44 @@ jobs:
         ls -l "$PWD"
 
       # Run build
-    # - name: install rustup
-    #   run: |
-    #     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh
-    #     sh rustup-init.sh -y --default-toolchain none
-    #     rustup target add ${{ matrix.target }}
-    # - name: build
-    #   id: release-build
-    #   run: |
-    #     rustc -Vv
-    #     cargo -V
-    #     cargo build --release --target ${{ matrix.target }} --target-dir "$PWD/target"
-    #     RELEASE_DIR="$PWD/target/${{ matrix.target }}/release"
-    #     RELEASE_EXEC="$RELEASE_DIR/zat"
-    #     echo "RELEASE_DIR: $RELEASE_DIR"
-    #     echo "RELEASE_EXEC: $RELEASE_EXEC"
-    #     ZAT_VERSION=$($RELEASE_EXEC -V | cut -d' ' -f2)
-    #     echo "ARTIFACT_NAME=$RELEASE_EXEC" >> "$GITHUB_ENV"
-    #     echo "RELEASE_ARTIFACT_NAME=$RELEASE_EXEC-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
+    - name: install rustup
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh
+        sh rustup-init.sh -y --default-toolchain none
+        rustup target add ${{ matrix.target }}
 
-    # - name: copy-artifact
-    #   id: copy-artifact
-    #   run: |
-    #     echo "RELEASE_ARTIFACT_NAME: $RELEASE_ARTIFACT_NAME"
-    #     echo "ARTIFACT_NAME: $ARTIFACT_NAME"
-    #     cp "$ARTIFACT_NAME" "$RELEASE_ARTIFACT_NAME"
+    - name: build
+      id: release-build
+      run: |
+        rustc -Vv
+        cargo -V
+        ZAT_DIR="$PWD/zat"
+        cargo build --release --target ${{ matrix.target }} --target-dir "$ZAT_DIR/target"
+        RELEASE_DIR="$ZAT_DIR/target/${{ matrix.target }}/release"
+        RELEASE_EXEC="$RELEASE_DIR/zat"
+        echo "RELEASE_DIR: $RELEASE_DIR"
+        echo "RELEASE_EXEC: $RELEASE_EXEC"
+        ZAT_VERSION=$($RELEASE_EXEC -V | cut -d' ' -f2)
+        echo "ZAT_VERSION=$ZAT_VERSION" >> "$GITHUB_ENV"
+        echo "ARTIFACT_NAME=$RELEASE_EXEC" >> "$GITHUB_ENV"
+        echo "RELEASE_ARTIFACT_NAME=$RELEASE_EXEC-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
+
+    - name: copy-artifact
+      id: copy-artifact
+      run: |
+        echo "RELEASE_ARTIFACT_NAME: $RELEASE_ARTIFACT_NAME"
+        echo "ARTIFACT_NAME: $ARTIFACT_NAME"
+        cp "$ARTIFACT_NAME" "$RELEASE_ARTIFACT_NAME"
 
     # - uses: softprops/action-gh-release@v1
     #   if: startsWith(github.ref, 'refs/tags/')
     #   with:
     #     token: ${{ secrets.GITHUB_TOKEN }}
     #     files: ${{ env.RELEASE_ARTIFACT_NAME }}
+
+    - name: Echo Parts
+      run: |
+        echo "ZAT_VERSION: $ZAT_VERSION"
 
 
     # - name: Generate Homebrew Formula
@@ -78,7 +85,7 @@ jobs:
     #     output_file: infra/nginx.conf
     #     strict: true
     #     variables: |
-    #       server_host=staging.example.com
+    #       ZAT_VERSION=$ZAT_VERSION
     #       timeout=30s
 
 
