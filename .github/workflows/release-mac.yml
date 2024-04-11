@@ -90,6 +90,7 @@ jobs:
     - name: Generate Homebrew Formula
       run: |
         cd "$PWD/homebrew-zat"
-        cat templates/zat.rb.template | sed "s/\$VERSION/$ZAT_VERSION/g" | sed "s/\$SHA256/SHA256/g" > zat2.rb
-        cat zat2.rb
+        cat templates/zat.rb.template | sed "s/\$VERSION/$ZAT_VERSION/g" | sed "s/\$SHA256/$SHA256/g" > zat.rb
+        cat zat.rb
+        git diff
 
