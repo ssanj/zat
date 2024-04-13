@@ -1,12 +1,8 @@
 name: mac release
 on:
   push:
-    branches:
-      - "fix-release-targets"
-
-  # push:
-    # tags:
-      # - "v*"
+    tags:
+      - "v*"
 
 jobs:
   release:
@@ -58,7 +54,7 @@ jobs:
         cp "$ARTIFACT_NAME" "$RELEASE_ARTIFACT_NAME"
 
     - uses: softprops/action-gh-release@v1
-      # if: startsWith(github.ref, 'refs/tags/')
+      if: startsWith(github.ref, 'refs/tags/')
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         files: ${{ env.RELEASE_ARTIFACT_NAME }}
