@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         target: [
-          x86_64-unknown-linux-gnu,
+          x86_64-unknown-linux-gnu
         ]
 
     steps:
