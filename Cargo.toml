@@ -1,6 +1,6 @@
 [package]
 name = "zat"
-version = "0.11.11-1-test"
+version = "0.11.12"
 edition = "2021"
 authors = ["Sanj Sahayam"]
 

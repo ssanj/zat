@@ -1,10 +1,8 @@
 name: linux release
 on:
   push:
-    branches:
-      - "fix-release-targets"
-    # tags:
-      # - "v*"
+    tags:
+      - "v*"
 
 jobs:
   release:
@@ -19,11 +17,11 @@ jobs:
         ]
 
     steps:
-    - name: checkout
+    - name: Checkout zat
       uses: actions/checkout@v4
 
       # Run build
-    - name: install rustup
+    - name: Install rustup
       run: |
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh
         sh rustup-init.sh -y --default-toolchain none
@@ -43,7 +41,7 @@ jobs:
         echo "ARTIFACT_NAME=$RELEASE_EXEC" >> "$GITHUB_ENV"
         echo "RELEASE_ARTIFACT_NAME=$RELEASE_EXEC-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
 
-    - name: copy-artifact
+    - name: Copy Artifact
       id: copy-artifact
       run: |
         echo "RELEASE_ARTIFACT_NAME: $RELEASE_ARTIFACT_NAME"
