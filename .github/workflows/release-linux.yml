@@ -13,15 +13,15 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         target: [
-          x86_64-unknown-linux-gnu,
+          x86_64-unknown-linux-gnu
         ]
 
     steps:
-    - name: checkout
+    - name: Checkout zat
       uses: actions/checkout@v4
 
       # Run build
-    - name: install rustup
+    - name: Install rustup
       run: |
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh
         sh rustup-init.sh -y --default-toolchain none
@@ -31,12 +31,17 @@ jobs:
       run: |
         rustc -Vv
         cargo -V
-        cargo build --release
-        ZAT_VERSION=$(target/release/zat -V | cut -d' ' -f2)
-        echo "ARTIFACT_NAME=target/release/zat" >> "$GITHUB_ENV"
-        echo "RELEASE_ARTIFACT_NAME=target/release/zat-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
+        echo "$PWD"
+        cargo build --release --target ${{ matrix.target }}  --target-dir "$PWD/target"
+        RELEASE_DIR="$PWD/target/${{ matrix.target }}/release"
+        RELEASE_EXEC="$RELEASE_DIR/zat"
+        echo "RELEASE_DIR: $RELEASE_DIR"
+        echo "RELEASE_EXEC: $RELEASE_EXEC"
+        ZAT_VERSION=$($RELEASE_EXEC -V | cut -d' ' -f2)
+        echo "ARTIFACT_NAME=$RELEASE_EXEC" >> "$GITHUB_ENV"
+        echo "RELEASE_ARTIFACT_NAME=$RELEASE_EXEC-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
 
-    - name: copy-artifact
+    - name: Copy Artifact
       id: copy-artifact
       run: |
         echo "RELEASE_ARTIFACT_NAME: $RELEASE_ARTIFACT_NAME"

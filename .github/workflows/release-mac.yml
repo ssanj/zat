@@ -11,33 +11,42 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-12, macos-13]
+        os: [macos-latest]
         target: [
-          x86_64-apple-darwin,
-          aarch64-apple-darwin,
+          x86_64-apple-darwin
         ]
 
     steps:
-    - name: checkout
+    - name: Checkout zat
       uses: actions/checkout@v4
+      with:
+        path: zat
 
       # Run build
-    - name: install rustup
+    - name: Install rustup
       run: |
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup-init.sh
         sh rustup-init.sh -y --default-toolchain none
         rustup target add ${{ matrix.target }}
-    - name: build
+
+    - name: Build
       id: release-build
       run: |
         rustc -Vv
         cargo -V
-        cargo build --release
-        ZAT_VERSION=$(target/release/zat -V | cut -d' ' -f2)
-        echo "ARTIFACT_NAME=target/release/zat" >> "$GITHUB_ENV"
-        echo "RELEASE_ARTIFACT_NAME=target/release/zat-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
+        ZAT_DIR="$PWD/zat"
+        cd "$ZAT_DIR"
+        cargo build --release --target ${{ matrix.target }} --target-dir "$ZAT_DIR/target"
+        RELEASE_DIR="$ZAT_DIR/target/${{ matrix.target }}/release"
+        RELEASE_EXEC="$RELEASE_DIR/zat"
+        echo "RELEASE_DIR: $RELEASE_DIR"
+        echo "RELEASE_EXEC: $RELEASE_EXEC"
+        ZAT_VERSION=$($RELEASE_EXEC -V | cut -d' ' -f2)
+        echo "ZAT_VERSION=$ZAT_VERSION" >> "$GITHUB_ENV"
+        echo "ARTIFACT_NAME=$RELEASE_EXEC" >> "$GITHUB_ENV"
+        echo "RELEASE_ARTIFACT_NAME=$RELEASE_EXEC-$ZAT_VERSION-${{ matrix.os }}-${{ matrix.target }}" >> "$GITHUB_ENV"
 
-    - name: copy-artifact
+    - name: Copy Artifact
       id: copy-artifact
       run: |
         echo "RELEASE_ARTIFACT_NAME: $RELEASE_ARTIFACT_NAME"
@@ -49,3 +58,38 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         files: ${{ env.RELEASE_ARTIFACT_NAME }}
+
+    - name: Checkout homebrew-zat
+      uses: actions/checkout@v4
+      with:
+        repository: ssanj/homebrew-zat
+        path: homebrew-zat
+        token: ${{ secrets.HOMEBREW_ZAT }}
+
+    - name: Echo Paths
+      run: |
+        echo "$PWD:"
+        ls -l "$PWD"
+
+    - name: Echo Parts
+      run: |
+        echo "ZAT_VERSION: $ZAT_VERSION"
+        echo "PWD: $PWD"
+
+    - name: Download Source and SHA256
+      run: |
+        curl -L -o "$ZAT_VERSION.tar.gz" "https://github.com/ssanj/zat/archive/refs/tags/v$ZAT_VERSION.tar.gz"
+        ZAT_SHA256=$(openssl sha256 < "$ZAT_VERSION.tar.gz"  | cut -d' ' -f2)
+        echo "ZAT_SHA256: $ZAT_SHA256"
+        echo "ZAT_SHA256=$ZAT_SHA256" >> "$GITHUB_ENV"
+
+    - name: Generate Homebrew Formula
+      run: |
+        cd "$PWD/homebrew-zat"
+        cat templates/zat.rb.template | sed "s/\$VERSION/$ZAT_VERSION/g" | sed "s/\$SHA256/$ZAT_SHA256/g" > zat.rb
+        cat zat.rb
+        BRANCH="version_$ZAT_VERSION"
+        git checkout -b "$BRANCH"
+        git add .
+        git commit -m"Update to Zat version $ZAT_VERSION"
+        git push origin "$BRANCH"
