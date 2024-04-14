@@ -80,7 +80,7 @@ Copy binary file from target/release/zat to a directory on your PATH.
 
 ### Using Homebrew
 
-You can use [Homebrew](https://brew.sh/) to build Zat from source on macOSX and Linux:
+You can use [Homebrew](https://brew.sh/) to install Zat from source on macOSX and Linux:
 
 ```
 brew tap ssanj/homebrew-zat
