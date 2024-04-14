@@ -47,14 +47,14 @@ zat bootstrap --repository-dir <ZAT_REPOSITORY>
 
 ### Downloading a Release
 
-Download the latest [release](https://github.com/ssanj/zat/releases) for your operating system (linux or macos).
+Download the latest [release](https://github.com/ssanj/zat/releases) for your operating system (Linux or macOSX).
 Make it executable with:
 
 `chmod +x <ZAT_EXEC>`
 
 Copy executable to a directory on your path.
 
-Note: Windows is not explicitly supported at this time as I don't use Windows myself. If you install Zat on Windows and have any problems please raise an issue.
+Note: Windows is not explicitly supported at this time as I don't use Windows myself. If you want Windows support and can help with the implementation and testing, get in touch.
 
 
 ### Building through Cargo
@@ -78,5 +78,16 @@ cargo build --release
 Copy binary file from target/release/zat to a directory on your PATH.
 ```
 
-See the [User Manual](docs/user-manual/user-manual.md) for more information.
+### Using Homebrew
+
+You can use [Homebrew](https://brew.sh/) to build Zat from source on macOSX and Linux:
+
+```
+brew tap ssanj/homebrew-zat
+brew install zat
+```
+
+See [Taps](https://docs.brew.sh/Taps) for more information on taps.
+
+Continue onto the [User Manual](docs/user-manual/user-manual.md) for more detailed information on Zat.
 
