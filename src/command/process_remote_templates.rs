@@ -2,15 +2,28 @@ use crate::config::RepositoryDir;
 use crate::error::{zat_error, ZatAction, ZatError, ZatResult};
 use crate::args::{ProcessRemoteTemplatesArgs, ProcessTemplatesArgs, RemoteRepositoryLocation, UserConfigProvider};
 use crate::logging::Logger;
+use std::io::BufReader;
 use std::process::Command;
 use std::format as s;
+use serde::Deserialize;
 use tempfile::TempDir;
 use url::Url;
-use std::fs;
+use std::fs::{self, File};
 use super::ProcessTemplates;
 
 
 pub struct ProcessRemoteTemplates;
+
+
+#[derive(Debug, Deserialize)]
+struct RemoteConfig {
+  name: String,
+  desc: String,
+  url: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct RemoteConfigFile(Vec<RemoteConfig>);
 
 
 impl ProcessRemoteTemplates {
@@ -19,12 +32,7 @@ impl ProcessRemoteTemplates {
     let RemoteRepositoryLocation { repository_url, repository_file } = &process_remote_template_args.repository_location;
 
     let remote_url = match (repository_url, repository_file) {
-      (None, Some(remote_config)) => {
-        // Load json from file
-        // Show list to user
-        // Use item selected by user as remote url
-        panic!("loading repository config file from {}", remote_config.to_string_lossy())
-      },
+      (None, Some(remote_config)) => get_remote_url_from_config_file(remote_config),
       (Some(remote_url), None) => remote_url,
       _ => return Err(ZatError::remote_command_argument_error()), // This should theoretically be prevented by clap
     };
@@ -71,6 +79,19 @@ impl ProcessRemoteTemplates {
         checkout_dir
       })
   }
+}
+
+fn get_remote_url_from_config_file(remote_config: &std::path::Path) -> &String {
+  // TODO: Add better error handling
+  let file = File::open(remote_config).unwrap();
+  let reader = BufReader::new(file);
+
+  // TODO: Add better error handling
+  let json: RemoteConfigFile = serde_json::from_reader(reader).unwrap();
+  println!("json: {json:#?}");
+  // Show list to user
+  // Use item selected by user as remote url
+  panic!("loading repository config file from {}", remote_config.to_string_lossy())
 }
 
 fn create_process_templates_args(repository_directory: RepositoryDir, process_remote_templates_args: ProcessRemoteTemplatesArgs) -> ProcessTemplatesArgs {
