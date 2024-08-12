@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Args as SubArgs, Parser, Subcommand, ValueEnum};
 
 /// A simple templating system to prevent copy-pasta overload.
@@ -80,8 +82,8 @@ pub struct BootstrapProjectArgs {
 pub struct ProcessRemoteTemplatesArgs {
 
   /// Remote http(s) URL of a Git repository.
-  #[arg(long)]
-  pub repository_url: String,
+  #[command(flatten)]
+  pub repository_location: RemoteRepositoryLocation,
 
    /// Where to extract the template to. This should directory should not exist.
    #[arg(long)]
@@ -100,6 +102,18 @@ pub struct ProcessRemoteTemplatesArgs {
    /// Choice menu style
    #[arg(long, value_enum, default_value_t = ChoiceMenuStyle::Selection)]
    pub choice_menu_style: ChoiceMenuStyle
+}
+
+#[derive(Debug, Clone, SubArgs)]
+#[group(required = true, multiple = false)]
+pub struct RemoteRepositoryLocation {
+  /// Remote http(s) URL of a Git repository.
+  #[arg(long)]
+  pub repository_url: Option<String>,
+
+  /// Config file with remote Git repositories
+  #[arg(long)]
+  pub repository_file: Option<PathBuf>,
 }
 
 

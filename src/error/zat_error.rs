@@ -401,6 +401,16 @@ impl ZatError {
     )
   }
 
+  // TODO: Test
+  pub fn remote_command_argument_error() -> ZatError {
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::InvalidArgumentError(
+        "Zat remote needs one of --repository-url or --repository-file. None or both were supplied".to_owned(),
+        "Please call Zat with one of --repository-url or --repository-file".to_owned()
+      )
+    )
+  }
+
 
   // -------------------------------------------------------------------------------------------------------------------
   // Plugin Errors

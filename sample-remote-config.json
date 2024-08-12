@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Basic Rust Cli",
+    "desc": "A longer description",
+    "url": "https://..."
+  },
+  {
+    "name": "Sublime Text Project",
+    "desc": "Use if you want to create a Sublime Text Plugin",
+    "url": "https://..."
+  }
+]
