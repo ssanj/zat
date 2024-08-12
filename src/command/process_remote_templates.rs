@@ -4,7 +4,9 @@ use crate::args::{ProcessRemoteTemplatesArgs, ProcessTemplatesArgs, RemoteReposi
 use crate::logging::Logger;
 use std::io::BufReader;
 use std::process::Command;
-use std::format as s;
+use std::{fmt, format as s};
+use dialoguer::theme::ColorfulTheme;
+use dialoguer::FuzzySelect;
 use serde::Deserialize;
 use tempfile::TempDir;
 use url::Url;
@@ -15,10 +17,10 @@ use super::ProcessTemplates;
 pub struct ProcessRemoteTemplates;
 
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct RemoteConfig {
   name: String,
-  desc: String,
+  description: String,
   url: String,
 }
 
@@ -26,22 +28,45 @@ struct RemoteConfig {
 struct RemoteConfigFile(Vec<RemoteConfig>);
 
 
+#[derive(Debug, Clone)]
+enum RemoteRepositoryChoice {
+  Repository(RemoteConfig),
+  Quit
+}
+
+impl fmt::Display for RemoteRepositoryChoice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      let item = match self {
+        RemoteRepositoryChoice::Repository(RemoteConfig { name, description, url }) => format!("{name} - ({description})"),
+        RemoteRepositoryChoice::Quit => "Quit".to_owned(),
+      };
+
+      write!(f, "{}", item)
+    }
+}
+
 impl ProcessRemoteTemplates {
 
   pub fn process_remote(config_provider: impl UserConfigProvider, process_remote_template_args : ProcessRemoteTemplatesArgs) -> ZatAction {
     let RemoteRepositoryLocation { repository_url, repository_file } = &process_remote_template_args.repository_location;
 
     let remote_url = match (repository_url, repository_file) {
-      (None, Some(remote_config)) => get_remote_url_from_config_file(remote_config),
-      (Some(remote_url), None) => remote_url,
+      (None, Some(remote_config)) => {
+        let remote_choice = get_remote_url_from_config_file(remote_config)?;
+        match remote_choice {
+          RemoteRepositoryChoice::Repository(remote_config) => remote_config.url,
+          RemoteRepositoryChoice::Quit => return Ok(())
+        }
+      },
+      (Some(remote_url), None) => remote_url.to_owned(),
       _ => return Err(ZatError::remote_command_argument_error()), // This should theoretically be prevented by clap
     };
 
-    let checkout_directory: TempDir = Self::create_checkout_directory(remote_url)?;
+    let checkout_directory: TempDir = Self::create_checkout_directory(&remote_url)?;
 
     let checkout_directory_path = checkout_directory.path().to_string_lossy().to_string();
     let repository_directory = RepositoryDir::new(&checkout_directory_path);
-    clone_git_repository(remote_url, &repository_directory)?;
+    clone_git_repository(&remote_url, &repository_directory)?;
 
     // Invoke the regular ProcessTemplates::process at this point
     let process_template_args = create_process_templates_args(repository_directory, process_remote_template_args);
@@ -81,17 +106,45 @@ impl ProcessRemoteTemplates {
   }
 }
 
-fn get_remote_url_from_config_file(remote_config: &std::path::Path) -> &String {
+fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile) -> ZatResult<RemoteRepositoryChoice> {
+
+  let mut selections =
+    remote_config_file
+      .0
+      .iter()
+      .map(|v| RemoteRepositoryChoice::Repository(v.clone()))
+      .collect::<Vec<_>>();
+
+    selections.push(RemoteRepositoryChoice::Quit);
+
+    FuzzySelect::with_theme(&ColorfulTheme::default())
+      .with_prompt("Select remote repository:")
+      .default(0)
+      .items(&selections)
+      .interact()
+      .map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
+      .and_then(|index| {
+        let err = || ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1001", "Invalid selection index: {index}".to_owned());
+          selections
+            .get(index)
+            .cloned()
+            .ok_or_else(err)
+      })
+  }
+
+fn get_remote_url_from_config_file(remote_config: &std::path::Path) -> ZatResult<RemoteRepositoryChoice> {
   // TODO: Add better error handling
   let file = File::open(remote_config).unwrap();
   let reader = BufReader::new(file);
 
   // TODO: Add better error handling
-  let json: RemoteConfigFile = serde_json::from_reader(reader).unwrap();
-  println!("json: {json:#?}");
-  // Show list to user
+  let remote_config_file = serde_json::from_reader(reader).unwrap();
+
+  // TODO: Print out in verbose mode
+  // println!("json: {json:#?}");
+  let user_selected_remote = get_remote_selection_from_user(remote_config_file)?;
   // Use item selected by user as remote url
-  panic!("loading repository config file from {}", remote_config.to_string_lossy())
+  panic!("loading repository config file from {:?}", user_selected_remote)
 }
 
 fn create_process_templates_args(repository_directory: RepositoryDir, process_remote_templates_args: ProcessRemoteTemplatesArgs) -> ProcessTemplatesArgs {
