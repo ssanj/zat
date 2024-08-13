@@ -120,7 +120,7 @@ fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile) -> ZatRe
 
     let theme =
       ColorfulTheme {
-        active_item_style: Style::from_dotted_str("white.on_33.bold"),
+        active_item_style: Style::from_dotted_str("green.on_237.bold"),
         ..Default::default()
       };
 
