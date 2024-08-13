@@ -5,6 +5,7 @@ use crate::logging::Logger;
 use std::io::BufReader;
 use std::process::Command;
 use std::{fmt, format as s};
+use dialoguer::console::Style;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::FuzzySelect;
 use serde::Deserialize;
@@ -117,7 +118,10 @@ fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile) -> ZatRe
 
     selections.push(RemoteRepositoryChoice::Quit);
 
-    FuzzySelect::with_theme(&ColorfulTheme::default())
+    let mut theme = ColorfulTheme::default();
+    theme.active_item_style = Style::from_dotted_str("white.on_33.bold");
+
+    FuzzySelect::with_theme(&theme)
       .with_prompt("Select remote repository:")
       .default(0)
       .items(&selections)
@@ -142,9 +146,7 @@ fn get_remote_url_from_config_file(remote_config: &std::path::Path) -> ZatResult
 
   // TODO: Print out in verbose mode
   // println!("json: {json:#?}");
-  let user_selected_remote = get_remote_selection_from_user(remote_config_file)?;
-  // Use item selected by user as remote url
-  panic!("loading repository config file from {:?}", user_selected_remote)
+  get_remote_selection_from_user(remote_config_file)
 }
 
 fn create_process_templates_args(repository_directory: RepositoryDir, process_remote_templates_args: ProcessRemoteTemplatesArgs) -> ProcessTemplatesArgs {
