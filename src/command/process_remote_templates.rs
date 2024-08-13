@@ -1,5 +1,5 @@
 use crate::config::RepositoryDir;
-use crate::error::{zat_error, ZatAction, ZatError, ZatResult};
+use crate::error::{ZatAction, ZatError, ZatResult};
 use crate::args::{ProcessRemoteTemplatesArgs, ProcessTemplatesArgs, RemoteRepositoryLocation, UserConfigProvider};
 use crate::logging::Logger;
 use std::io::BufReader;
@@ -38,7 +38,7 @@ enum RemoteRepositoryChoice {
 impl fmt::Display for RemoteRepositoryChoice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
       let item = match self {
-        RemoteRepositoryChoice::Repository(RemoteConfig { name, description, url }) => format!("{name} - ({description})"),
+        RemoteRepositoryChoice::Repository(RemoteConfig { name, description, url: _ }) => format!("{name} - ({description})"),
         RemoteRepositoryChoice::Quit => "Quit".to_owned(),
       };
 
@@ -118,8 +118,11 @@ fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile) -> ZatRe
 
     selections.push(RemoteRepositoryChoice::Quit);
 
-    let mut theme = ColorfulTheme::default();
-    theme.active_item_style = Style::from_dotted_str("white.on_33.bold");
+    let theme =
+      ColorfulTheme {
+        active_item_style: Style::from_dotted_str("white.on_33.bold"),
+        ..Default::default()
+      };
 
     FuzzySelect::with_theme(&theme)
       .with_prompt("Select remote repository:")
