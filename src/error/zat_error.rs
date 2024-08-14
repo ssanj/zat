@@ -1,4 +1,6 @@
 
+use std::path::Path;
+
 use format as s;
 use url::Url;
 use super::ErrorFormat;
@@ -163,11 +165,12 @@ impl ZatError {
   }
 
   pub fn variable_file_cant_be_decoded(path: &str, reason: &str) -> ZatError {
+    let doc_url = "https://github.com/ssanj/zat/blob/main/docs/user-manual/defining-a-template/defining-tokens.md";
     ZatError::ProcessCommandError(
       ProcessCommandErrorReason::VariableFileError(
         VariableFileErrorReason::VariableDecodeError(
           s!("Variable file '{}' could not be decoded as JSON into the expected format. It failed decoding with this error: {}. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", path, reason),
-          s!("Make the variable file '{}' is a valid JSON file in the format required by Zat. See `zat --help` for more details on the format", path)
+          s!("Make the variable file '{}' is a valid JSON file in the format required by Zat. See `{doc_url}` for more details on the format", path)
         )
       )
     )
@@ -401,12 +404,34 @@ impl ZatError {
     )
   }
 
-  // TODO: Test
+
   pub fn remote_command_argument_error() -> ZatError {
     ZatError::ProcessRemoteCommandError(
       ProcessRemoteCommandErrorReason::InvalidArgumentError(
         "Zat remote needs one of --repository-url or --repository-file. None or both were supplied".to_owned(),
         "Please call Zat with one of --repository-url or --repository-file".to_owned()
+      )
+    )
+  }
+
+
+  pub fn could_not_open_repository_file(error: String, repository_file: &Path) -> ZatError {
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::CouldNotOpenRepositoryFile(
+        s!("Zat could not open the supplied repository file '{}'. Zat reads remote repositories from this file.", repository_file.to_string_lossy()),
+        error,
+        s!("Please ensure the repository file '{}' exists and can be read.", repository_file.to_string_lossy())
+      )
+    )
+  }
+
+
+  pub fn could_not_decode_repository_file(error: String, repository_file: &Path) -> ZatError {
+    ZatError::ProcessRemoteCommandError(
+      ProcessRemoteCommandErrorReason::CouldNotDecodeRepositoryFile(
+        s!("Zat could not decode the supplied repository file '{}'. Zat reads remote repositories from this file.", repository_file.to_string_lossy()),
+        error,
+        s!("Please ensure the repository file '{}' matches the format of remote-config.schema.json. See sameple-remote-config.json for an example.", repository_file.to_string_lossy())
       )
     )
   }

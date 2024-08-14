@@ -140,12 +140,10 @@ fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile) -> ZatRe
   }
 
 fn get_remote_url_from_config_file(remote_config: &std::path::Path) -> ZatResult<RemoteRepositoryChoice> {
-  // TODO: Add better error handling
-  let file = File::open(remote_config).unwrap();
+  let file = File::open(remote_config).map_err(|e| ZatError::could_not_open_repository_file(e.to_string(), remote_config))?;
   let reader = BufReader::new(file);
 
-  // TODO: Add better error handling
-  let remote_config_file = serde_json::from_reader(reader).unwrap();
+  let remote_config_file = serde_json::from_reader(reader).map_err(|e| ZatError::could_not_decode_repository_file(e.to_string(), remote_config))?;
 
   // TODO: Print out in verbose mode
   // println!("json: {json:#?}");

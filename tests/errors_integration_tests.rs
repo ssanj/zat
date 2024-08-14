@@ -65,7 +65,7 @@ fn error_message_on_non_json_variables_file() -> Result<(), Box<dyn std::error::
     ErrorParts::new(
       "Got an error processing variables".to_owned(),
       s!("Variable file '{}/.variables.zat-prompt' could not be decoded as JSON into the expected format. It failed decoding with this error: invalid type: integer `123`, expected a sequence at line 1 column 3. Zat uses this file to retrieve tokens that will be replaced when rendering the templates.", source_directory),
-      s!("Make the variable file '{}/.variables.zat-prompt' is a valid JSON file in the format required by Zat. See `zat --help` for more details on the format", source_directory),
+      s!("Make the variable file '{}/.variables.zat-prompt' is a valid JSON file in the format required by Zat. See `https://github.com/ssanj/zat/blob/main/docs/user-manual/defining-a-template/defining-tokens.md` for more details on the format", source_directory),
     );
 
   let error_test_config = ErrorTestConfig::source_no_input_directory_not_exists(test_directory, error_parts);

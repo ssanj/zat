@@ -18,7 +18,8 @@ use clap::{Args as SubArgs, Parser, Subcommand, ValueEnum};
 ///
 /// Templates: Are files that end with a '.tmpl'. Eg. 'README.md.tmpl'. They can have tokens in their name and in their content. The tokens in their names and content will get replaced when the repository is processed. The '.tmpl' suffix is removed when the processed template is written to the target directory.
 ///
-/// See https://github.com/ssanj/zat for more information on the '.variables.zat-prompt' format and more examples.
+/// See https://github.com/ssanj/zat/blob/main/docs/user-manual/defining-a-template.md for more information on the '.variables.zat-prompt' format for more examples.
+/// JSON Schema can be verified with a tool like boon: https://github.com/santhosh-tekuri/boon
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
 pub struct Args {

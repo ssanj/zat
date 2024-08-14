@@ -8,7 +8,9 @@ pub enum ProcessRemoteCommandErrorReason {
   CouldNotCreateCheckoutDirectoryStructure(String, String, String),
   GitCloneFailed(String, String, String),
   GitCloneStatusError(String, String),
-  InvalidArgumentError(String, String)
+  InvalidArgumentError(String, String),
+  CouldNotOpenRepositoryFile(String, String, String),
+  CouldNotDecodeRepositoryFile(String, String, String),
 }
 
 
@@ -23,6 +25,8 @@ impl From<&ProcessRemoteCommandErrorReason> for ErrorFormat {
           ProcessRemoteCommandErrorReason::GitCloneFailed(error, exception, remediation) => (error.to_owned(), Some(exception.to_owned()), Some(remediation.to_owned())),
           ProcessRemoteCommandErrorReason::GitCloneStatusError(error, remediation) => (error.to_owned(), None, Some(remediation.to_owned())),
           ProcessRemoteCommandErrorReason::InvalidArgumentError(error, remediation) => (error.to_owned(), None, Some(remediation.to_owned())),
+          ProcessRemoteCommandErrorReason::CouldNotOpenRepositoryFile(error, exception, remediation) => (error.to_owned(), Some(exception.to_owned()), Some(remediation.to_owned())),
+          ProcessRemoteCommandErrorReason::CouldNotDecodeRepositoryFile(error, exception, remediation) => (error.to_owned(), Some(exception.to_owned()), Some(remediation.to_owned())),
       };
 
       ErrorFormat {
