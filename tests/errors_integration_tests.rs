@@ -3,7 +3,7 @@ use file_differ::print_diff;
 use tempfile::tempdir;
 use predicates::prelude::*;
 use format as s;
-use std::println;
+use std::{fs::OpenOptions, io::Write, path::Path, println};
 
 mod file_differ;
 
@@ -336,6 +336,53 @@ fn error_message_on_invalid_remote_url() -> Result<(), Box<dyn std::error::Error
 }
 
 #[test]
+fn error_message_on_invalid_remote_repository_file() -> Result<(), Box<dyn std::error::Error>> {
+  let repository_file = Path::new("this/is/not/a/repository/file");
+  let working_directory = tempdir()?;
+  let repository_directory = working_directory.into_path().to_string_lossy().to_string();
+  let error_parts =
+    ErrorParts::with_exception(
+      "There was an error running a remote processing command".to_owned(),
+      "Zat could not open the supplied repository file 'this/is/not/a/repository/file'. Zat reads remote repositories from this file.".to_owned(),
+      "No such file or directory (os error 2)".to_owned(),
+      "Please ensure the repository file 'this/is/not/a/repository/file' exists and can be read.".to_owned()
+    );
+
+  let process_remote_config = ErrorRemoteTestConfig::repository_file_does_not_exist(repository_file, repository_directory.as_str(), error_parts);
+
+  run_remote_error_test(process_remote_config)
+}
+
+#[test]
+fn error_message_on_failing_to_decode_remote_repository_file() -> Result<(), Box<dyn std::error::Error>> {
+  let working_directory = tempdir()?;
+  let repository_file_name = working_directory.path().join("invalid_repository_file");
+
+  let mut repository_file =
+    OpenOptions::new()
+      .create_new(true)
+      .write(true)
+      .open(&repository_file_name).expect(&s!("Could not open repository file '{}'", &repository_file_name.to_string_lossy()));
+
+  let json = b"{\"name\": \"blee\"}";
+  repository_file.write_all(json).unwrap();
+  repository_file.flush().unwrap();
+
+  let repository_directory = working_directory.into_path().to_string_lossy().to_string();
+  let error_parts =
+    ErrorParts::with_exception(
+      "There was an error running a remote processing command".to_owned(),
+      s!("Zat could not decode the supplied repository file '{}'. Zat reads remote repositories from this file.", repository_file_name.to_string_lossy()),
+      "invalid type: map, expected a sequence at line 1 column 1".to_owned(),
+      s!("Please ensure the repository file '{}' matches the format of remote-config.schema.json. See sameple-remote-config.json for an example.", repository_file_name.to_string_lossy())
+    );
+
+  let process_remote_config = ErrorRemoteTestConfig::repository_file_does_not_exist(&repository_file_name, repository_directory.as_str(), error_parts);
+
+  run_remote_error_test(process_remote_config)
+}
+
+#[test]
 fn error_message_on_unsupported_hostname() -> Result<(), Box<dyn std::error::Error>> {
   let url = "data:text/plain, Stuff";
   let working_directory = tempdir()?;
@@ -429,8 +476,14 @@ struct ErrorTestConfig<'a> {
 }
 
 
+enum RemoteTestType<'a> {
+  Url(&'a str),
+  RepositoryFile(&'a Path)
+}
+
+
 struct ErrorRemoteTestConfig<'a> {
-  url: &'a str,
+  remote_type: RemoteTestType<'a>,
   test_directory: &'a str,
   maybe_target_directory: Option<&'a str>,
   error_parts: ErrorParts
@@ -573,8 +626,24 @@ impl <'a> ErrorRemoteTestConfig<'a> {
   fn source_no_input_directory_not_exists(url: &'a str, test_directory: &'a str, error_parts: ErrorParts) -> Self {
     let maybe_target_directory = None;
 
+    let remote_type = RemoteTestType::Url(url);
+
       Self {
-        url,
+        remote_type,
+        test_directory,
+        maybe_target_directory,
+        error_parts
+      }
+  }
+
+  /// Source error test, without input and without a target directory getting created.
+  fn repository_file_does_not_exist(repository_file: &'a Path, test_directory: &'a str, error_parts: ErrorParts) -> Self {
+    let maybe_target_directory = None;
+
+    let remote_type = RemoteTestType::RepositoryFile(repository_file);
+
+      Self {
+        remote_type,
         test_directory,
         maybe_target_directory,
         error_parts
@@ -665,13 +734,23 @@ fn run_remote_error_test(error_remote_config: ErrorRemoteTestConfig<'_>) -> Resu
     })
   };
 
-  let url = error_remote_config.url;
+  cmd.arg("process-remote");
+
+  match error_remote_config.remote_type {
+    RemoteTestType::Url(url) => {
+      cmd
+        .arg("--repository-url")
+        .arg(url)
+    },
+    RemoteTestType::RepositoryFile(repository_file) => {
+      cmd
+        .arg("--repository-file")
+        .arg(repository_file)
+    },
+  };
 
   let command =
     cmd
-      .arg("process-remote")
-      .arg("--repository-url")
-      .arg(url)
       .arg("--target-dir")
       .arg(&target_directory);
 
@@ -679,11 +758,6 @@ fn run_remote_error_test(error_remote_config: ErrorRemoteTestConfig<'_>) -> Resu
     .assert()
     .failure()
     .stderr(std_err_contains(error));
-
-  // if error_remote_config.target_directory_should_exist {
-  //   assert!(std::path::Path::new(&target_directory).exists());
-  //   println!("Target dir {} should not have been created", &target_directory);
-  // }
 
   Ok(())
 }
