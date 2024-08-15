@@ -1,6 +1,6 @@
 use std::io::{stdin, Read};
 use std::{println as p, format as s};
-use crate::templates::{Choice, TemplateVariable};
+use crate::templates::Choice;
 use crate::error::{ZatResult, ZatError};
 use ansi_term::Color::{Red, Yellow};
 use ansi_term::Style;
@@ -9,10 +9,10 @@ use super::{ChoiceStyle, ChoiceError};
 
 pub struct NumberedChoiceStyle;
 
-impl ChoiceStyle for NumberedChoiceStyle {
+impl ChoiceStyle<Choice> for NumberedChoiceStyle {
 
-  fn get_choice<'a>(variable: &TemplateVariable, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
-    let mut result = Self::print_menu(variable.prompt.as_str(), items);
+  fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
+    let mut result = Self::print_menu(prompt, items);
     while let Err(error) = result {
       let error_message = match error {
         ChoiceError::CouldNotReadInput(error) => s!("Could not read input: {error}"),
@@ -25,7 +25,7 @@ impl ChoiceStyle for NumberedChoiceStyle {
       let _ = stdin().read(&mut char_buf);
       p!();
       p!();
-      result = Self::print_menu(variable.prompt.as_str(), items);
+      result = Self::print_menu(prompt, items);
     }
 
     result
@@ -42,7 +42,7 @@ impl NumberedChoiceStyle {
       items
         .iter()
         .enumerate()
-        .map(|(n, v)| s!("  {} {} {}", n + 1, v.display, v.description))
+        .map(|(n, v)| s!("  {} {}", n + 1, v))
         .collect::<Vec<_>>();
 
     p!("{}", it.join("\n"));

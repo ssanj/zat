@@ -1,24 +1,24 @@
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::FuzzySelect;
 use std::format as s;
-use crate::templates::{Choice, TemplateVariable};
+use crate::templates::Choice;
 use crate::error::{ZatResult, ZatError};
 use super::ChoiceStyle;
 
 pub struct SelectionChoiceStyle;
 
-impl ChoiceStyle for SelectionChoiceStyle {
+impl ChoiceStyle<Choice> for SelectionChoiceStyle {
 
-  fn get_choice<'a>(variable: &TemplateVariable, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
+  fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
 
     let selections =
       items
         .iter()
-        .map(|v| s!("{} - {}", v.display, v.description))
+        .map(|v| s!("{}", v))
         .collect::<Vec<_>>();
 
     FuzzySelect::with_theme(&ColorfulTheme::default())
-      .with_prompt(variable.prompt.as_str())
+      .with_prompt(prompt)
       .default(0)
       .items(&selections)
       .interact()

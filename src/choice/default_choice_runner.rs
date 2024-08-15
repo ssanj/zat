@@ -25,8 +25,8 @@ impl ChoiceRunner for DefaultChoiceRunner {
 
 
     let choice_style = match user_config.menu_style {
-        crate::config::user_config::MenuStyle::Numbered => <NumberedChoiceStyle as ChoiceStyle>::get_choice,
-        crate::config::user_config::MenuStyle::Selection => <SelectionChoiceStyle as ChoiceStyle>::get_choice,
+        crate::config::user_config::MenuStyle::Numbered => <NumberedChoiceStyle as ChoiceStyle<Choice>>::get_choice,
+        crate::config::user_config::MenuStyle::Selection => <SelectionChoiceStyle as ChoiceStyle<Choice>>::get_choice,
     };
 
     // Ask user to select a single choice
@@ -34,7 +34,7 @@ impl ChoiceRunner for DefaultChoiceRunner {
       choice_refs
         .into_iter()
         .map(|(v, ch)| {
-          choice_style(v, &ch)
+          choice_style(&v.prompt, &ch)
             .cloned()
             .map(|c| (v, c))
         })
