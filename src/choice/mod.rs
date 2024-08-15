@@ -15,7 +15,6 @@ pub use default_choice_runner::DefaultChoiceRunner;
 pub use choice_error::ChoiceError;
 pub use choice_scope_filter::ChoiceScopeFilter;
 pub use default_choice_scope_filter::DefaultChoiceScopeFilter;
-
-use numbered_choice_style::NumberedChoiceStyle;
-use selection_choice_style::SelectionChoiceStyle;
-use choice_style::ChoiceStyle;
+pub use selection_choice_style::SelectionChoiceStyle;
+pub use choice_style::ChoiceStyle;
+pub use numbered_choice_style::NumberedChoiceStyle;

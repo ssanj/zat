@@ -13,7 +13,7 @@ use tempfile::TempDir;
 use url::Url;
 use std::fs::{self, File};
 use super::ProcessTemplates;
-
+use crate::choice::{ChoiceStyle, SelectionChoiceStyle};
 
 pub struct ProcessRemoteTemplates;
 
@@ -108,7 +108,6 @@ impl ProcessRemoteTemplates {
 }
 
 fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile) -> ZatResult<RemoteRepositoryChoice> {
-
   let mut selections =
     remote_config_file
       .0
@@ -118,25 +117,12 @@ fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile) -> ZatRe
 
     selections.push(RemoteRepositoryChoice::Quit);
 
-    let theme =
-      ColorfulTheme {
-        active_item_style: Style::from_dotted_str("green.on_237.bold"),
-        ..Default::default()
-      };
+    let items =
+      selections
+        .iter()
+        .collect::<Vec<_>>();
 
-    FuzzySelect::with_theme(&theme)
-      .with_prompt("Select remote repository:")
-      .default(0)
-      .items(&selections)
-      .interact()
-      .map_err(|e| ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1000", e.to_string()))
-      .and_then(|index| {
-        let err = || ZatError::generic_error("Could not get successful result from choice. ERROR_ID: 1001", "Invalid selection index: {index}".to_owned());
-          selections
-            .get(index)
-            .cloned()
-            .ok_or_else(err)
-      })
+    SelectionChoiceStyle::get_choice("Select remote repository:", &items).cloned()
   }
 
 fn get_remote_url_from_config_file(remote_config: &std::path::Path) -> ZatResult<RemoteRepositoryChoice> {

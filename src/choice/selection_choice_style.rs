@@ -1,15 +1,16 @@
+use dialoguer::console::Style;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::FuzzySelect;
-use std::format as s;
-use crate::templates::Choice;
+use std::{fmt::Display, format as s};
 use crate::error::{ZatResult, ZatError};
 use super::ChoiceStyle;
 
 pub struct SelectionChoiceStyle;
 
-impl ChoiceStyle<Choice> for SelectionChoiceStyle {
+impl <T: Display> ChoiceStyle<T> for SelectionChoiceStyle {
 
-  fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
+  fn get_choice<'a>(prompt: &str, items: &'a [&'a T]) -> ZatResult<&'a T>
+  {
 
     let selections =
       items
@@ -17,7 +18,13 @@ impl ChoiceStyle<Choice> for SelectionChoiceStyle {
         .map(|v| s!("{}", v))
         .collect::<Vec<_>>();
 
-    FuzzySelect::with_theme(&ColorfulTheme::default())
+    let theme =
+      ColorfulTheme {
+        active_item_style: Style::from_dotted_str("green.on_237.bold"),
+        ..Default::default()
+      };
+
+    FuzzySelect::with_theme(&theme)
       .with_prompt(prompt)
       .default(0)
       .items(&selections)
