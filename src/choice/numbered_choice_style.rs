@@ -1,7 +1,6 @@
 use std::fmt::Display;
 use std::io::{stdin, Read};
 use std::{println as p, format as s};
-use crate::templates::Choice;
 use crate::error::{ZatResult, ZatError};
 use ansi_term::Color::{Red, Yellow};
 use ansi_term::Style;
