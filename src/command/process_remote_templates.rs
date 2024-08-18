@@ -5,15 +5,12 @@ use crate::logging::Logger;
 use std::io::BufReader;
 use std::process::Command;
 use std::{fmt, format as s};
-use dialoguer::console::Style;
-use dialoguer::theme::ColorfulTheme;
-use dialoguer::FuzzySelect;
 use serde::Deserialize;
 use tempfile::TempDir;
 use url::Url;
 use std::fs::{self, File};
 use super::ProcessTemplates;
-use crate::choice::{ChoiceStyle, SelectionChoiceStyle};
+use crate::choice::{ChoiceStyle, NumberedChoiceStyle, SelectionChoiceStyle};
 
 pub struct ProcessRemoteTemplates;
 
@@ -53,7 +50,7 @@ impl ProcessRemoteTemplates {
 
     let remote_url = match (repository_url, repository_file) {
       (None, Some(remote_config)) => {
-        let remote_choice = get_remote_url_from_config_file(remote_config)?;
+        let remote_choice = get_remote_url_from_config_file(remote_config, &process_remote_template_args)?;
         match remote_choice {
           RemoteRepositoryChoice::Repository(remote_config) => remote_config.url,
           RemoteRepositoryChoice::Quit => return Ok(())
@@ -107,7 +104,7 @@ impl ProcessRemoteTemplates {
   }
 }
 
-fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile) -> ZatResult<RemoteRepositoryChoice> {
+fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile, config: &ProcessRemoteTemplatesArgs) -> ZatResult<RemoteRepositoryChoice> {
   let mut selections =
     remote_config_file
       .0
@@ -122,15 +119,20 @@ fn get_remote_selection_from_user(remote_config_file: RemoteConfigFile) -> ZatRe
         .iter()
         .collect::<Vec<_>>();
 
-    SelectionChoiceStyle::get_choice("Select remote repository:", &items).cloned()
+    let selection_type = match config.choice_menu_style {
+      crate::args::ChoiceMenuStyle::Numbered => NumberedChoiceStyle::get_choice,
+      crate::args::ChoiceMenuStyle::Selection => SelectionChoiceStyle::get_choice,
+    };
+
+    selection_type("Select remote repository:", &items).cloned()
   }
 
-fn get_remote_url_from_config_file(remote_config: &std::path::Path) -> ZatResult<RemoteRepositoryChoice> {
+fn get_remote_url_from_config_file(remote_config: &std::path::Path, config: &ProcessRemoteTemplatesArgs) -> ZatResult<RemoteRepositoryChoice> {
   let file = File::open(remote_config).map_err(|e| ZatError::could_not_open_repository_file(e.to_string(), remote_config))?;
   let reader = BufReader::new(file);
   let remote_config_file = serde_json::from_reader(reader).map_err(|e| ZatError::could_not_decode_repository_file(e.to_string(), remote_config))?;
 
-  get_remote_selection_from_user(remote_config_file)
+  get_remote_selection_from_user(remote_config_file, config)
 }
 
 fn create_process_templates_args(repository_directory: RepositoryDir, process_remote_templates_args: ProcessRemoteTemplatesArgs) -> ProcessTemplatesArgs {

@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::io::{stdin, Read};
 use std::{println as p, format as s};
 use crate::templates::Choice;
@@ -9,9 +10,10 @@ use super::{ChoiceStyle, ChoiceError};
 
 pub struct NumberedChoiceStyle;
 
-impl ChoiceStyle<Choice> for NumberedChoiceStyle {
+impl <T: Display> ChoiceStyle<T> for NumberedChoiceStyle {
 
-  fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
+  fn get_choice<'a>(prompt: &str, items: &'a [&'a T]) -> ZatResult<&'a T> {
+  // fn get_choice<'a>(prompt: &str, items: &'a [&'a Choice]) -> ZatResult<&'a Choice> {
     let mut result = Self::print_menu(prompt, items);
     while let Err(error) = result {
       let error_message = match error {
@@ -35,7 +37,7 @@ impl ChoiceStyle<Choice> for NumberedChoiceStyle {
 
 impl NumberedChoiceStyle {
 
-  fn print_menu<'a>(prompt: &str, items: &'a [&'a Choice]) -> Result<&'a Choice, ChoiceError> {
+  fn print_menu<'a, T: Display>(prompt: &str, items: &'a [&'a T]) -> Result<&'a T, ChoiceError> {
     p!("{}", Yellow.paint(prompt));
 
     let it =
