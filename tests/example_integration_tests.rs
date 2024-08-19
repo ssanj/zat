@@ -199,6 +199,32 @@ fn runs_the_bootstrap_template() -> Result<(), Box<dyn std::error::Error>> {
   assert_run_bootstrap_example(bootstrap_test_config)
 }
 
+
+#[test]
+fn runs_remote_repository() -> Result<(), Box<dyn std::error::Error>> {
+  let remote_config =
+    RemoteTestConfig::new(
+      "remote-rust-cli",
+      RemoteRepositoryType::Url("https://github.com/ssanj/rust-cli-zat"),
+      &["MyRustCli", "A simple CLI in Rust", "y"],
+    );
+
+  assert_run_remote_example(remote_config)
+}
+
+
+#[test]
+fn runs_remote_repository_file() -> Result<(), Box<dyn std::error::Error>> {
+  let remote_config =
+    RemoteTestConfig::new(
+      "remote-repository-file",
+      RemoteRepositoryType::File("sample-remote-config.json"),
+      &["3", "My Scala Program", "", "", "y"],
+    );
+
+  assert_run_remote_example(remote_config)
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Helper classes
 //----------------------------------------------------------------------------------------------------------------------
@@ -210,6 +236,21 @@ enum AssertionType<'a> {
 
 struct ExampleTestConfig<'a> {
   test_directory: &'a str,
+  maybe_input: Option<&'a[&'a str]>,
+  maybe_target_directory: Option<&'a Path>,
+  maybe_stdout_assertions: Option<AssertionType<'a>>,
+  files_that_should_not_exist: &'a[&'a Path],
+  ignores: &'a[&'a str]
+}
+
+enum RemoteRepositoryType<'a> {
+  Url(&'a str),
+  File(&'a str),
+}
+
+struct RemoteTestConfig<'a> {
+  test_directory: &'a str,
+  remote_repository_type: RemoteRepositoryType<'a>,
   maybe_input: Option<&'a[&'a str]>,
   maybe_target_directory: Option<&'a Path>,
   maybe_stdout_assertions: Option<AssertionType<'a>>,
@@ -288,6 +329,26 @@ impl <'a> BootstrapExampleTestConfig<'a> {
   }
 }
 
+impl <'a> RemoteTestConfig<'a> {
+  fn new(test_directory: &'a str, repo_type: RemoteRepositoryType<'a>, input: &'a[&'a str]) -> Self {
+
+    let maybe_input = Some(input);
+    let maybe_stdout_assertions = None;
+    let maybe_target_directory = None;
+    let files_that_should_not_exist = &[];
+    let ignores = &[];
+
+    Self {
+      test_directory,
+      remote_repository_type: repo_type,
+      maybe_input,
+      maybe_target_directory,
+      maybe_stdout_assertions,
+      files_that_should_not_exist,
+      ignores
+    }
+  }
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // Helper functions
@@ -355,6 +416,99 @@ fn assert_run_example(example_config: ExampleTestConfig) -> Result<(), Box<dyn s
 
   // Files that should not exist; might be ignore or deleted via a shell hook
   for unexpected_file in example_config.files_that_should_not_exist {
+    let fullpath = Path::new(&target_directory).join(unexpected_file);
+    assert!(!fullpath.exists(), "{}", Red.paint(s!("Unexpected file `{}` exists", fullpath.to_string_lossy())));
+  }
+
+  println!("Target Directory {} contents", &target_directory);
+  println!();
+  for f in list_directory_contents(&target_directory) {
+    println!("{}", f);
+  }
+
+  println!("Expected Target {} Directory contents", &expected_target_directory);
+  println!();
+  for f in list_directory_contents(&expected_target_directory) {
+    println!("{}", f);
+  }
+
+  print_changes(&expected_target_directory, &target_directory);
+
+  assert!(!dir_diff::is_different(&target_directory, expected_target_directory).unwrap());
+
+  Ok(())
+}
+
+// TODO: Write an example that uses a GH remote repository
+fn assert_run_remote_example(remote_config: RemoteTestConfig) -> Result<(), Box<dyn std::error::Error>> {
+  let mut cmd = Command::cargo_bin("zat").unwrap();
+  let expected_target_directory = s!("./tests/examples/{}/destination", remote_config.test_directory);
+
+  let target_directory = match remote_config.maybe_target_directory {
+    Some(td) => td.to_string_lossy().to_string(),
+    None => {
+      let working_directory = tempdir()?;
+      working_directory.into_path().join(s!("example-{}", remote_config.test_directory)).to_string_lossy().to_string()
+    },
+  };
+
+  p!("target directory: {}", &target_directory);
+
+  let std_out_contains = |expected:&str| {
+    let owned_expected = expected.to_owned();
+    predicate::function(move |out: &[u8]| {
+      let output = std::str::from_utf8(out).expect("Could not convert stdout to string");
+      p!("Could not validate stdout contains: {}", &owned_expected);
+      output.contains(&owned_expected)
+    })
+  };
+
+  cmd.arg("process-remote");
+
+  match remote_config.remote_repository_type {
+    RemoteRepositoryType::Url(url) => {
+      cmd
+        .arg("--repository-url")
+        .arg(url);
+    },
+    RemoteRepositoryType::File(file) => {
+     cmd
+      .arg("--repository-file")
+      .arg(file);
+    },
+  }
+
+  cmd
+    .arg("--target-dir")
+    .arg(&target_directory)
+    .arg("--choice-menu-style")
+    .arg("numbered"); // The selection menu style can't be tested through stdin at the moment; use numbered which can.
+
+    for ig in remote_config.ignores {
+      cmd
+        .arg("--ignores")
+        .arg(ig);
+    }
+
+    if let Some(input) = remote_config.maybe_input {
+      cmd.write_stdin(stdin(input));
+    }
+
+  let mut output =
+    cmd
+      .assert()
+      .success();
+
+  if let Some(AssertionType::Contains(contents)) = remote_config.maybe_stdout_assertions {
+    for content in contents {
+      output = output.stdout(std_out_contains(content));
+    }
+  }
+
+  assert!(Path::new(&target_directory).exists(), "{}", Red.paint(s!("target directory `{}` does not exist", &target_directory)));
+
+  // Files that should not exist; might be ignore or deleted via a shell hook
+  for unexpected_file in remote_config.files_that_should_not_exist {
     let fullpath = Path::new(&target_directory).join(unexpected_file);
     assert!(!fullpath.exists(), "{}", Red.paint(s!("Unexpected file `{}` exists", fullpath.to_string_lossy())));
   }

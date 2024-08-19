@@ -1,0 +1,12 @@
+#!/bin/bash
+
+TARGET_DIR="$1"
+
+SCRIPTS=(compile qcompile compile-test qcompile-test run-test qrun-test release-local)
+
+echo "making scripts executable..."
+
+for script in "${SCRIPTS[@]}"
+do
+  chmod +x "$TARGET_DIR/$script"
+done

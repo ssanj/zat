@@ -5,9 +5,14 @@
     "url": "https://github.com/ssanj/rust-cli-zat"
   },
   {
-    "name": "Scala 3 Template",
+    "name": "Scala 3 Template (Latest)",
     "description": "A Scala 3 template with Scala3 and MUnit",
     "url": "https://github.com/ssanj/basic-scala3-latest-deps-zat"
+  },
+  {
+    "name": "Scala 3 Template (Basic)",
+    "description": "A Scala 3 template with Scala3 and MUnit",
+    "url": "https://github.com/ssanj/basic-scala3-zat"
   },
   {
     "name": "Sublime Text 3 Plugin Template",

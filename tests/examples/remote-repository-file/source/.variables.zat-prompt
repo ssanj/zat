@@ -1,0 +1,24 @@
+[
+  {
+    "variable_name": "project",
+    "description": "Name of project",
+    "prompt": "Please enter your project name",
+    "filters": [
+      { "name": "__default__",
+        "filter": "Pascal"
+      }
+    ]
+  },
+  {
+    "variable_name": "scala_3_version",
+    "description": "Which version of Scala 3 to use",
+    "prompt": "Please enter Scala 3 version to use",
+    "default_value": "3.3.1"
+  },
+  {
+    "variable_name": "munit_version",
+    "description": "Which version of MUnit to use",
+    "prompt": "Please enter MUnit version to use",
+    "default_value": "0.7.29"
+  }
+]

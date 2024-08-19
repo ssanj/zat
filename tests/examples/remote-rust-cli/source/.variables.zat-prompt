@@ -1,0 +1,20 @@
+[
+  {
+    "variable_name": "program",
+    "description": "Name of program",
+    "prompt": "Please enter name for your cli program",
+    "filters": [
+      { "name": "__default__",
+        "filter": "Kebab"
+      },
+      { "name": "title",
+        "filter": "Title"
+      }
+    ]
+  },
+  {
+    "variable_name": "tag_line",
+    "description": "Tag line for your program",
+    "prompt": "Please enter the tag line for your program"
+  }
+]

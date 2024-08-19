@@ -1,0 +1,12 @@
+val scala3Version = "$scala_3_version$"
+
+lazy val root = project
+  .in(file("."))
+  .settings(
+    name := "$project$",
+    version := "0.1.0-SNAPSHOT",
+
+    scalaVersion := scala3Version,
+
+    libraryDependencies += "org.scalameta" %% "munit" % "$munit_version$" % Test
+  )
